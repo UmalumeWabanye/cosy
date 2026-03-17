@@ -1,4 +1,5 @@
-const cloudinary = require('cloudinary').v2;
+// cloudinary v2: the default export is the v2 API
+const { v2: cloudinary } = require('cloudinary');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
