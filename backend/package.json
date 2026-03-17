@@ -1,0 +1,1 @@
+{\n  "name": "cosy",\n  "version": "1.0.0",\n  "description": "A MERN project",\n  "main": "index.js",\n  "scripts": {\n    "start": "node backend/server.js",\n    "dev": "nodemon backend/server.js"\n  },\n  "author": "UmalumeWabanye",\n  "license": "ISC"\n}
