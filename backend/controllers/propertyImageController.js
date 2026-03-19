@@ -1,4 +1,4 @@
-onst Property = require('../models/Property');
+const Property = require('../models/Property');
 const ErrorResponse = require('../utils/errorResponse');
 const multer = require('multer');
 const path = require('path');
@@ -30,7 +30,7 @@ const upload = multer({
 // @desc    Upload property image
 // @route   POST /api/admin/properties/:id/upload-image
 // @access  Private
-exports.uploadPropertyImage = async (req, res, next) => {
+const uploadPropertyImage = async (req, res, next) => {
   try {
     if (!req.file) {
       return next(new ErrorResponse('No file uploaded', 400));

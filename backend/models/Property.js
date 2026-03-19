@@ -22,6 +22,25 @@ const roomTypeSchema = new mongoose.Schema({
   description: String,
 });
 
+const reviewSchema = new mongoose.Schema({
+  student: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  rating: {
+    type: Number,
+    required: [true, 'Please provide a rating'],
+    min: [1, 'Rating must be at least 1'],
+    max: [5, 'Rating cannot exceed 5'],
+  },
+  comment: String,
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
 const propertySchema = new mongoose.Schema({
   name: {
     type: String,
@@ -100,6 +119,17 @@ const propertySchema = new mongoose.Schema({
       type: String,
     },
   ],
+  reviews: [reviewSchema],
+  rating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5,
+  },
+  reviewCount: {
+    type: Number,
+    default: 0,
+  },
   nsfasAccreditation: {
     type: Boolean,
     default: false,
