@@ -7,22 +7,24 @@
       "DOM",
       "DOM.Iterable"
     ],
-    "module": "ESNext",
-    "skipLibCheck": true,
+  "module": "NodeNext",
+  "skipLibCheck": true,
     "paths": {
       "@/*": [
         "./src/*"
       ]
     },
-    "allowJs": true,
+  "allowJs": true,
     "strict": false,
     "noEmit": true,
     "incremental": true,
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
+  "esModuleInterop": true,
+  "moduleResolution": "nodenext",
+  "resolveJsonModule": true,
+  "isolatedModules": true,
+  "jsx": "preserve",
+  "baseUrl": ".",
+  "types": ["next", "node"],
     "plugins": [
       {
         "name": "next"

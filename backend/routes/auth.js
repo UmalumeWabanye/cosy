@@ -1,9 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const { register, login, getMe } = require('../controllers/authController');
+const { protect } = require('../middleware/auth');
 
-// Routes will be implemented in Task 2: Build Authentication System
-// - POST /api/auth/register
-// - POST /api/auth/login
-// - GET /api/auth/me
+// Public routes
+router.post('/register', register);
+router.post('/login', login);
+
+// Protected routes
+router.get('/me', protect, getMe);
 
 module.exports = router;
