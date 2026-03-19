@@ -1,8 +1,14 @@
+Copilot said: Perfect! I can see the property details
+Perfect! I can see the property details page has an "Inquire Now" button. Let me update it to link to the request page. Let me modify it:
+
+bash
+cat > src/app/browse/propDetails/page.tsx << 'EOF'
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
 import api from '@/services/api';
 
 interface Property {
@@ -38,6 +44,8 @@ interface Property {
 
 export default function PropertyDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const { user } = useAuth();
   const propertyId = params.id as string;
 
   const [property, setProperty] = useState<Property | null>(null);
@@ -63,6 +71,16 @@ export default function PropertyDetailPage() {
       fetchProperty();
     }
   }, [propertyId]);
+
+  const handleInquire = () => {
+    if (user?.role === 'student') {
+      router.push(`/browse/${propertyId}/request`);
+    } else if (user) {
+      alert('Only students can make requests');
+    } else {
+      router.push('/login');
+    }
+  };
 
   if (loading) {
     return (
@@ -243,12 +261,24 @@ export default function PropertyDetailPage() {
                 </div>
               )}
 
-              <button className="w-full btn-primary py-3 font-semibold mb-3">
-                Inquire Now
-              </button>
+              {property.availableRooms > 0 ? (
+                <button
+                  onClick={handleInquire}
+                  className="w-full btn-primary py-3 font-semibold mb-3"
+                >
+                  Request Room
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="w-full bg-gray-400 text-white py-3 font-semibold mb-3 rounded-lg cursor-not-allowed"
+                >
+                  No Rooms Available
+                </button>
+              )}
 
               <button className="w-full btn-secondary py-3 font-semibold">
-                Shortlist Property
+                ♡ Shortlist Property
               </button>
             </div>
 

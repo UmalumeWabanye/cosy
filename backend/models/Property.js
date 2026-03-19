@@ -104,6 +104,11 @@ const propertySchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  published: {
+    type: Boolean,
+    default: false,
+    description: 'Whether the property is published and visible to students',
+  },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
