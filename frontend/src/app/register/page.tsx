@@ -38,6 +38,8 @@ export default function RegisterPage() {
     fundingType: '',
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -82,6 +84,8 @@ export default function RegisterPage() {
         return;
       }
 
+      console.log('Submitting registration:', formData);
+
       const response = await api.post('/auth/register', {
         name: formData.name,
         email: formData.email,
@@ -90,6 +94,8 @@ export default function RegisterPage() {
         fundingType: formData.fundingType,
       });
 
+      console.log('Registration response:', response.data);
+
       if (response.data.success) {
         setSuccess('Registration successful! Redirecting...');
 
@@ -97,13 +103,14 @@ export default function RegisterPage() {
         setToken(response.data.token);
         setUser(response.data.user);
 
-        // Redirect to dashboard after 1 second
+        // Redirect to dashboard after 2 seconds
         setTimeout(() => {
           router.push('/dashboard');
-        }, 1000);
+        }, 2000);
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Registration failed';
+      console.error('Registration error:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'Registration failed';
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -121,19 +128,19 @@ export default function RegisterPage() {
 
         {/* Card */}
         <div className="card p-8 shadow-lg">
-          <h2 className="text-2xl font-bold mb-6 text-center">Create Account</h2>
+          <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Create Account</h2>
 
           {/* Error Message */}
           {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700 text-sm">{error}</p>
+              <p className="text-red-700 text-sm font-medium">{error}</p>
             </div>
           )}
 
           {/* Success Message */}
           {success && (
             <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-700 text-sm">{success}</p>
+              <p className="text-green-700 text-sm font-medium">{success}</p>
             </div>
           )}
 
@@ -178,16 +185,66 @@ export default function RegisterPage() {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••"
-                className="input-base"
-                required
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••"
+                  className="input-base pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-primary transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15.364 5.364l1.414-1.414M9.172 9.172L7.757 7.757m3.536 9.172l-1.414 1.414M20.485 4.515l1.414-1.414"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
               <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
             </div>
 
@@ -196,16 +253,66 @@ export default function RegisterPage() {
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                 Confirm Password
               </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="••••••"
-                className="input-base"
-                required
-              />
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="••••••"
+                  className="input-base pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-primary transition-colors"
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showConfirmPassword ? (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15.364 5.364l1.414-1.414M9.172 9.172L7.757 7.757m3.536 9.172l-1.414 1.414M20.485 4.515l1.414-1.414"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* University */}
@@ -256,7 +363,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-primary py-3 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full btn-primary py-3 mt-6 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
             >
               {loading ? 'Creating account...' : 'Sign Up'}
             </button>
@@ -272,15 +379,15 @@ export default function RegisterPage() {
           {/* Login Link */}
           <p className="text-center text-gray-600">
             Already have an account?{' '}
-            <Link href="/login" className="text-primary font-semibold hover:underline">
+            <Link href="/login" className="text-primary font-semibold hover:opacity-80 transition-opacity">
               Sign in
             </Link>
           </p>
         </div>
 
         {/* Footer */}
-        <p className="text-center text-gray-500 text-sm mt-6">
-          <Link href="/" className="hover:text-primary">
+        <p className="text-center text-gray-600 text-sm mt-6">
+          <Link href="/" className="hover:text-primary transition-colors">
             ← Back to Home
           </Link>
         </p>

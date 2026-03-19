@@ -1,0 +1,733 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import Link from 'next/link';
+import api from '@/services/api';
+
+const AMENITIES = [
+  'WiFi',
+  'Parking',
+  'Gym',
+  'Laundry',
+  'Kitchen',
+  'TV Lounge',
+  'Garden',
+  'Security',
+  'DSTV',
+  'Water Heater',
+];
+
+const UNIVERSITIES = [
+  'University of Cape Town',
+  'Stellenbosch University',
+  'University of the Western Cape',
+  'University of Johannesburg',
+  'University of Pretoria',
+  'Wits University',
+  'University of KwaZulu-Natal',
+  'North West University',
+  'University of Free State',
+  'Rhodes University',
+];
+
+const ROOM_TYPES = ['Single', 'Shared/Communal', 'Double', 'Studio', 'Other'];
+
+interface RoomType {
+  type: string;
+  quantity: string;
+  availableQuantity: string;
+  pricePerMonth: string;
+  description: string;
+}
+
+export default function NewPropertyPage() {
+  const router = useRouter();
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [error, setError] = useState('');
+
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    address: '',
+    city: '',
+    postalCode: '',
+    university: '',
+    minRent: '',
+    maxRent: '',
+    deposit: '',
+    totalRooms: '',
+    availableRooms: '',
+    roomTypes: [] as RoomType[],
+    amenities: [] as string[],
+    nsfasAccreditation: false,
+  });
+
+  const [newImages, setNewImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || user?.role !== 'admin') {
+    return null;
+  }
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target as HTMLInputElement;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+    }));
+  };
+
+  const handleAmenityChange = (amenity: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      amenities: prev.amenities.includes(amenity)
+        ? prev.amenities.filter((a) => a !== amenity)
+        : [...prev.amenities, amenity],
+    }));
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    const previews = files.map((file) => {
+      const reader = new FileReader();
+      return new Promise<string>((resolve) => {
+        reader.onloadend = () => {
+          resolve(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(previews).then((results) => {
+      setImagePreviews((prev) => [...prev, ...results]);
+    });
+
+    setNewImages((prev) => [...prev, ...files]);
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    setNewImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddRoomType = () => {
+    setFormData((prev) => ({
+      ...prev,
+      roomTypes: [
+        ...prev.roomTypes,
+        {
+          type: '',
+          quantity: '',
+          availableQuantity: '',
+          pricePerMonth: '',
+          description: '',
+        },
+      ],
+    }));
+  };
+
+  const handleRemoveRoomType = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      roomTypes: prev.roomTypes.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleRoomTypeChange = (index: number, field: string, value: string) => {
+    setFormData((prev) => {
+      const updated = [...prev.roomTypes];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, roomTypes: updated };
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      if (
+        !formData.name ||
+        !formData.description ||
+        !formData.address ||
+        !formData.city ||
+        !formData.university ||
+        !formData.minRent ||
+        !formData.maxRent ||
+        !formData.deposit ||
+        !formData.totalRooms ||
+        formData.availableRooms === ''
+      ) {
+        setError('Please fill in all required fields');
+        setLoading(false);
+        return;
+      }
+
+      const availableRooms = parseInt(formData.availableRooms);
+      const totalRooms = parseInt(formData.totalRooms);
+
+      if (availableRooms > totalRooms) {
+        setError('Available rooms cannot exceed total rooms');
+        setLoading(false);
+        return;
+      }
+
+      if (formData.roomTypes.length > 0) {
+        for (let rt of formData.roomTypes) {
+          if (!rt.type || !rt.quantity || !rt.availableQuantity || !rt.pricePerMonth) {
+            setError('Please fill in all room type fields');
+            setLoading(false);
+            return;
+          }
+        }
+
+        const totalRoomTypesQty = formData.roomTypes.reduce((sum, rt) => sum + parseInt(rt.quantity || '0'), 0);
+        if (totalRoomTypesQty !== totalRooms) {
+          setError(
+            `Total room types quantity (${totalRoomTypesQty}) must equal total rooms (${totalRooms})`
+          );
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Create property first
+      const response = await api.post('/admin/properties', {
+        name: formData.name,
+        description: formData.description,
+        address: formData.address,
+        city: formData.city,
+        postalCode: formData.postalCode,
+        university: formData.university,
+        minRent: parseInt(formData.minRent),
+        maxRent: parseInt(formData.maxRent),
+        deposit: parseInt(formData.deposit),
+        totalRooms: parseInt(formData.totalRooms),
+        availableRooms: parseInt(formData.availableRooms),
+        roomTypes: formData.roomTypes.length > 0 ? formData.roomTypes : undefined,
+        amenities: formData.amenities,
+        nsfasAccreditation: formData.nsfasAccreditation,
+      });
+
+      if (!response.data.success) {
+        setError('Failed to create property');
+        setLoading(false);
+        return;
+      }
+
+      const propertyId = response.data.data._id;
+      let uploadedImages: string[] = [];
+
+      // Upload images if any
+      if (newImages.length > 0) {
+        setUploadingImage(true);
+        for (const file of newImages) {
+          const imageFormData = new FormData();
+          imageFormData.append('file', file);
+
+          try {
+            const uploadResponse = await api.post(
+              `/admin/properties/${propertyId}/upload-image`,
+              imageFormData,
+              {
+                headers: {
+                  'Content-Type': 'multipart/form-data',
+                },
+              }
+            );
+
+            if (uploadResponse.data.imageUrl) {
+              uploadedImages.push(uploadResponse.data.imageUrl);
+            }
+          } catch (imgErr: any) {
+            console.error('Image upload failed:', imgErr);
+          }
+        }
+
+        // Update property with images if any were uploaded
+        if (uploadedImages.length > 0) {
+          await api.put(`/admin/properties/${propertyId}`, {
+            images: uploadedImages,
+          });
+        }
+        setUploadingImage(false);
+      }
+
+      router.push('/admin/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to create property');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="container py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-primary">Cosy Admin</h1>
+          <div className="flex items-center gap-4">
+            <span className="text-gray-700">{user?.name}</span>
+            <button
+              onClick={() => {
+                localStorage.clear();
+                router.push('/');
+              }}
+              className="btn-secondary px-4 py-2 text-sm"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div className="container py-8">
+        <div className="mb-6">
+          <Link href="/admin/dashboard" className="text-primary hover:underline font-semibold">
+            ← Back to Dashboard
+          </Link>
+        </div>
+
+        <div className="max-w-2xl">
+          <h2 className="text-3xl font-bold mb-8">Create New Property</h2>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="card p-8 space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Property Name *
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="e.g., Cosy Student Residence"
+                className="input-base"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description *
+              </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Describe your property..."
+                rows={4}
+                className="input-base"
+                required
+              />
+            </div>
+
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold mb-4">Location</h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address *
+                  </label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    placeholder="e.g., 123 Main Street"
+                    className="input-base"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      City *
+                    </label>
+                    <input
+                      type="text"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleChange}
+                      placeholder="e.g., Cape Town"
+                      className="input-base"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Postal Code
+                    </label>
+                    <input
+                      type="text"
+                      name="postalCode"
+                      value={formData.postalCode}
+                      onChange={handleChange}
+                      placeholder="e.g., 8000"
+                      className="input-base"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nearby University *
+                  </label>
+                  <select
+                    name="university"
+                    value={formData.university}
+                    onChange={handleChange}
+                    className="input-base"
+                    required
+                  >
+                    <option value="">Select university</option>
+                    {UNIVERSITIES.map((uni) => (
+                      <option key={uni} value={uni}>
+                        {uni}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold mb-4">Pricing</h3>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Min Rent (R) *
+                  </label>
+                  <input
+                    type="number"
+                    name="minRent"
+                    value={formData.minRent}
+                    onChange={handleChange}
+                    placeholder="e.g., 3000"
+                    className="input-base"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Max Rent (R) *
+                  </label>
+                  <input
+                    type="number"
+                    name="maxRent"
+                    value={formData.maxRent}
+                    onChange={handleChange}
+                    placeholder="e.g., 5000"
+                    className="input-base"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Deposit (R) *
+                  </label>
+                  <input
+                    type="number"
+                    name="deposit"
+                    value={formData.deposit}
+                    onChange={handleChange}
+                    placeholder="e.g., 5000"
+                    className="input-base"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold mb-4">Images</h3>
+
+              {imagePreviews.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="font-medium text-gray-700 mb-3">Selected Images</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={preview}
+                          alt={`Preview ${index}`}
+                          className="w-full h-24 object-cover rounded border-2 border-blue-300 bg-blue-50"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300">
+                <label className="block">
+                  <span className="text-sm font-medium text-gray-700 mb-2 block">
+                    Add Property Images
+                  </span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="block w-full text-sm text-gray-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-primary file:text-white
+                      hover:file:bg-primary/90"
+                    disabled={uploadingImage}
+                  />
+                  <p className="text-xs text-gray-500 mt-2">PNG, JPG, GIF up to 10MB each (Optional)</p>
+                </label>
+              </div>
+            </div>
+
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold mb-4">Rooms</h3>
+
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Total Rooms *
+                  </label>
+                  <input
+                    type="number"
+                    name="totalRooms"
+                    value={formData.totalRooms}
+                    onChange={handleChange}
+                    placeholder="e.g., 10"
+                    className="input-base"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Available Rooms *
+                  </label>
+                  <input
+                    type="number"
+                    name="availableRooms"
+                    value={formData.availableRooms}
+                    onChange={handleChange}
+                    placeholder="e.g., 3"
+                    className="input-base"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="font-semibold text-gray-700">Room Types (Optional)</h4>
+                  <button
+                    type="button"
+                    onClick={handleAddRoomType}
+                    className="text-sm bg-primary text-white px-3 py-1 rounded hover:bg-primary/90"
+                  >
+                    + Add Room Type
+                  </button>
+                </div>
+
+                {formData.roomTypes.length === 0 ? (
+                  <p className="text-sm text-gray-500">
+                    Specify room types to help students find what they need
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {formData.roomTypes.map((roomType, index) => (
+                      <div key={index} className="bg-white p-4 rounded border border-gray-200">
+                        <div className="flex justify-between items-start mb-3">
+                          <span className="font-medium text-gray-700">Room Type {index + 1}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveRoomType(index)}
+                            className="text-red-500 hover:text-red-700 text-sm font-semibold"
+                          >
+                            Remove
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Room Type *
+                            </label>
+                            <select
+                              value={roomType.type}
+                              onChange={(e) =>
+                                handleRoomTypeChange(index, 'type', e.target.value)
+                              }
+                              className="input-base text-sm"
+                              required
+                            >
+                              <option value="">Select type</option>
+                              {ROOM_TYPES.map((type) => (
+                                <option key={type} value={type}>
+                                  {type}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Quantity *
+                            </label>
+                            <input
+                              type="number"
+                              value={roomType.quantity}
+                              onChange={(e) =>
+                                handleRoomTypeChange(index, 'quantity', e.target.value)
+                              }
+                              placeholder="e.g., 3"
+                              className="input-base text-sm"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Available *
+                            </label>
+                            <input
+                              type="number"
+                              value={roomType.availableQuantity}
+                              onChange={(e) =>
+                                handleRoomTypeChange(index, 'availableQuantity', e.target.value)
+                              }
+                              placeholder="e.g., 1"
+                              className="input-base text-sm"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Price/Month (R) *
+                            </label>
+                            <input
+                              type="number"
+                              value={roomType.pricePerMonth}
+                              onChange={(e) =>
+                                handleRoomTypeChange(index, 'pricePerMonth', e.target.value)
+                              }
+                              placeholder="e.g., 3500"
+                              className="input-base text-sm"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="mt-3">
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Description
+                          </label>
+                          <input
+                            type="text"
+                            value={roomType.description}
+                            onChange={(e) =>
+                              handleRoomTypeChange(index, 'description', e.target.value)
+                            }
+                            placeholder="e.g., Ensuite bathroom, window view"
+                            className="input-base text-sm"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold mb-4">Amenities</h3>
+
+              <div className="grid grid-cols-2 gap-3">
+                {AMENITIES.map((amenity) => (
+                  <label key={amenity} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.amenities.includes(amenity)}
+                      onChange={() => handleAmenityChange(amenity)}
+                      className="w-4 h-4 text-primary rounded"
+                    />
+                    <span className="text-gray-700">{amenity}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t pt-6">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="nsfasAccreditation"
+                  checked={formData.nsfasAccreditation}
+                  onChange={handleChange}
+                  className="w-4 h-4 text-primary rounded"
+                />
+                <span className="text-gray-700 font-medium">NSFAS Accredited</span>
+              </label>
+              <p className="text-sm text-gray-500 mt-2">
+                Mark if your property is accredited for NSFAS funding
+              </p>
+            </div>
+
+            <div className="border-t pt-6 flex gap-4">
+              <button
+                type="submit"
+                disabled={loading || uploadingImage}
+                className="flex-1 btn-primary py-3 font-semibold disabled:opacity-50"
+              >
+                {loading ? 'Creating...' : uploadingImage ? 'Uploading images...' : 'Create Property'}
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push('/admin/dashboard')}
+                className="flex-1 btn-secondary py-3 font-semibold"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

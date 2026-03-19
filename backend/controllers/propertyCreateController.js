@@ -18,6 +18,7 @@ exports.createProperty = async (req, res, next) => {
       deposit,
       totalRooms,
       availableRooms,
+      roomTypes,
       amenities,
       nsfasAccreditation,
       images,
@@ -47,6 +48,29 @@ exports.createProperty = async (req, res, next) => {
       return next(new ErrorResponse('Minimum rent cannot be greater than maximum rent', 400));
     }
 
+    // Validate room types if provided
+    let processedRoomTypes = [];
+    if (roomTypes && roomTypes.length > 0) {
+      const totalRoomTypesQty = roomTypes.reduce((sum, rt) => sum + rt.quantity, 0);
+      
+      if (totalRoomTypesQty !== parseInt(totalRooms)) {
+        return next(
+          new ErrorResponse(
+            `Total room types quantity (${totalRoomTypesQty}) must equal total rooms (${totalRooms})`,
+            400
+          )
+        );
+      }
+
+      processedRoomTypes = roomTypes.map((rt) => ({
+        type: rt.type,
+        quantity: parseInt(rt.quantity),
+        availableQuantity: parseInt(rt.availableQuantity),
+        pricePerMonth: parseInt(rt.pricePerMonth),
+        description: rt.description || '',
+      }));
+    }
+
     // Create property
     const property = await Property.create({
       name,
@@ -62,6 +86,7 @@ exports.createProperty = async (req, res, next) => {
         maxRent: parseInt(maxRent),
         deposit: parseInt(deposit),
       },
+      roomTypes: processedRoomTypes,
       rooms: {
         total: parseInt(totalRooms),
         available: parseInt(availableRooms),
@@ -135,6 +160,7 @@ exports.updateProperty = async (req, res, next) => {
       deposit,
       totalRooms,
       availableRooms,
+      roomTypes,
       amenities,
       nsfasAccreditation,
       images,
@@ -148,6 +174,30 @@ exports.updateProperty = async (req, res, next) => {
 
     if (minRent && maxRent && minRent > maxRent) {
       return next(new ErrorResponse('Minimum rent cannot be greater than maximum rent', 400));
+    }
+
+    // Validate room types if provided
+    let processedRoomTypes = property.roomTypes;
+    if (roomTypes && roomTypes.length > 0) {
+      const totalRoomTypesQty = roomTypes.reduce((sum, rt) => sum + rt.quantity, 0);
+      const newTotalRooms = totalRooms ? parseInt(totalRooms) : property.rooms.total;
+      
+      if (totalRoomTypesQty !== newTotalRooms) {
+        return next(
+          new ErrorResponse(
+            `Total room types quantity (${totalRoomTypesQty}) must equal total rooms (${newTotalRooms})`,
+            400
+          )
+        );
+      }
+
+      processedRoomTypes = roomTypes.map((rt) => ({
+        type: rt.type,
+        quantity: parseInt(rt.quantity),
+        availableQuantity: parseInt(rt.availableQuantity),
+        pricePerMonth: parseInt(rt.pricePerMonth),
+        description: rt.description || '',
+      }));
     }
 
     // Update property
@@ -167,6 +217,7 @@ exports.updateProperty = async (req, res, next) => {
           maxRent: maxRent ? parseInt(maxRent) : property.pricing.maxRent,
           deposit: deposit ? parseInt(deposit) : property.pricing.deposit,
         },
+        roomTypes: processedRoomTypes,
         rooms: {
           total: totalRooms ? parseInt(totalRooms) : property.rooms.total,
           available: availableRooms ? parseInt(availableRooms) : property.rooms.available,

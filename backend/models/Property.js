@@ -1,67 +1,126 @@
-//Defining property/accommodation structure
-//Links to user(owner)
-//Stores umages, ameniities, location, price, and other details about the property
-//NSFAS accreditation status and other relevant information for students
-
-
 const mongoose = require('mongoose');
 
+const roomTypeSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ['Single', 'Shared/Communal', 'Double', 'Studio', 'Other'],
+    required: [true, 'Please specify room type'],
+  },
+  quantity: {
+    type: Number,
+    required: [true, 'Please specify quantity'],
+    min: [1, 'Quantity must be at least 1'],
+  },
+  availableQuantity: {
+    type: Number,
+    required: [true, 'Please specify available quantity'],
+  },
+  pricePerMonth: {
+    type: Number,
+    required: [true, 'Please specify price per month'],
+  },
+  description: String,
+});
+
 const propertySchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'Please provide a property name'],
-        trim: true,
+  name: {
+    type: String,
+    required: [true, 'Please provide a property name'],
+    trim: true,
+  },
+  description: {
+    type: String,
+    required: [true, 'Please provide a description'],
+  },
+  location: {
+    address: {
+      type: String,
+      required: [true, 'Please provide an address'],
     },
-    email: {
-        type: String,
-        required: [true, 'Please provide an email'],
-        unique: true,
-        lowercase: true,
-        match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email'],
+    city: {
+      type: String,
+      required: [true, 'Please provide a city'],
     },
-    password: {
-        type: String,
-        required: [true, 'Please provide a password'],
-        minlength: 6,
-        select: false, // Don't return password by default
-    },
-    role: {
-        type: String,
-        enum: ['student', 'admin'],
-        default: 'student',
+    postalCode: {
+      type: String,
     },
     university: {
-        type: String,
-        required: [true, 'Please select a university'],
+      type: String,
+      required: [true, 'Please provide nearby university'],
     },
-    fundingType: {
-        type: String,
-        enum: ['NSFAS', 'private', 'self-funded'],
-        required: [true, 'Please select funding type'],
+    coordinates: {
+      latitude: Number,
+      longitude: Number,
     },
-    verifiedStudent: {
-        type: Boolean,
-        default: false,
+  },
+  pricing: {
+    minRent: {
+      type: Number,
+      required: [true, 'Please provide minimum rent'],
     },
-    createdAt: {
-        type: Date,
-        default: Date.now,
+    maxRent: {
+      type: Number,
+      required: [true, 'Please provide maximum rent'],
     },
+    deposit: {
+      type: Number,
+      required: [true, 'Please provide deposit amount'],
+    },
+  },
+  roomTypes: [roomTypeSchema],
+  rooms: {
+    total: {
+      type: Number,
+      required: [true, 'Please provide total rooms'],
+    },
+    available: {
+      type: Number,
+      required: [true, 'Please provide available rooms'],
+    },
+  },
+  amenities: [
+    {
+      type: String,
+      enum: [
+        'WiFi',
+        'Parking',
+        'Gym',
+        'Laundry',
+        'Kitchen',
+        'TV Lounge',
+        'Garden',
+        'Security',
+        'DSTV',
+        'Water Heater',
+      ],
+    },
+  ],
+  images: [
+    {
+      type: String,
+    },
+  ],
+  nsfasAccreditation: {
+    type: Boolean,
+    default: false,
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
-
-// Hash password before saving
-userSchema.pre('save', async function (next) {
-    if (!this.isModified('password')) {
-        next();
-    }
-
-    const salt = await bcryptjs.genSalt(10);
-    this.password = await bcryptjs.hash(this.password, salt);
-});
-
-// Compare password method
-userSchema.methods.matchPassword = async function (enteredPassword) {
-    return await bcryptjs.compare(enteredPassword, this.password);
-};
 
 module.exports = mongoose.model('Property', propertySchema);

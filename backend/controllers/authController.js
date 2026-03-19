@@ -13,10 +13,13 @@ const generateToken = (id) => {
 // @access  Public
 exports.register = async (req, res) => {
   try {
+    console.log('Register request body:', req.body);
+    
     const { name, email, password, university, fundingType } = req.body;
 
     // Validation
     if (!name || !email || !password || !university || !fundingType) {
+      console.log('Missing required fields');
       return res.status(400).json({
         success: false,
         message: 'Please provide all required fields',
@@ -40,6 +43,7 @@ exports.register = async (req, res) => {
     }
 
     // Create user
+    console.log('Creating user...');
     user = await User.create({
       name,
       email,
@@ -47,6 +51,8 @@ exports.register = async (req, res) => {
       university,
       fundingType,
     });
+
+    console.log('User created:', user._id);
 
     // Generate token
     const token = generateToken(user._id);
