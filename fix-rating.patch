@@ -1,0 +1,12 @@
+Remove these lines from src/app/browse/page.tsx around line 434-441:
+
+                          {/* Rating */}
+                          <div className="flex items-center mb-3">
+                            <div className="flex text-yellow-400">
+                              {'★'.repeat(Math.floor(property.rating))}
+                              {'☆'.repeat(5 - Math.floor(property.rating))}
+                            </div>
+                            <span className="text-sm text-gray-600 ml-2">
+                              {property.rating.toFixed(1)} ({property.reviewCount})
+                            </span>
+                          </div>
