@@ -672,21 +672,16 @@ export default function NewPropertyPage() {
                             <label className="block text-xs font-medium text-gray-700 mb-1">
                               Room Type *
                             </label>
-                            <select
+                            <input
+                              type="text"
                               value={roomType.type}
                               onChange={(e) =>
                                 handleRoomTypeChange(index, 'type', e.target.value)
                               }
+                              placeholder="e.g., Single, Double, Single Duo"
                               className="input-base text-sm"
                               required
-                            >
-                              <option value="">Select type</option>
-                              {customRoomTypes.map((type) => (
-                                <option key={type} value={type}>
-                                  {type}
-                                </option>
-                              ))}
-                            </select>
+                            />
                           </div>
 
                           <div>
