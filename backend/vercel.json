@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "buildCommand": "npm install",
   "builds": [
     {
       "src": "server.js",
@@ -14,6 +15,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "outputDirectory": "./"
+  }
 }
