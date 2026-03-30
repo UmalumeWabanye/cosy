@@ -27,7 +27,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-24 px-4">
         <div className="container text-center">
           <h2 className="text-5xl md:text-6xl font-bold mb-4 text-gray-900">
@@ -37,7 +36,6 @@ export default function Home() {
             Discover safe, affordable accommodation near your university. Browse verified listings from trusted property owners.
           </p>
           
-          {/* Search Bar */}
           <div className="max-w-4xl mx-auto">
             <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
               <form onSubmit={handleSearch} className="space-y-4">
@@ -90,7 +88,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="py-16 px-4 bg-gray-50">
         <div className="container">
           <h3 className="text-3xl font-bold text-center mb-12">Why Choose Cosy?</h3>
@@ -119,7 +116,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Section */}
       <section className="py-16 px-4">
         <div className="container">
           <div className="mb-12">
@@ -155,7 +151,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="bg-primary text-white py-16 px-4">
         <div className="container text-center">
           <h3 className="text-3xl font-bold mb-6">Ready to Find Your Home?</h3>
@@ -171,7 +166,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-12 px-4">
         <div className="container">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
