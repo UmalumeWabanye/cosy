@@ -9,7 +9,6 @@
     ],
     "module": "NodeNext",
     "skipLibCheck": true,
-    "outDir": "./dist",
     "paths": {
       "@/*": [
         "./src/*"
@@ -17,7 +16,7 @@
     },
     "allowJs": true,
     "strict": false,
-    "noEmit": true,
+    "noEmit": false,
     "incremental": true,
     "esModuleInterop": true,
     "moduleResolution": "nodenext",
