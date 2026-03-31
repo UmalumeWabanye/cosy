@@ -5,6 +5,8 @@ export interface User {
   email: string;
   name: string;
   role: 'admin' | 'student' | 'landlord';
+  university?: string;
+  fundingType?: string;
   avatar?: string;
 }
 
