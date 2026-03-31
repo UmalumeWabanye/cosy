@@ -7,9 +7,6 @@ import Link from 'next/link';
 import api from '@/services/api';
 import { MdLocationOn } from 'react-icons/md';
 import { HiCheck } from 'react-icons/hi';
-import AccommodationRequestForm from '@/components/AccommodationRequestForm';
-// The form component is a plain JS/JSX export; cast to any so TypeScript allows passing props
-const AccommodationRequestFormAny = AccommodationRequestForm as any;
 
 interface Property {
   _id: string;
@@ -67,10 +64,6 @@ export default function RequestPropertyPage() {
       fetchProperty();
     }
   }, [propertyId]);
-
-  const handleSuccess = (data: any) => {
-    router.push('/requests');
-  };
 
   if (isLoading || loadingProperty) {
     return (
@@ -181,12 +174,11 @@ export default function RequestPropertyPage() {
             </div>
           </div>
 
-          {/* Form */}
+          {/* Form Placeholder */}
           <div className="lg:col-span-3">
-              <AccommodationRequestFormAny
-                propertyId={propertyId}
-                onSuccess={handleSuccess}
-              />
+            <div className="card p-8">
+              <p className="text-gray-600">Accommodation request form coming soon...</p>
+            </div>
           </div>
         </div>
       </div>
