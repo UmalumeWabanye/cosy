@@ -15,6 +15,7 @@ const requestRoutes = require('./routes/requestRoutes');
 connectDB();
 
 const app = express();
+app.set('trust proxy', 1);
 
 // CORS configuration - must be before routes
 const corsOptions = {
