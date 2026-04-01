@@ -9,6 +9,10 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   console.log('Login attempt:', { email, password });
 
+  // Print all users
+  const allUsers = await User.find({});
+  console.log('ALL USERS IN THIS DB:', allUsers);
+
   const user = await User.findOne({ email });
   console.log('DB result for user:', user);
 
