@@ -52,3 +52,53 @@ router.post('/login', async (req, res) => {
 });
 
 module.exports = router;
+
+// Registration route
+router.post('/register', async (req, res) => {
+  const { name, email, password, university, role, fundingType } = req.body;
+  console.log('Registering user:', email);
+
+  try {
+    // Check if the user already exists
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ message: 'Email already in use' });
+    }
+
+    // Hash the password
+    const hashed = await bcrypt.hash(password, 10);
+
+    // Create a new user
+    const user = await User.create({
+      name,
+      email,
+      password: hashed,
+      university,
+      role: role || 'student',
+      fundingType: fundingType || 'unknown',
+      isVerified: false,
+      verifiedStudent: false,
+      createdAt: new Date()
+    });
+
+    // Generate JWT token
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    console.log('Registration success:', email);
+
+    res.status(201).json({
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        university: user.university,
+        role: user.role,
+        fundingType: user.fundingType,
+      },
+    });
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ message: 'Registration failed' });
+  }
+});
