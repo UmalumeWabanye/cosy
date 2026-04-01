@@ -5,65 +5,88 @@ const User = require('../models/User');
 
 const router = express.Router();
 
+// LOGIN ROUTE
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   console.log('Login attempt:', { email, password });
 
-  // Print all users (for debug)
-  const allUsers = await User.find({});
-  console.log('ALL USERS IN THIS DB:', allUsers);
-
-  // Explicitly select the password field
-  const user = await User.findOne({ email }).select('+password');
-  console.log('DB result for user:', user);
-
-  if (!user) {
-    console.log('User not found:', email);
-    return res.status(401).json({ message: 'Invalid email or password' });
-  }
-
-  if (!user.password) {
-    console.log('User found but NO PASSWORD FIELD!', user);
-    return res.status(401).json({ message: 'Invalid email or password' });
-  }
-
-  console.log('Attempting bcrypt.compare:', {
-    entered: password,
-    inDb: user.password,
-    typeEntered: typeof password,
-    typeInDb: typeof user.password
-  });
-
   try {
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      console.log('User not found:', email);
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+    if (!user.password) {
+      console.log('User found but NO PASSWORD FIELD!', user);
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     console.log('bcrypt.compare result:', isMatch);
     if (!isMatch) {
       console.log('Incorrect password for:', email);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
-  } catch (e) {
-    console.log('Bcrypt compare threw error:', e);
-    return res.status(500).json({ message: 'Server error during password check' });
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '7d',
+    });
+
+    console.log('Login success:', email);
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        university: user.university,
+        fundingType: user.fundingType,
+      },
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
+});
 
-  // Generate a token
-  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-    expiresIn: '7d',
-  });
-
-  console.log('Login success:', email);
-
-  res.json({
-    token,
-    user: {
-      id: user._id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      university: user.university,
-      fundingType: user.fundingType,
-    },
-  });
+// REGISTER ROUTE
+router.post('/register', async (req, res) => {
+  const { name, email, password, role, university, fundingType } = req.body;
+  try {
+    // Check if the user already exists
+    if (await User.findOne({ email })) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+    // Create user (password hash handled by User schema pre-save)
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role: role || 'student',
+      university,
+      fundingType,
+      isVerified: false,
+      verifiedStudent: false,
+    });
+    // Create JWT
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.status(201).json({
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        university: user.university,
+        fundingType: user.fundingType,
+      },
+    });
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ message: 'Internal server error (register)' });
+  }
 });
 
 module.exports = router;
