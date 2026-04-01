@@ -9,11 +9,12 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   console.log('Login attempt:', { email, password });
 
-  // Print all users
+  // Print all users (for debug)
   const allUsers = await User.find({});
   console.log('ALL USERS IN THIS DB:', allUsers);
 
-  const user = await User.findOne({ email });
+  // Explicitly select the password field
+  const user = await User.findOne({ email }).select('+password');
   console.log('DB result for user:', user);
 
   if (!user) {
