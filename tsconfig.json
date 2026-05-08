@@ -16,7 +16,7 @@
     },
     "allowJs": true,
     "strict": false,
-    "noEmit": false,
+  "noEmit": true,
     "incremental": true,
     "esModuleInterop": true,
     "moduleResolution": "nodenext",
@@ -38,6 +38,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx",
     ".next/types/**/*.ts"
   ],
   "exclude": [
