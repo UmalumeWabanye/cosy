@@ -87,6 +87,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/requests', requestRoutes);
 
+// Backwards-compatible admin-prefixed routes (some frontends call /api/admin/...)
+app.use('/api/admin/properties', propertyRoutes);
+app.use('/api/admin/requests', requestRoutes);
+
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
