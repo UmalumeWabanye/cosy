@@ -2,12 +2,18 @@
 // Dev helper - force dynamic rendering because it reads search params client-side
 export const dynamic = 'force-dynamic';
 import { useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import api from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
 
 export default function DevLogin() {
-  const params = useSearchParams();
+  // read search params from browser location to avoid server prerender issues
+  const params = {
+    get: (k: string) => {
+      if (typeof window === 'undefined') return null;
+      return new URLSearchParams(window.location.search).get(k);
+    }
+  } as any;
   const router = useRouter();
 
   useEffect(() => {

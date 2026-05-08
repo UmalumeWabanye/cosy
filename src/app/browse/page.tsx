@@ -3,7 +3,6 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/services/api';
 
@@ -82,12 +81,14 @@ export default function BrowsePage() {
     }
   };
 
-  // initialize filters from URL on mount
+  // initialize filters from URL on mount (use browser API to avoid useSearchParams prerender errors)
   useEffect(() => {
-    const rt = searchParams?.get('roomType') || '';
-    const city = searchParams?.get('city') || '';
+    if (typeof window === 'undefined') return;
+    const sp = new URLSearchParams(window.location.search);
+    const rt = sp.get('roomType') || '';
+    const city = sp.get('city') || '';
     setFilters((prev) => ({ ...prev, roomType: rt, city }));
-  }, [searchParams]);
+  }, []);
 
   // fetch when filters change
   useEffect(() => {
