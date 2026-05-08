@@ -1,1 +1,3 @@
 backend
+src/app/admin/dashboard/*.swp
+src/app/admin/dashboard/*.jsx
