@@ -9,7 +9,8 @@ const {
 } = require('../controllers/propertyController');
 const { protect, adminOnly } = require('../middleware/auth');
 
-router.get('/', getProperties);
+// Only admins should be able to list properties under the admin-prefixed mount
+router.get('/', protect, adminOnly, getProperties);
 router.get('/:id', getProperty);
 router.post('/', protect, adminOnly, createProperty);
 router.put('/:id', protect, adminOnly, updateProperty);
