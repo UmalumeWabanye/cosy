@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
 import { HiLogout } from 'react-icons/hi';
 
-const ROOM_TYPES = ['Single', 'Shared/Communal', 'Double', 'Studio'];
+// Room types were removed from the navbar and moved to the search filters
 
 export default function Navbar() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function Navbar() {
   const { logout } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [selectedRoomType, setSelectedRoomType] = useState('');
+  // no room type state here any more
 
   useEffect(() => {
     setMounted(true);
@@ -28,11 +28,7 @@ export default function Navbar() {
     setMobileMenuOpen(false);
   };
 
-  const handleRoomTypeSelect = (roomType: string) => {
-    setSelectedRoomType(roomType);
-    router.push(`/browse?roomTypes=${roomType}`);
-    setMobileMenuOpen(false);
-  };
+  // room type selection handled in search UI
 
   // Don't show navbar on login/signup pages
   if (pathname === '/login' || pathname === '/signup') {
@@ -76,24 +72,6 @@ export default function Navbar() {
           )}
           {!isAuthenticated && !isLoading && (
             <>
-              {/* Room Types Dropdown */}
-              <div className="relative group">
-                <button className="text-gray-600 hover:text-primary font-medium py-2">
-                  Room Types ▼
-                </button>
-                <div className="absolute right-0 mt-0 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-                  {ROOM_TYPES.map((roomType) => (
-                    <button
-                      key={roomType}
-                      onClick={() => handleRoomTypeSelect(roomType)}
-                      className="block w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-50 hover:text-primary first:rounded-t-lg last:rounded-b-lg"
-                    >
-                      {roomType}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               <Link href="/login" className="text-gray-600 hover:text-primary font-medium">
                 Login
               </Link>
@@ -140,18 +118,6 @@ export default function Navbar() {
             )}
             {!isAuthenticated && !isLoading && (
               <>
-                <div className="border-b py-2">
-                  <p className="text-gray-600 font-medium mb-2">Room Types</p>
-                  {ROOM_TYPES.map((roomType) => (
-                    <button
-                      key={roomType}
-                      onClick={() => handleRoomTypeSelect(roomType)}
-                      className="block w-full text-left px-2 py-1 text-gray-600 hover:text-primary"
-                    >
-                      {roomType}
-                    </button>
-                  ))}
-                </div>
                 <Link href="/login" className="text-gray-600 hover:text-primary py-2 font-medium">
                   Login
                 </Link>

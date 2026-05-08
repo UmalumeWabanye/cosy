@@ -10,6 +10,7 @@ export default function Home() {
     university: '',
     city: '',
     fundingType: '',
+    roomType: '',
   });
 
   const handleSearch = (e: React.FormEvent) => {
@@ -17,6 +18,8 @@ export default function Home() {
     const params = new URLSearchParams();
     if (searchForm.university) params.append('university', searchForm.university);
     if (searchForm.city) params.append('city', searchForm.city);
+    if (searchForm.fundingType) params.append('fundingType', searchForm.fundingType);
+    if (searchForm.roomType) params.append('roomType', searchForm.roomType);
     router.push(`/browse?${params.toString()}`);
   };
 
@@ -39,7 +42,7 @@ export default function Home() {
           <div className="max-w-4xl mx-auto">
             <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
               <form onSubmit={handleSearch} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">University</label>
                     <input
@@ -74,6 +77,22 @@ export default function Home() {
                       <option value="NSFAS">NSFAS</option>
                       <option value="Private">Private</option>
                       <option value="Self-funded">Self-funded</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Room Type</label>
+                    <select
+                      name="roomType"
+                      value={searchForm.roomType}
+                      onChange={handleInputChange}
+                      className="input-base w-full"
+                    >
+                      <option value="">Any</option>
+                      <option value="Single">Single</option>
+                      <option value="Sharing">Sharing</option>
+                      <option value="Ensuite">Ensuite</option>
+                      <option value="Bachelor">Bachelor</option>
                     </select>
                   </div>
                   <div className="flex items-end">

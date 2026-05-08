@@ -94,8 +94,10 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+// Bind explicitly to 0.0.0.0 to ensure IPv4 localhost access and avoid
+// potential binding to only IPv6 or another interface in some environments.
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT} (host 0.0.0.0)`);
 });
 
 module.exports = app;

@@ -96,18 +96,43 @@ export default function RegisterPage() {
 
       console.log('Registration response:', response.data);
 
-      if (response.data.success) {
-        setSuccess('Registration successful! Redirecting...');
+      // Support multiple backend response shapes:
+      // 1) { success: true, token, user }
+      // 2) { token, user: { ... } }
+      // 3) { token, _id, email, name, role, ... }
+      const data = response.data;
+      let token = data.token || null;
+      let user = null;
 
-        // Store token and user
-        setToken(response.data.token);
-        setUser(response.data.user);
-
-        // Redirect to dashboard after 2 seconds
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 2000);
+      if (data.user) {
+        user = data.user;
+      } else if (data._id) {
+        user = {
+          id: data._id,
+          email: data.email,
+          name: data.name,
+          role: data.role,
+          university: data.university,
+          fundingType: data.fundingType,
+        };
       }
+
+      if (!token || !user) {
+        const msg = data.message || 'Unexpected response from server';
+        setError(msg);
+        return;
+      }
+
+      setSuccess('Registration successful! Redirecting...');
+      // Persist and set global store
+      localStorage.setItem('token', token);
+      setToken(token);
+      setUser(user);
+
+      // Redirect to dashboard after 1 second
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 1000);
     } catch (err: any) {
       console.error('Registration error:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Registration failed';

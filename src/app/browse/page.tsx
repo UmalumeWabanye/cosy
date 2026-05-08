@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/services/api';
 
@@ -24,13 +25,15 @@ interface PropertyData {
 export default function BrowsePage() {
   const [properties, setProperties] = useState<PropertyData[]>([]);
   const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
   const [filters, setFilters] = useState({
     minPrice: '',
     maxPrice: '',
     nsfasAccredited: false,
     city: '',
     search: '',
-    sortBy: 'newest'
+    sortBy: 'newest',
+    roomType: ''
   });
 
   const getMinPrice = (property: PropertyData): number => {
@@ -58,15 +61,18 @@ export default function BrowsePage() {
       setLoading(true);
       const params = new URLSearchParams();
       
-      if (filters.minPrice) params.append('minPrice', filters.minPrice);
+  if (filters.minPrice) params.append('minPrice', filters.minPrice);
       if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
       if (filters.nsfasAccredited) params.append('nsfasAccredited', 'true');
       if (filters.city) params.append('city', filters.city);
+  if ((filters as any).roomType) params.append('roomType', (filters as any).roomType);
       if (filters.search) params.append('search', filters.search);
       if (filters.sortBy) params.append('sortBy', filters.sortBy);
 
-      const response = await api.get(`/properties?${params.toString()}`);
-      setProperties(response.data.data || []);
+  const response = await api.get(`/properties?${params.toString()}`);
+  const data = response.data;
+  // backend may return { properties } or { data: [...] }
+  setProperties(data.properties || data.data || []);
     } catch (error) {
       console.error('Failed to fetch properties:', error);
     } finally {
@@ -74,8 +80,17 @@ export default function BrowsePage() {
     }
   };
 
+  // initialize filters from URL on mount
+  useEffect(() => {
+    const rt = searchParams?.get('roomType') || '';
+    const city = searchParams?.get('city') || '';
+    setFilters((prev) => ({ ...prev, roomType: rt, city }));
+  }, [searchParams]);
+
+  // fetch when filters change
   useEffect(() => {
     fetchProperties();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   return (
@@ -131,6 +146,21 @@ export default function BrowsePage() {
               </select>
             </div>
 
+            <div>
+              <label className="block text-xs font-semibold text-neutral-600 mb-2">Room Type</label>
+              <select
+                value={(filters as any).roomType || ''}
+                onChange={(e) => setFilters({ ...(filters as any), roomType: e.target.value })}
+                className="input-base text-sm w-full"
+              >
+                <option value="">Any</option>
+                <option value="Single">Single</option>
+                <option value="Shared/Communal">Shared/Communal</option>
+                <option value="Double">Double</option>
+                <option value="Studio">Studio</option>
+              </select>
+            </div>
+
             <div className="flex items-end">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -146,13 +176,14 @@ export default function BrowsePage() {
             <div>
               <button
                 onClick={() => setFilters({
-                  minPrice: '',
-                  maxPrice: '',
-                  nsfasAccredited: false,
-                  city: '',
-                  search: '',
-                  sortBy: 'newest'
-                })}
+                    minPrice: '',
+                    maxPrice: '',
+                    nsfasAccredited: false,
+                    city: '',
+                    search: '',
+                    sortBy: 'newest',
+                    roomType: ''
+                  })}
                 className="btn-secondary w-full h-10 text-sm"
               >
                 Clear Filters
@@ -181,14 +212,15 @@ export default function BrowsePage() {
           <div className="bg-white rounded-lg p-12 text-center">
             <p className="text-lg text-neutral-600 mb-4">No properties found matching your criteria</p>
             <button
-              onClick={() => setFilters({
-                minPrice: '',
-                maxPrice: '',
-                nsfasAccredited: false,
-                city: '',
-                search: '',
-                sortBy: 'newest'
-              })}
+                onClick={() => setFilters({
+                  minPrice: '',
+                  maxPrice: '',
+                  nsfasAccredited: false,
+                  city: '',
+                  search: '',
+                  sortBy: 'newest',
+                  roomType: ''
+                })}
               className="btn-primary"
             >
               Clear Filters and Try Again

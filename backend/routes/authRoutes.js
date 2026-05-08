@@ -1,7 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const generateToken = require('../utils/generateToken');
 const User = require('../models/User');
+const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -28,9 +29,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '7d',
-    });
+    const token = generateToken(user._id);
 
     console.log('Login success:', email);
 
@@ -70,8 +69,8 @@ router.post('/register', async (req, res) => {
       isVerified: false,
       verifiedStudent: false,
     });
-    // Create JWT
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  // Create JWT
+  const token = generateToken(user._id);
     res.status(201).json({
       token,
       user: {
@@ -90,3 +89,10 @@ router.post('/register', async (req, res) => {
 });
 
 module.exports = router;
+
+// GET current user (for /api/auth/me)
+router.get('/me', protect, async (req, res) => {
+  if (!req.user) return res.status(401).json({ message: 'Not authorized' });
+  res.json({ success: true, user: req.user });
+});
+

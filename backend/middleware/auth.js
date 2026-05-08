@@ -17,7 +17,9 @@ const protect = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('-password');
+    // support tokens signed with either { id } or { userId }
+    const userId = decoded.id || decoded.userId || decoded.user_id || decoded.sub;
+    req.user = await User.findById(userId).select('-password');
     if (!req.user) {
       return res.status(401).json({ message: 'User not found' });
     }
