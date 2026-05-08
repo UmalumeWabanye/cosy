@@ -26,7 +26,6 @@ interface PropertyData {
 export default function BrowsePage() {
   const [properties, setProperties] = useState<PropertyData[]>([]);
   const [loading, setLoading] = useState(true);
-  const searchParams = useSearchParams();
   const [filters, setFilters] = useState({
     minPrice: '',
     maxPrice: '',
