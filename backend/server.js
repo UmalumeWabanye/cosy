@@ -91,6 +91,11 @@ app.use('/api/requests', requestRoutes);
 app.use('/api/admin/properties', propertyRoutes);
 app.use('/api/admin/requests', requestRoutes);
 
+// Lightweight admin probe: unauthenticated health check for admin-prefixed routes
+app.get('/api/admin/health', (req, res) => {
+  res.json({ status: 'ok', adminPrefix: true, timestamp: new Date().toISOString() });
+});
+
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });

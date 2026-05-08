@@ -86,6 +86,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/requests', requestRoutes);
 
+// Lightweight admin probe: unauthenticated health check for admin-prefixed routes
+app.get('/api/admin/health', (req, res) => {
+  res.json({ status: 'ok', adminPrefix: true, timestamp: new Date().toISOString() });
+});
+
 // Backwards-compatible admin-prefixed routes (some frontends call /api/admin/...)
 app.use('/api/admin/properties', propertyRoutes);
 app.use('/api/admin/requests', requestRoutes);
