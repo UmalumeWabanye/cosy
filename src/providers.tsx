@@ -3,7 +3,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-import { ThemeProvider as StyledComponentsThemeProvider } from 'styled-components';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,10 +25,8 @@ export default function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
-        <StyledComponentsThemeProvider theme={theme}>
-          <CssBaseline />
-          {children}
-        </StyledComponentsThemeProvider>
+        <CssBaseline />
+        {children}
       </ThemeProvider>
     </QueryClientProvider>
   );
