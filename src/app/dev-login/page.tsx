@@ -1,5 +1,6 @@
 "use client";
-
+// Dev helper - force dynamic rendering because it reads search params client-side
+export const dynamic = 'force-dynamic';
 import { useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import api from '@/services/api';
