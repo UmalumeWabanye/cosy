@@ -5,11 +5,6 @@ const nextConfig = {
     styledComponents: true,
   },
   webpack: (config) => {
-    config.resolve = config.resolve || {};
-    config.resolve.alias = {
-      ...(config.resolve.alias || {}),
-      '@mui/styled-engine': require.resolve('@mui/styled-engine-sc'),
-    };
     return config;
   },
 };
