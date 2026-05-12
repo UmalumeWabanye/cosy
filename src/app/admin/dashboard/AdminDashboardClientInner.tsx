@@ -5,99 +5,62 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/services/api';
 
-import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import MuiDrawer from '@mui/material/Drawer';
-import Box from '@mui/material/Box';
+import { alpha, createTheme, ThemeProvider, useColorScheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Grid from '@mui/material/Grid';
+import Container from '@mui/material/Container';
+import AppBar from '@mui/material/AppBar';
+import MuiDrawer from '@mui/material/Drawer';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
-import Badge from '@mui/material/Badge';
-import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import Avatar from '@mui/material/Avatar';
+import Badge from '@mui/material/Badge';
+import Chip from '@mui/material/Chip';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
+import InputBase from '@mui/material/InputBase';
 import CircularProgress from '@mui/material/CircularProgress';
 import Tooltip from '@mui/material/Tooltip';
-import Avatar from '@mui/material/Avatar';
+import { drawerClasses } from '@mui/material/Drawer';
+import { styled } from '@mui/material/styles';
 
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import ApartmentIcon from '@mui/icons-material/Apartment';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import LogoutIcon from '@mui/icons-material/Logout';
-import AddIcon from '@mui/icons-material/Add';
-import HomeIcon from '@mui/icons-material/Home';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import PendingActionsIcon from '@mui/icons-material/PendingActions';
-import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
+import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
+import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
+import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
+import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
+import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
+import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
+import PendingActionsRoundedIcon from '@mui/icons-material/PendingActionsRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 
-const drawerWidth = 240;
+import { SparkLineChart } from '@mui/x-charts/SparkLineChart';
+import { BarChart } from '@mui/x-charts/BarChart';
 
-interface AppBarProps extends MuiAppBarProps {
-  open?: boolean;
-}
-
-const AppBar = styled(MuiAppBar, {
-  shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({ theme, open }) => ({
-  zIndex: theme.zIndex.drawer + 1,
-  transition: theme.transitions.create(['width', 'margin'], {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  ...(open && {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  }),
-}));
-
-const Drawer = styled(MuiDrawer, {
-  shouldForwardProp: (prop) => prop !== 'open',
-})(({ theme, open }) => ({
-  '& .MuiDrawer-paper': {
-    position: 'relative',
-    whiteSpace: 'nowrap',
-    width: drawerWidth,
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-    boxSizing: 'border-box',
-    ...(!open && {
-      overflowX: 'hidden',
-      transition: theme.transitions.create('width', {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-      }),
-      width: theme.spacing(7),
-      [theme.breakpoints.up('sm')]: {
-        width: theme.spacing(9),
-      },
-    }),
-  },
-}));
-
-const defaultTheme = createTheme();
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface Property {
   _id: string;
@@ -117,46 +80,330 @@ interface RequestItem {
   createdAt?: string;
 }
 
-function StatCard({
-  title,
-  value,
-  icon,
-  color,
-}: {
-  title: string;
-  value: number | string;
-  icon: React.ReactNode;
-  color: string;
-}) {
+// ─── Theme ───────────────────────────────────────────────────────────────────
+
+const theme = createTheme({
+  cssVariables: { colorSchemeSelector: 'data-toolpad-color-scheme' },
+  colorSchemes: { light: true, dark: true },
+  typography: {
+    fontFamily: [
+      'Inter',
+      '-apple-system',
+      'BlinkMacSystemFont',
+      '"Segoe UI"',
+      'sans-serif',
+    ].join(','),
+  },
+  shape: { borderRadius: 8 },
+});
+
+// ─── Styled Search ────────────────────────────────────────────────────────────
+
+const Search = styled('div')(({ theme }) => ({
+  position: 'relative',
+  borderRadius: theme.shape.borderRadius,
+  border: '1px solid',
+  borderColor: theme.palette.divider,
+  backgroundColor: theme.palette.background.paper,
+  '&:hover': { borderColor: theme.palette.primary.main },
+  display: 'flex',
+  alignItems: 'center',
+  padding: '4px 10px',
+  gap: 6,
+  minWidth: 200,
+}));
+
+// ─── Color Mode Toggle ────────────────────────────────────────────────────────
+
+function ColorModeToggle() {
+  const { mode, setMode } = useColorScheme();
+  if (!mode) return null;
   return (
-    <Paper
-      sx={{
-        p: 3,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        borderRadius: 2,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-      }}
-    >
-      <Avatar sx={{ bgcolor: color, width: 52, height: 52 }}>{icon}</Avatar>
-      <Box>
-        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-          {title}
-        </Typography>
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          {value}
-        </Typography>
-      </Box>
-    </Paper>
+    <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>
+      <IconButton
+        size="small"
+        onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')}
+        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
+      >
+        {mode === 'dark' ? <LightModeRoundedIcon fontSize="small" /> : <DarkModeRoundedIcon fontSize="small" />}
+      </IconButton>
+    </Tooltip>
   );
 }
+
+// ─── StatCard ─────────────────────────────────────────────────────────────────
+
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  interval?: string;
+  trend?: 'up' | 'down' | 'neutral';
+  trendLabel?: string;
+  data?: number[];
+  color?: string;
+}
+
+function StatCard({ title, value, interval, trend = 'neutral', trendLabel, data = [], color }: StatCardProps) {
+  const trendColors = {
+    up: 'success' as const,
+    down: 'error' as const,
+    neutral: 'default' as const,
+  };
+
+  return (
+    <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <CardContent>
+        <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          {title}
+        </Typography>
+        <Typography variant="h4" sx={{ fontWeight: 700, my: 1 }}>
+          {value}
+        </Typography>
+        <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
+          {trend !== 'neutral' && (
+            <Chip
+              size="small"
+              color={trendColors[trend]}
+              icon={trend === 'up' ? <TrendingUpRoundedIcon /> : <TrendingDownRoundedIcon />}
+              label={trendLabel}
+              sx={{ fontWeight: 600, height: 22, fontSize: 11 }}
+            />
+          )}
+          {interval && (
+            <Typography variant="caption" color="text.secondary">{interval}</Typography>
+          )}
+        </Stack>
+      </CardContent>
+      {data.length > 0 && (
+        <Box sx={{ px: 2, pb: 2 }}>
+          <SparkLineChart
+            data={data}
+            height={60}
+            color={color ?? '#1976d2'}
+            curve="linear"
+            showHighlight
+            showTooltip
+          />
+        </Box>
+      )}
+    </Card>
+  );
+}
+
+// ─── SideMenu (desktop) ───────────────────────────────────────────────────────
+
+interface SideMenuProps {
+  user: { name?: string; email?: string } | null;
+  pendingCount: number;
+  onNavigate: (path: string) => void;
+  onLogout: () => void;
+}
+
+function SideMenu({ user, pendingCount, onNavigate, onLogout }: SideMenuProps) {
+  return (
+    <MuiDrawer
+      variant="permanent"
+      sx={{
+        display: { xs: 'none', md: 'block' },
+        [`& .${drawerClasses.paper}`]: {
+          backgroundColor: 'background.paper',
+          width: 240,
+          boxSizing: 'border-box',
+          borderRight: '1px solid',
+          borderColor: 'divider',
+        },
+      }}
+    >
+      {/* Brand */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 2, mt: 1 }}>
+        <Box
+          sx={{
+            width: 32, height: 32, borderRadius: '50%',
+            background: 'linear-gradient(135deg, hsl(210,98%,60%) 0%, hsl(210,100%,35%) 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <DashboardRoundedIcon sx={{ color: '#fff', fontSize: 18 }} />
+        </Box>
+        <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: -0.3 }}>
+          Cosy Admin
+        </Typography>
+      </Box>
+
+      <Divider />
+
+      {/* Nav */}
+      <Box sx={{ flexGrow: 1, overflow: 'auto', py: 1 }}>
+        <List dense>
+          {[
+            { label: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/admin/dashboard', selected: true },
+            { label: 'Properties', icon: <ApartmentRoundedIcon />, path: '/admin/properties', selected: false },
+            { label: 'Requests', icon: <AssignmentRoundedIcon />, path: '/admin/requests', selected: false, badge: pendingCount },
+            { label: 'Add Property', icon: <AddRoundedIcon />, path: '/admin/properties/new', selected: false },
+          ].map(({ label, icon, path, selected, badge }) => (
+            <ListItem key={label} disablePadding sx={{ px: 1 }}>
+              <ListItemButton
+                selected={selected}
+                onClick={() => onNavigate(path)}
+                sx={{
+                  borderRadius: 1.5,
+                  mb: 0.5,
+                  '&.Mui-selected': { bgcolor: 'primary.main', color: 'primary.contrastText', '& .MuiListItemIcon-root': { color: 'primary.contrastText' } },
+                  '&.Mui-selected:hover': { bgcolor: 'primary.dark' },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 36 }}>
+                  {badge ? (
+                    <Badge badgeContent={badge} color="error" variant="dot">
+                      {icon}
+                    </Badge>
+                  ) : icon}
+                </ListItemIcon>
+                <ListItemText primary={label} slotProps={{ primary: { style: { fontSize: 14, fontWeight: selected ? 600 : 400 } } }} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Box>
+
+      <Divider />
+
+      {/* User */}
+      <Stack direction="row" sx={{ p: 2, gap: 1.5, alignItems: 'center' }}>
+        <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: 14 }}>
+          {(user?.name ?? user?.email ?? 'A')[0].toUpperCase()}
+        </Avatar>
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }} noWrap>
+            {user?.name ?? 'Admin'}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" noWrap>
+            {user?.email ?? ''}
+          </Typography>
+        </Box>
+        <Tooltip title="Sign out">
+          <IconButton size="small" onClick={onLogout}>
+            <LogoutRoundedIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Stack>
+    </MuiDrawer>
+  );
+}
+
+// ─── AppNavbar (mobile) ───────────────────────────────────────────────────────
+
+interface AppNavbarProps {
+  pendingCount: number;
+  onToggleMobile: () => void;
+}
+
+function AppNavbar({ pendingCount, onToggleMobile }: AppNavbarProps) {
+  return (
+    <AppBar
+      position="fixed"
+      elevation={0}
+      sx={{
+        display: { xs: 'flex', md: 'none' },
+        bgcolor: 'background.paper',
+        color: 'text.primary',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+        backgroundImage: 'none',
+      }}
+    >
+      <Toolbar sx={{ justifyContent: 'space-between' }}>
+        <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+          <Box
+            sx={{
+              width: 28, height: 28, borderRadius: '50%',
+              background: 'linear-gradient(135deg, hsl(210,98%,60%) 0%, hsl(210,100%,35%) 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <DashboardRoundedIcon sx={{ color: '#fff', fontSize: 16 }} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>Cosy Admin</Typography>
+        </Stack>
+        <Stack direction="row" sx={{ gap: 0.5 }}>
+          <ColorModeToggle />
+          <IconButton>
+            <Badge badgeContent={pendingCount || undefined} color="error">
+              <NotificationsRoundedIcon />
+            </Badge>
+          </IconButton>
+          <IconButton onClick={onToggleMobile}>
+            <MenuRoundedIcon />
+          </IconButton>
+        </Stack>
+      </Toolbar>
+    </AppBar>
+  );
+}
+
+// ─── Header (desktop top bar) ─────────────────────────────────────────────────
+
+interface HeaderProps {
+  pendingCount: number;
+  onNavigate: (path: string) => void;
+}
+
+function Header({ pendingCount, onNavigate }: HeaderProps) {
+  return (
+    <Stack
+      direction="row"
+      sx={{
+        display: { xs: 'none', md: 'flex' },
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        pt: 1.5,
+        pb: 0.5,
+      }}
+    >
+      {/* Breadcrumb */}
+      <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
+        <Tooltip title="Back to site">
+          <IconButton size="small" onClick={() => onNavigate('/')} sx={{ mr: 0.5 }}>
+            <HomeRoundedIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <ChevronRightRoundedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+        <Typography variant="body2" color="text.secondary">Admin</Typography>
+        <ChevronRightRoundedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>Dashboard</Typography>
+      </Stack>
+
+      {/* Right controls */}
+      <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
+        <Search>
+          <SearchRoundedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+          <InputBase placeholder="Search…" inputProps={{ 'aria-label': 'search' }} sx={{ fontSize: 14 }} />
+        </Search>
+        <Tooltip title={`${pendingCount} pending requests`}>
+          <IconButton
+            size="small"
+            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
+            onClick={() => onNavigate('/admin/requests')}
+          >
+            <Badge badgeContent={pendingCount || undefined} color="error">
+              <NotificationsRoundedIcon fontSize="small" />
+            </Badge>
+          </IconButton>
+        </Tooltip>
+        <ColorModeToggle />
+      </Stack>
+    </Stack>
+  );
+}
+
+// ─── Main Dashboard Component ────────────────────────────────────────────────
 
 export default function AdminDashboardClientInner() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
   const redirectRef = React.useRef(false);
-  const [open, setOpen] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [properties, setProperties] = useState<Property[]>([]);
   const [requests, setRequests] = useState<RequestItem[]>([]);
   const [loadingData, setLoadingData] = useState(false);
@@ -174,19 +421,16 @@ export default function AdminDashboardClientInner() {
     const fetchData = async () => {
       try {
         setLoadingData(true);
-        const [propertiesRes, requestsRes] = await Promise.all([
+        const [propRes, reqRes] = await Promise.all([
           api.get('/admin/properties'),
           api.get('/requests'),
         ]);
-        const rawProps = propertiesRes.data?.data ?? propertiesRes.data;
-        const rawReqs = requestsRes.data?.data ?? requestsRes.data;
+        const rawProps = propRes.data?.data ?? propRes.data;
+        const rawReqs = reqRes.data?.data ?? reqRes.data;
         setProperties(Array.isArray(rawProps) ? rawProps : []);
         setRequests(Array.isArray(rawReqs) ? rawReqs : []);
-      } catch (_err) {
-        // show empty state
-      } finally {
-        setLoadingData(false);
-      }
+      } catch { /* show empty state */ }
+      finally { setLoadingData(false); }
     };
     if (isAuthenticated && user?.role === 'admin') fetchData();
   }, [isAuthenticated, user]);
@@ -199,305 +443,342 @@ export default function AdminDashboardClientInner() {
     );
   if (!isAuthenticated || user?.role !== 'admin') return null;
 
-  const activeProperties = properties.filter((p) => p.isActive).length;
-  const pendingRequests = requests.filter((r) => r.status === 'pending').length;
-  const recentProperties = [...properties]
+  const activeProps = properties.filter((p) => p.isActive).length;
+  const pendingReqs = requests.filter((r) => r.status === 'pending').length;
+  const approvedReqs = requests.filter((r) => r.status === 'approved').length;
+  const recentProps = [...properties]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5);
 
-  const statusColor = (status: string) => {
-    if (status === 'approved') return 'success';
-    if (status === 'rejected') return 'error';
-    return 'warning';
-  };
+  // Build monthly bar-chart data from properties.createdAt
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const now = new Date();
+  const last6Months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
+    return { label: monthNames[d.getMonth()], month: d.getMonth(), year: d.getFullYear() };
+  });
+  const barData = last6Months.map(({ month, year }) =>
+    properties.filter((p) => {
+      const d = new Date(p.createdAt);
+      return d.getMonth() === month && d.getFullYear() === year;
+    }).length
+  );
+
+  // Sparkline-style data (last 7 values accumulated)
+  const propSparkline = last6Months.map((_, i) =>
+    properties.filter((p) => new Date(p.createdAt) <= new Date(now.getFullYear(), now.getMonth() - 5 + i + 1, 1)).length
+  );
+  const reqSparkline = last6Months.map((_, i) =>
+    requests.filter((r) => r.createdAt && new Date(r.createdAt) <= new Date(now.getFullYear(), now.getMonth() - 5 + i + 1, 1)).length
+  );
+
+  const statusColor = (s: string) => s === 'approved' ? 'success' : s === 'rejected' ? 'error' : 'warning';
 
   return (
-    <ThemeProvider theme={defaultTheme}>
-      <Box sx={{ display: 'flex' }}>
-        <CssBaseline />
+    <ThemeProvider theme={theme}>
+      <Box
+        data-toolpad-color-scheme="light"
+        sx={{ display: 'flex', minHeight: '100vh' }}
+      >
+        <CssBaseline enableColorScheme />
 
-        {/* ── AppBar ── */}
-        <AppBar position="absolute" open={open}>
-          <Toolbar sx={{ pr: '24px' }}>
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="open drawer"
-              onClick={() => setOpen(true)}
-              sx={{ mr: '36px', ...(open && { display: 'none' }) }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography component="h1" variant="h6" color="inherit" noWrap sx={{ flexGrow: 1 }}>
-              Admin Dashboard
-            </Typography>
-            <Tooltip title="Go to site">
-              <IconButton color="inherit" onClick={() => router.push('/')}>
-                <HomeIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title={`${pendingRequests} pending requests`}>
-              <IconButton color="inherit">
-                <Badge badgeContent={pendingRequests} color="secondary">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Sign out">
-              <IconButton color="inherit" onClick={() => router.push('/login')}>
-                <LogoutIcon />
-              </IconButton>
-            </Tooltip>
-          </Toolbar>
-        </AppBar>
+        {/* Desktop sidebar */}
+        <SideMenu
+          user={user}
+          pendingCount={pendingReqs}
+          onNavigate={router.push}
+          onLogout={() => router.push('/login')}
+        />
 
-        {/* ── Sidebar Drawer ── */}
-        <Drawer variant="permanent" open={open}>
-          <Toolbar
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              px: [1],
-            }}
-          >
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, flexGrow: 1, pl: 1 }}>
-              Cosy Admin
-            </Typography>
-            <IconButton onClick={() => setOpen(false)}>
-              <ChevronLeftIcon />
-            </IconButton>
-          </Toolbar>
-          <Divider />
-          <List component="nav">
-            <ListItem disablePadding>
-              <ListItemButton selected>
-                <ListItemIcon><DashboardIcon /></ListItemIcon>
-                <ListItemText primary="Dashboard" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => router.push('/admin/properties')}>
-                <ListItemIcon><ApartmentIcon /></ListItemIcon>
-                <ListItemText primary="Properties" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => router.push('/admin/requests')}>
-                <ListItemIcon>
-                  <Badge badgeContent={pendingRequests || undefined} color="error">
-                    <AssignmentIcon />
-                  </Badge>
-                </ListItemIcon>
-                <ListItemText primary="Requests" />
-              </ListItemButton>
-            </ListItem>
-            <Divider sx={{ my: 1 }} />
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => router.push('/admin/properties/new')}>
-                <ListItemIcon><AddIcon /></ListItemIcon>
-                <ListItemText primary="Add Property" />
-              </ListItemButton>
-            </ListItem>
-          </List>
-        </Drawer>
+        {/* Mobile navbar */}
+        <AppNavbar pendingCount={pendingReqs} onToggleMobile={() => setMobileOpen(true)} />
 
-        {/* ── Main Content ── */}
+        {/* Mobile drawer */}
+        <MuiDrawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+          sx={{ display: { xs: 'block', md: 'none' }, [`& .${drawerClasses.paper}`]: { width: 240 } }}
+        >
+          <Box sx={{ p: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Menu</Typography>
+            {[
+              { label: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/admin/dashboard' },
+              { label: 'Properties', icon: <ApartmentRoundedIcon />, path: '/admin/properties' },
+              { label: 'Requests', icon: <AssignmentRoundedIcon />, path: '/admin/requests' },
+              { label: 'Add Property', icon: <AddRoundedIcon />, path: '/admin/properties/new' },
+              { label: 'Back to site', icon: <HomeRoundedIcon />, path: '/' },
+            ].map(({ label, icon, path }) => (
+              <ListItemButton key={label} onClick={() => { router.push(path); setMobileOpen(false); }} sx={{ borderRadius: 1.5, mb: 0.5 }}>
+                <ListItemIcon sx={{ minWidth: 36 }}>{icon}</ListItemIcon>
+                <ListItemText primary={label} />
+              </ListItemButton>
+            ))}
+          </Box>
+        </MuiDrawer>
+
+        {/* Main */}
         <Box
           component="main"
-          sx={{
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[900],
+          sx={(t) => ({
             flexGrow: 1,
-            height: '100vh',
+            bgcolor: alpha(t.palette.background.default, 1),
             overflow: 'auto',
-          }}
+            minHeight: '100vh',
+          })}
         >
-          <Toolbar />
-          <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+          <Stack
+            spacing={2}
+            sx={{ alignItems: 'center', mx: 3, pb: 5, mt: { xs: 8, md: 0 } }}
+          >
+            {/* Desktop header */}
+            <Header pendingCount={pendingReqs} onNavigate={router.push} />
 
-            {/* ── Stat Cards ── */}
-            <Grid container spacing={3} sx={{ mb: 3 }}>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <StatCard
-                  title="Total Properties"
-                  value={properties.length}
-                  icon={<ApartmentIcon />}
-                  color="#1976d2"
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <StatCard
-                  title="Active Properties"
-                  value={activeProperties}
-                  icon={<TrendingUpIcon />}
-                  color="#2e7d32"
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <StatCard
-                  title="Pending Requests"
-                  value={pendingRequests}
-                  icon={<PendingActionsIcon />}
-                  color="#ed6c02"
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <StatCard
-                  title="Total Requests"
-                  value={requests.length}
-                  icon={<FormatListBulletedIcon />}
-                  color="#7b1fa2"
-                />
-              </Grid>
-            </Grid>
-
-            {/* ── Recent Properties Table ── */}
-            <Grid container spacing={3}>
-              <Grid size={12}>
-                <Paper sx={{ p: 2, borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      Recent Properties
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<AddIcon />}
-                      onClick={() => router.push('/admin/properties/new')}
-                    >
-                      Add New
-                    </Button>
-                  </Box>
-                  {loadingData ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                      <CircularProgress />
-                    </Box>
-                  ) : recentProperties.length === 0 ? (
-                    <Typography color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-                      No properties yet. Add your first one!
-                    </Typography>
-                  ) : (
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell><strong>Name</strong></TableCell>
-                          <TableCell><strong>City</strong></TableCell>
-                          <TableCell><strong>Min Rent</strong></TableCell>
-                          <TableCell><strong>Available Rooms</strong></TableCell>
-                          <TableCell><strong>Status</strong></TableCell>
-                          <TableCell align="right"><strong>Actions</strong></TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {recentProperties.map((p) => (
-                          <TableRow key={p._id} hover>
-                            <TableCell>{p.name}</TableCell>
-                            <TableCell>{p.location?.city}</TableCell>
-                            <TableCell>R{p.pricing?.minRent?.toLocaleString()}</TableCell>
-                            <TableCell>{p.rooms?.available}</TableCell>
-                            <TableCell>
-                              <Chip
-                                label={p.isActive ? 'Active' : 'Inactive'}
-                                color={p.isActive ? 'success' : 'default'}
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell align="right">
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                sx={{ mr: 1 }}
-                                onClick={() => router.push(`/admin/properties/${p._id}`)}
-                              >
-                                View
-                              </Button>
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                onClick={() => router.push(`/admin/properties/${p._id}/edit`)}
-                              >
-                                Edit
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                  {properties.length > 5 && (
-                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                      <Button size="small" onClick={() => router.push('/admin/properties')}>
-                        View all {properties.length} properties →
-                      </Button>
-                    </Box>
-                  )}
-                </Paper>
-              </Grid>
-
-              {/* ── Recent Requests ── */}
-              <Grid size={12}>
-                <Paper sx={{ p: 2, borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      Recent Requests
-                    </Typography>
-                    <Button size="small" onClick={() => router.push('/admin/requests')}>
-                      View all →
-                    </Button>
-                  </Box>
-                  {loadingData ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                      <CircularProgress />
-                    </Box>
-                  ) : requests.length === 0 ? (
-                    <Typography color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-                      No requests yet.
-                    </Typography>
-                  ) : (
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell><strong>Property</strong></TableCell>
-                          <TableCell><strong>Applicant</strong></TableCell>
-                          <TableCell><strong>Status</strong></TableCell>
-                          <TableCell><strong>Date</strong></TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {requests.slice(0, 5).map((r) => (
-                          <TableRow key={r._id} hover>
-                            <TableCell>{r.property?.name ?? '—'}</TableCell>
-                            <TableCell>{r.user?.name ?? r.user?.email ?? '—'}</TableCell>
-                            <TableCell>
-                              <Chip
-                                label={r.status}
-                                color={statusColor(r.status) as any}
-                                size="small"
-                                sx={{ textTransform: 'capitalize' }}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '—'}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </Paper>
-              </Grid>
-            </Grid>
-
-            {/* ── Footer ── */}
-            <Box sx={{ pt: 4, pb: 2 }}>
-              <Typography variant="body2" color="text.secondary" align="center">
-                {'© '}
-                {new Date().getFullYear()}{' '}
-                Cosy Admin Panel
+            {/* Page title */}
+            <Box sx={{ width: '100%', maxWidth: { sm: '100%', md: '1700px' } }}>
+              <Typography component="h1" variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+                Overview
               </Typography>
+
+              {/* ── Stat Cards ── */}
+              <Grid container spacing={2} columns={12} sx={{ mb: 3 }}>
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                  <StatCard
+                    title="Total Properties"
+                    value={properties.length}
+                    interval="All time"
+                    trend="up"
+                    trendLabel="+added"
+                    data={propSparkline}
+                    color="#1976d2"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                  <StatCard
+                    title="Active Properties"
+                    value={activeProps}
+                    interval="Currently live"
+                    trend={activeProps > 0 ? 'up' : 'neutral'}
+                    trendLabel={`${properties.length > 0 ? Math.round((activeProps / properties.length) * 100) : 0}%`}
+                    data={propSparkline.map((v) => v)}
+                    color="#2e7d32"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                  <StatCard
+                    title="Pending Requests"
+                    value={pendingReqs}
+                    interval="Awaiting review"
+                    trend={pendingReqs > 0 ? 'down' : 'neutral'}
+                    trendLabel={pendingReqs > 0 ? 'Action needed' : undefined}
+                    data={reqSparkline}
+                    color="#ed6c02"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                  <StatCard
+                    title="Approved Requests"
+                    value={approvedReqs}
+                    interval="All time"
+                    trend={approvedReqs > 0 ? 'up' : 'neutral'}
+                    trendLabel={approvedReqs > 0 ? `+${approvedReqs}` : undefined}
+                    data={reqSparkline}
+                    color="#7b1fa2"
+                  />
+                </Grid>
+              </Grid>
+
+              {/* ── Bar Chart ── */}
+              <Grid container spacing={2} columns={12} sx={{ mb: 3 }}>
+                <Grid size={{ xs: 12, md: 7 }}>
+                  <Card variant="outlined" sx={{ width: '100%' }}>
+                    <CardContent>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                        Properties added per month
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Last 6 months
+                      </Typography>
+                      <BarChart
+                        height={200}
+                        borderRadius={6}
+                        xAxis={[{ scaleType: 'band', data: last6Months.map((m) => m.label), categoryGapRatio: 0.5 }]}
+                        yAxis={[{ width: 32 }]}
+                        series={[{ data: barData, label: 'Properties', color: '#1976d2' }]}
+                        margin={{ top: 16, right: 12, bottom: 24, left: 40 }}
+                      />
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid size={{ xs: 12, md: 5 }}>
+                  <Card variant="outlined" sx={{ width: '100%', height: '100%' }}>
+                    <CardContent>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
+                        Request breakdown
+                      </Typography>
+                      <Stack spacing={2}>
+                        {[
+                          { label: 'Pending', count: pendingReqs, color: 'warning' as const, icon: <PendingActionsRoundedIcon fontSize="small" /> },
+                          { label: 'Approved', count: approvedReqs, color: 'success' as const, icon: <CheckCircleRoundedIcon fontSize="small" /> },
+                          { label: 'Rejected', count: requests.filter(r => r.status === 'rejected').length, color: 'error' as const, icon: <TrendingDownRoundedIcon fontSize="small" /> },
+                        ].map(({ label, count, color, icon }) => (
+                          <Stack key={label} direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+                              <Chip icon={icon} label={label} size="small" color={color} variant="outlined" />
+                            </Stack>
+                            <Typography variant="h6" sx={{ fontWeight: 700 }}>{count}</Typography>
+                          </Stack>
+                        ))}
+                        <Divider />
+                        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Typography variant="body2" color="text.secondary">Total</Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 700 }}>{requests.length}</Typography>
+                        </Stack>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+
+              {/* ── Details ── */}
+              <Typography component="h2" variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                Details
+              </Typography>
+
+              <Grid container spacing={2} columns={12}>
+                {/* Properties table */}
+                <Grid size={{ xs: 12, lg: 7 }}>
+                  <Card variant="outlined">
+                    <CardContent sx={{ pb: 0 }}>
+                      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                          Recent Properties
+                        </Typography>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          startIcon={<AddRoundedIcon />}
+                          onClick={() => router.push('/admin/properties/new')}
+                        >
+                          Add new
+                        </Button>
+                      </Stack>
+                    </CardContent>
+                    {loadingData ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                        <CircularProgress size={28} />
+                      </Box>
+                    ) : recentProps.length === 0 ? (
+                      <Box sx={{ px: 2, pb: 3 }}>
+                        <Typography color="text.secondary" variant="body2">No properties yet. Add your first one!</Typography>
+                      </Box>
+                    ) : (
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 600, fontSize: 12, color: 'text.secondary', textTransform: 'uppercase' }}>Name</TableCell>
+                            <TableCell sx={{ fontWeight: 600, fontSize: 12, color: 'text.secondary', textTransform: 'uppercase' }}>City</TableCell>
+                            <TableCell sx={{ fontWeight: 600, fontSize: 12, color: 'text.secondary', textTransform: 'uppercase' }}>Min Rent</TableCell>
+                            <TableCell sx={{ fontWeight: 600, fontSize: 12, color: 'text.secondary', textTransform: 'uppercase' }}>Rooms</TableCell>
+                            <TableCell sx={{ fontWeight: 600, fontSize: 12, color: 'text.secondary', textTransform: 'uppercase' }}>Status</TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 600, fontSize: 12, color: 'text.secondary', textTransform: 'uppercase' }}>Actions</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {recentProps.map((p) => (
+                            <TableRow key={p._id} hover sx={{ '&:last-child td': { border: 0 } }}>
+                              <TableCell sx={{ fontWeight: 500 }}>{p.name}</TableCell>
+                              <TableCell>{p.location?.city}</TableCell>
+                              <TableCell>R{p.pricing?.minRent?.toLocaleString()}</TableCell>
+                              <TableCell>{p.rooms?.available}</TableCell>
+                              <TableCell>
+                                <Chip label={p.isActive ? 'Active' : 'Inactive'} color={p.isActive ? 'success' : 'default'} size="small" />
+                              </TableCell>
+                              <TableCell align="right">
+                                <Stack direction="row" sx={{ gap: 0.5, justifyContent: 'flex-end' }}>
+                                  <Button size="small" variant="outlined" sx={{ minWidth: 0, px: 1.5 }} onClick={() => router.push(`/admin/properties/${p._id}`)}>View</Button>
+                                  <Button size="small" variant="outlined" sx={{ minWidth: 0, px: 1.5 }} onClick={() => router.push(`/admin/properties/${p._id}/edit`)}>Edit</Button>
+                                </Stack>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                    {properties.length > 5 && (
+                      <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button size="small" endIcon={<ChevronRightRoundedIcon />} onClick={() => router.push('/admin/properties')}>
+                          View all {properties.length} properties
+                        </Button>
+                      </Box>
+                    )}
+                  </Card>
+                </Grid>
+
+                {/* Requests table */}
+                <Grid size={{ xs: 12, lg: 5 }}>
+                  <Card variant="outlined">
+                    <CardContent sx={{ pb: 0 }}>
+                      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                          Recent Requests
+                        </Typography>
+                        <Button size="small" endIcon={<ChevronRightRoundedIcon />} onClick={() => router.push('/admin/requests')}>
+                          View all
+                        </Button>
+                      </Stack>
+                    </CardContent>
+                    {loadingData ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                        <CircularProgress size={28} />
+                      </Box>
+                    ) : requests.length === 0 ? (
+                      <Box sx={{ px: 2, pb: 3 }}>
+                        <Typography color="text.secondary" variant="body2">No requests yet.</Typography>
+                      </Box>
+                    ) : (
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 600, fontSize: 12, color: 'text.secondary', textTransform: 'uppercase' }}>Property</TableCell>
+                            <TableCell sx={{ fontWeight: 600, fontSize: 12, color: 'text.secondary', textTransform: 'uppercase' }}>Applicant</TableCell>
+                            <TableCell sx={{ fontWeight: 600, fontSize: 12, color: 'text.secondary', textTransform: 'uppercase' }}>Status</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {requests.slice(0, 8).map((r) => (
+                            <TableRow key={r._id} hover sx={{ '&:last-child td': { border: 0 } }}>
+                              <TableCell sx={{ maxWidth: 140 }}>
+                                <Typography variant="body2" noWrap>{r.property?.name ?? '—'}</Typography>
+                              </TableCell>
+                              <TableCell sx={{ maxWidth: 120 }}>
+                                <Typography variant="body2" noWrap>{r.user?.name ?? r.user?.email ?? '—'}</Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Chip
+                                  label={r.status}
+                                  color={statusColor(r.status) as any}
+                                  size="small"
+                                  sx={{ textTransform: 'capitalize', fontWeight: 600 }}
+                                />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </Card>
+                </Grid>
+              </Grid>
+
+              {/* Footer */}
+              <Box sx={{ pt: 4, pb: 1 }}>
+                <Typography variant="body2" color="text.secondary" align="center">
+                  © {new Date().getFullYear()} Cosy Admin Panel
+                </Typography>
+              </Box>
             </Box>
-          </Container>
+          </Stack>
         </Box>
       </Box>
     </ThemeProvider>
