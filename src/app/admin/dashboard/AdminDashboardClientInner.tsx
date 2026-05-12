@@ -153,7 +153,7 @@ function SideMenu({ user, pendingCount, pathname, onNavigate, onLogout }: {
       [`& .${drawerClasses.paper}`]: { width: DRAWER_WIDTH, boxSizing: 'border-box', bgcolor: 'background.paper', borderRight: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column' },
     }}>
       <Stack direction="row" sx={{ alignItems: 'center', gap: 1, p: 2, pt: 2.5 }}>
-        <Box sx={{ width: 30, height: 30, borderRadius: 1.5, background: 'linear-gradient(135deg, hsl(210,98%,60%) 0%, hsl(210,100%,35%) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Box sx={{ width: 30, height: 30, borderRadius: 1.5, background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 17 }} />
         </Box>
         <Box>
@@ -197,7 +197,7 @@ function AppNavbar({ pendingCount, onToggleMobile }: { pendingCount: number; onT
     <AppBar position="fixed" elevation={0} sx={{ display: { xs: 'flex', md: 'none' }, bgcolor: 'background.paper', color: 'text.primary', borderBottom: '1px solid', borderColor: 'divider', backgroundImage: 'none' }}>
       <Toolbar sx={{ justifyContent: 'space-between' }}>
         <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 28, height: 28, borderRadius: 1, background: 'linear-gradient(135deg, hsl(210,98%,60%) 0%, hsl(210,100%,35%) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box sx={{ width: 28, height: 28, borderRadius: 1, background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 16 }} />
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>Cosy Admin</Typography>

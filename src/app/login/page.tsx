@@ -35,7 +35,7 @@ function CosyIcon() {
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
       <Box sx={{
         width: 32, height: 32, borderRadius: 1.5,
-        background: 'linear-gradient(135deg, hsl(210,98%,60%) 0%, hsl(210,100%,35%) 100%)',
+        background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
       }}>
         <SvgIcon sx={{ color: '#fff', fontSize: 18 }}>
@@ -255,7 +255,7 @@ export default function LoginPage() {
             <ForgotPassword open={forgotOpen} onClose={() => setForgotOpen(false)} />
 
             <Button type="submit" fullWidth variant="contained" disabled={loading}
-              sx={{ bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'text.secondary' } }}
+              sx={{ py: 1.2, fontWeight: 600, textTransform: 'none' }}
               onClick={validateInputs}>
               {loading ? <CircularProgress size={22} color="inherit" /> : 'Sign in'}
             </Button>

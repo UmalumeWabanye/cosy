@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 
-import { createTheme, ThemeProvider, useColorScheme } from '@mui/material/styles';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -31,14 +31,11 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
-import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
-import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
+
 
 const DRAWER_WIDTH = 240;
 
 export const adminTheme = createTheme({
-  cssVariables: { colorSchemeSelector: 'data-toolpad-color-scheme' },
-  colorSchemes: { light: true, dark: true },
   typography: {
     fontFamily: [
       'Inter',
@@ -51,21 +48,6 @@ export const adminTheme = createTheme({
   shape: { borderRadius: 8 },
 });
 
-function ColorModeToggle() {
-  const { mode, setMode } = useColorScheme();
-  if (!mode) return null;
-  return (
-    <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>
-      <IconButton
-        size="small"
-        onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')}
-        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
-      >
-        {mode === 'dark' ? <LightModeRoundedIcon fontSize="small" /> : <DarkModeRoundedIcon fontSize="small" />}
-      </IconButton>
-    </Tooltip>
-  );
-}
 
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/admin/dashboard' },
@@ -90,7 +72,7 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
         <Box
           sx={{
             width: 32, height: 32, borderRadius: '50%',
-            background: 'linear-gradient(135deg, hsl(210,98%,60%) 0%, hsl(210,100%,35%) 100%)',
+            background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
@@ -255,7 +237,7 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
             <Box
               sx={{
                 width: 28, height: 28, borderRadius: '50%',
-                background: 'linear-gradient(135deg, hsl(210,98%,60%) 0%, hsl(210,100%,35%) 100%)',
+                background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
@@ -264,7 +246,6 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
             <Typography variant="h6" sx={{ fontWeight: 700 }}>Cosy Admin</Typography>
           </Stack>
           <Stack direction="row" sx={{ gap: 0.5 }}>
-            <ColorModeToggle />
             <IconButton>
               <Badge badgeContent={pendingCount || undefined} color="error">
                 <NotificationsRoundedIcon />
