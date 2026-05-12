@@ -30,8 +30,8 @@ export default function Navbar() {
 
   // room type selection handled in search UI
 
-  // Don't show navbar on login/signup pages
-  if (pathname === '/login' || pathname === '/signup') {
+  // Don't show navbar on login/signup pages or any admin pages
+  if (pathname === '/login' || pathname === '/signup' || pathname.startsWith('/admin')) {
     return null;
   }
 
