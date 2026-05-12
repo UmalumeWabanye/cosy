@@ -63,8 +63,10 @@ export default function AdminDashboardClientInner() {
           api.get('/admin/properties'),
           api.get('/requests'),
         ]);
-        setProperties(propertiesRes.data.data || propertiesRes.data || []);
-        setRequests(requestsRes.data.data || requestsRes.data || []);
+        const rawProps = propertiesRes.data?.data ?? propertiesRes.data;
+        const rawReqs = requestsRes.data?.data ?? requestsRes.data;
+        setProperties(Array.isArray(rawProps) ? rawProps : []);
+        setRequests(Array.isArray(rawReqs) ? rawReqs : []);
       } catch (err) {
         // swallow for now; template will show empty state
       } finally {
