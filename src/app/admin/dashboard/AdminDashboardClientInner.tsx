@@ -5,12 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/services/api';
 
-import { alpha, createTheme, ThemeProvider, useColorScheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
+import { alpha, createTheme, ThemeProvider, useColorScheme } from '@mui/material/styles';import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Grid';
-import Container from '@mui/material/Container';
 import AppBar from '@mui/material/AppBar';
 import MuiDrawer from '@mui/material/Drawer';
 import Toolbar from '@mui/material/Toolbar';
@@ -27,25 +25,21 @@ import Badge from '@mui/material/Badge';
 import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
-import InputBase from '@mui/material/InputBase';
 import CircularProgress from '@mui/material/CircularProgress';
 import Tooltip from '@mui/material/Tooltip';
 import { drawerClasses } from '@mui/material/Drawer';
-import { styled } from '@mui/material/styles';
 
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
@@ -96,22 +90,6 @@ const theme = createTheme({
   },
   shape: { borderRadius: 8 },
 });
-
-// ─── Styled Search ────────────────────────────────────────────────────────────
-
-const Search = styled('div')(({ theme }) => ({
-  position: 'relative',
-  borderRadius: theme.shape.borderRadius,
-  border: '1px solid',
-  borderColor: theme.palette.divider,
-  backgroundColor: theme.palette.background.paper,
-  '&:hover': { borderColor: theme.palette.primary.main },
-  display: 'flex',
-  alignItems: 'center',
-  padding: '4px 10px',
-  gap: 6,
-  minWidth: 200,
-}));
 
 // ─── Color Mode Toggle ────────────────────────────────────────────────────────
 
@@ -281,6 +259,7 @@ function SideMenu({ user, pendingCount, onNavigate, onLogout }: SideMenuProps) {
             {user?.email ?? ''}
           </Typography>
         </Box>
+        <ColorModeToggle />
         <Tooltip title="Sign out">
           <IconButton size="small" onClick={onLogout}>
             <LogoutRoundedIcon fontSize="small" />
@@ -338,62 +317,6 @@ function AppNavbar({ pendingCount, onToggleMobile }: AppNavbarProps) {
         </Stack>
       </Toolbar>
     </AppBar>
-  );
-}
-
-// ─── Header (desktop top bar) ─────────────────────────────────────────────────
-
-interface HeaderProps {
-  pendingCount: number;
-  onNavigate: (path: string) => void;
-}
-
-function Header({ pendingCount, onNavigate }: HeaderProps) {
-  return (
-    <Stack
-      direction="row"
-      sx={{
-        display: { xs: 'none', md: 'flex' },
-        width: '100%',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        pt: 1.5,
-        pb: 0.5,
-      }}
-    >
-      {/* Breadcrumb */}
-      <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
-        <Tooltip title="Back to site">
-          <IconButton size="small" onClick={() => onNavigate('/')} sx={{ mr: 0.5 }}>
-            <HomeRoundedIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <ChevronRightRoundedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
-        <Typography variant="body2" color="text.secondary">Admin</Typography>
-        <ChevronRightRoundedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
-        <Typography variant="body2" sx={{ fontWeight: 600 }}>Dashboard</Typography>
-      </Stack>
-
-      {/* Right controls */}
-      <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
-        <Search>
-          <SearchRoundedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-          <InputBase placeholder="Search…" inputProps={{ 'aria-label': 'search' }} sx={{ fontSize: 14 }} />
-        </Search>
-        <Tooltip title={`${pendingCount} pending requests`}>
-          <IconButton
-            size="small"
-            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
-            onClick={() => onNavigate('/admin/requests')}
-          >
-            <Badge badgeContent={pendingCount || undefined} color="error">
-              <NotificationsRoundedIcon fontSize="small" />
-            </Badge>
-          </IconButton>
-        </Tooltip>
-        <ColorModeToggle />
-      </Stack>
-    </Stack>
   );
 }
 
@@ -525,20 +448,14 @@ export default function AdminDashboardClientInner() {
             bgcolor: alpha(t.palette.background.default, 1),
             overflow: 'auto',
             minHeight: '100vh',
+            ml: { xs: 0, md: '240px' },
           })}
         >
-          <Stack
-            spacing={2}
-            sx={{ alignItems: 'center', mx: 3, pb: 5, mt: { xs: 8, md: 0 } }}
-          >
-            {/* Desktop header */}
-            <Header pendingCount={pendingReqs} onNavigate={router.push} />
-
+          <Box sx={{ px: { xs: 2, md: 4 }, pt: { xs: 9, md: 4 }, pb: 6 }}>
             {/* Page title */}
-            <Box sx={{ width: '100%', maxWidth: { sm: '100%', md: '1700px' } }}>
-              <Typography component="h1" variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-                Overview
-              </Typography>
+            <Typography component="h1" variant="h5" sx={{ fontWeight: 700, mb: 3 }}>
+              Overview
+            </Typography>
 
               {/* ── Stat Cards ── */}
               <Grid container spacing={2} columns={12} sx={{ mb: 3 }}>
@@ -599,14 +516,17 @@ export default function AdminDashboardClientInner() {
                       <Typography variant="caption" color="text.secondary">
                         Last 6 months
                       </Typography>
-                      <BarChart
-                        height={200}
-                        borderRadius={6}
-                        xAxis={[{ scaleType: 'band', data: last6Months.map((m) => m.label), categoryGapRatio: 0.5 }]}
-                        yAxis={[{ width: 32 }]}
-                        series={[{ data: barData, label: 'Properties', color: '#1976d2' }]}
-                        margin={{ top: 16, right: 12, bottom: 24, left: 40 }}
-                      />
+                      <Box sx={{ width: '100%', overflowX: 'auto' }}>
+                        <BarChart
+                          height={200}
+                          borderRadius={6}
+                          xAxis={[{ scaleType: 'band', data: last6Months.map((m) => m.label), categoryGapRatio: 0.5 }]}
+                          yAxis={[{ width: 32 }]}
+                          series={[{ data: barData, label: 'Properties', color: '#1976d2' }]}
+                          margin={{ top: 16, right: 12, bottom: 24, left: 40 }}
+                          sx={{ width: '100%' }}
+                        />
+                      </Box>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -673,6 +593,7 @@ export default function AdminDashboardClientInner() {
                         <Typography color="text.secondary" variant="body2">No properties yet. Add your first one!</Typography>
                       </Box>
                     ) : (
+                      <Box sx={{ overflowX: 'auto' }}>
                       <Table size="small">
                         <TableHead>
                           <TableRow>
@@ -704,6 +625,7 @@ export default function AdminDashboardClientInner() {
                           ))}
                         </TableBody>
                       </Table>
+                      </Box>
                     )}
                     {properties.length > 5 && (
                       <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end' }}>
@@ -737,6 +659,7 @@ export default function AdminDashboardClientInner() {
                         <Typography color="text.secondary" variant="body2">No requests yet.</Typography>
                       </Box>
                     ) : (
+                      <Box sx={{ overflowX: 'auto' }}>
                       <Table size="small">
                         <TableHead>
                           <TableRow>
@@ -766,6 +689,7 @@ export default function AdminDashboardClientInner() {
                           ))}
                         </TableBody>
                       </Table>
+                      </Box>
                     )}
                   </Card>
                 </Grid>
@@ -777,8 +701,7 @@ export default function AdminDashboardClientInner() {
                   © {new Date().getFullYear()} Cosy Admin Panel
                 </Typography>
               </Box>
-            </Box>
-          </Stack>
+          </Box>
         </Box>
       </Box>
     </ThemeProvider>
