@@ -5,264 +5,209 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/services/api';
 import Navbar from '@/components/Navbar';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Container from '@mui/material/Container';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import StarIcon from '@mui/icons-material/Star';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+
+const theme = createTheme({
+  typography: {
+    fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
+  },
+  shape: { borderRadius: 8 },
+});
 
 interface SavedListing {
   _id: string;
   propertyId: {
-    _id: string;
-    name: string;
-    description: string;
-    location: {
-      address: string;
-      city: string;
-      university: string;
-    };
-    pricing: {
-      minRent: number;
-      maxRent: number;
-    };
-    images: string[];
-    rating: number;
-    reviewCount: number;
-    rooms: {
-      available: number;
-      total: number;
-    };
-    nsfasAccreditation: boolean;
+    _id: string; name: string; description: string;
+    location: { address: string; city: string; university: string };
+    pricing: { minRent: number; maxRent: number };
+    images: string[]; rating: number; reviewCount: number;
+    rooms: { available: number; total: number }; nsfasAccreditation: boolean;
   };
-  notes: string;
-  createdAt: string;
+  notes: string; createdAt: string;
 }
 
 export default function SavedListingsPage() {
-  const router = useRouter();
   const [savedListings, setSavedListings] = useState<SavedListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editNotes, setEditNotes] = useState('');
 
-  useEffect(() => {
-    fetchSavedListings();
-  }, []);
+  useEffect(() => { fetchSavedListings(); }, []);
 
   const fetchSavedListings = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/saved');
-      
-      if (response.data.success) {
-        setSavedListings(response.data.data);
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load saved listings');
-    } finally {
-      setLoading(false);
-    }
+      const res = await api.get('/saved');
+      if (res.data.success) setSavedListings(res.data.data);
+    } catch (e: any) {
+      setError(e.response?.data?.message || 'Failed to load saved listings');
+    } finally { setLoading(false); }
   };
 
   const handleRemove = async (id: string) => {
-    if (!confirm('Are you sure you want to remove this saved listing?')) return;
-
+    if (!confirm('Remove this saved listing?')) return;
     try {
-      const response = await api.delete(`/saved/${id}`);
-      
-      if (response.data.success) {
-        setSavedListings(savedListings.filter((listing) => listing._id !== id));
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to remove listing');
-    }
+      const res = await api.delete(`/saved/${id}`);
+      if (res.data.success) setSavedListings((prev) => prev.filter((l) => l._id !== id));
+    } catch (e: any) { setError(e.response?.data?.message || 'Failed to remove'); }
   };
 
   const handleEditNotes = async (id: string) => {
     try {
-      const response = await api.patch(`/saved/${id}`, { notes: editNotes });
-      
-      if (response.data.success) {
-        setSavedListings(
-          savedListings.map((listing) =>
-            listing._id === id ? { ...listing, notes: editNotes } : listing
-          )
-        );
-        setEditingId(null);
-        setEditNotes('');
+      const res = await api.patch(`/saved/${id}`, { notes: editNotes });
+      if (res.data.success) {
+        setSavedListings((prev) => prev.map((l) => l._id === id ? { ...l, notes: editNotes } : l));
+        setEditingId(null); setEditNotes('');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update notes');
-    }
+    } catch (e: any) { setError(e.response?.data?.message || 'Failed to update notes'); }
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <Navbar />
+    <ThemeProvider theme={theme}>
+      <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh' }}>
+        <Navbar />
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>Saved Listings</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              {savedListings.length} {savedListings.length === 1 ? 'property' : 'properties'} saved
+            </Typography>
+          </Box>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Saved Listings</h1>
-          <p className="text-gray-600">
-            {savedListings.length} {savedListings.length === 1 ? 'property' : 'properties'} saved
-          </p>
-        </div>
+          {error && <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>}
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-            {error}
-          </div>
-        )}
-
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-gray-600">Loading your saved listings...</p>
-          </div>
-        ) : savedListings.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg border-2 border-dashed border-gray-300">
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No saved listings yet</h3>
-            <p className="text-gray-600 mb-6">
-              Browse properties and save your favorites to keep track of them.
-            </p>
-            <Link
-              href="/browse"
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded"
-            >
-              Browse Properties
-            </Link>
-          </div>
-        ) : (
-          <div className="grid gap-6">
-            {savedListings.map((listing) => (
-              <div key={listing._id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6">
-                  <div className="md:col-span-1">
-                    {listing.propertyId.images && listing.propertyId.images[0] ? (
-                      <img
-                        src={listing.propertyId.images[0]}
-                        alt={listing.propertyId.name}
-                        className="w-full h-48 object-cover rounded"
-                      />
-                    ) : (
-                      <div className="w-full h-48 bg-gray-200 rounded flex items-center justify-center">
-                        <span className="text-gray-400">No image</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <Link
-                      href={`/browse/${listing.propertyId._id}`}
-                      className="text-lg font-bold text-blue-600 hover:text-blue-800 mb-2 block"
-                    >
-                      {listing.propertyId.name}
-                    </Link>
-
-                    <p className="text-sm text-gray-600 mb-3">
-                      {listing.propertyId.location.address}, {listing.propertyId.location.city}
-                    </p>
-
-                    <div className="flex flex-wrap gap-4 text-sm mb-4">
-                      <div>
-                        <span className="font-semibold">Rent:</span>
-                        <span className="ml-2">
-                          R{listing.propertyId.pricing.minRent?.toLocaleString()} - R
-                          {listing.propertyId.pricing.maxRent?.toLocaleString()}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="font-semibold">Available:</span>
-                        <span className="ml-2">{listing.propertyId.rooms.available} / {listing.propertyId.rooms.total}</span>
-                      </div>
-                      {listing.propertyId.nsfasAccreditation && (
-                        <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">
-                          NSFAS Accredited
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-yellow-500">★</span>
-                      <span className="font-semibold">{listing.propertyId.rating.toFixed(1)}</span>
-                      <span className="text-gray-500 text-sm">
-                        ({listing.propertyId.reviewCount} reviews)
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="md:col-span-1 border-l pl-4">
-                    <h4 className="font-semibold text-gray-900 mb-2 text-sm">Notes</h4>
-                    
-                    {editingId === listing._id ? (
-                      <div className="space-y-2">
-                        <textarea
-                          value={editNotes}
-                          onChange={(e) => setEditNotes(e.target.value)}
-                          placeholder="Add personal notes..."
-                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                          rows={3}
-                        />
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditNotes(listing._id)}
-                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1 rounded"
-                          >
-                            Save
-                          </button>
-                          <button
-                            onClick={() => {
-                              setEditingId(null);
-                              setEditNotes('');
-                            }}
-                            className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 text-xs font-semibold py-1 rounded"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        {listing.notes ? (
-                          <p className="text-sm text-gray-700 mb-3 bg-gray-50 p-2 rounded">
-                            {listing.notes}
-                          </p>
+          {loading ? (
+            <Box sx={{ textAlign: 'center', py: 10 }}><CircularProgress /></Box>
+          ) : savedListings.length === 0 ? (
+            <Card variant="outlined" sx={{ textAlign: 'center', py: 8 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>No saved listings yet</Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
+                Browse properties and save your favorites.
+              </Typography>
+              <Button variant="contained" component={Link} href="/browse" sx={{ textTransform: 'none' }}>
+                Browse Properties
+              </Button>
+            </Card>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {savedListings.map((listing) => (
+                <Card key={listing._id} variant="outlined" sx={{ boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px', '&:hover': { boxShadow: 'hsla(220, 30%, 5%, 0.1) 0px 10px 25px 0px' }, transition: 'box-shadow 0.2s' }}>
+                  <CardContent>
+                    <Grid container spacing={3}>
+                      {/* Image */}
+                      <Grid size={{ xs: 12, sm: 3 }}>
+                        {listing.propertyId.images?.[0] ? (
+                          <Box sx={{ height: 160, borderRadius: 1, overflow: 'hidden' }}>
+                            <img src={listing.propertyId.images[0]} alt={listing.propertyId.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </Box>
                         ) : (
-                          <p className="text-xs text-gray-400 mb-3 italic">No notes added</p>
+                          <Box sx={{ height: 160, bgcolor: 'grey.200', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Typography color="text.disabled">No image</Typography>
+                          </Box>
                         )}
-                        <button
-                          onClick={() => {
-                            setEditingId(listing._id);
-                            setEditNotes(listing.notes || '');
-                          }}
-                          className="text-xs text-blue-600 hover:text-blue-800 font-semibold mb-2 block"
-                        >
-                          Edit Notes
-                        </button>
-                      </div>
-                    )}
+                      </Grid>
 
-                    <button
-                      onClick={() => handleRemove(listing._id)}
-                      className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2 px-3 rounded text-sm transition-colors"
-                    >
-                      Remove
-                    </button>
+                      {/* Details */}
+                      <Grid size={{ xs: 12, sm: 5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                          <Typography
+                            variant="subtitle1"
+                            component={Link}
+                            href={`/browse/${listing.propertyId._id}`}
+                            sx={{ fontWeight: 700, color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+                          >
+                            {listing.propertyId.name}
+                          </Typography>
+                          {listing.propertyId.nsfasAccreditation && (
+                            <Chip icon={<VerifiedIcon sx={{ fontSize: 12 }} />} label="NSFAS" size="small" color="success" variant="outlined" sx={{ fontSize: 11 }} />
+                          )}
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+                          <LocationOnOutlinedIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                          <Typography variant="body2" color="text.secondary">
+                            {listing.propertyId.location.address}, {listing.propertyId.location.city}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 3, mb: 1 }}>
+                          <Box>
+                            <Typography variant="caption" color="text.secondary">Rent</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                              R{listing.propertyId.pricing.minRent?.toLocaleString()} – R{listing.propertyId.pricing.maxRent?.toLocaleString()}
+                            </Typography>
+                          </Box>
+                          <Box>
+                            <Typography variant="caption" color="text.secondary">Available</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {listing.propertyId.rooms.available}/{listing.propertyId.rooms.total}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <StarIcon sx={{ fontSize: 14, color: 'warning.main' }} />
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{listing.propertyId.rating.toFixed(1)}</Typography>
+                          <Typography variant="body2" color="text.secondary">({listing.propertyId.reviewCount})</Typography>
+                        </Box>
+                      </Grid>
 
-                    <Link
-                      href={`/browse/${listing.propertyId._id}`}
-                      className="block w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 rounded text-sm text-center transition-colors"
-                    >
-                      View Property
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="px-6 py-2 bg-gray-50 border-t text-xs text-gray-500">
-                  Saved on {new Date(listing.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
+                      {/* Notes + Actions */}
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <Divider orientation="vertical" sx={{ display: { xs: 'none', sm: 'block' }, mr: 2 }} />
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase' }}>Notes</Typography>
+                        {editingId === listing._id ? (
+                          <Box sx={{ mt: 1 }}>
+                            <TextField
+                              fullWidth
+                              multiline
+                              rows={3}
+                              size="small"
+                              value={editNotes}
+                              onChange={(e) => setEditNotes(e.target.value)}
+                              placeholder="Add personal notes..."
+                            />
+                            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                              <Button size="small" variant="contained" startIcon={<CheckIcon />} onClick={() => handleEditNotes(listing._id)} sx={{ textTransform: 'none' }}>Save</Button>
+                              <Button size="small" variant="outlined" startIcon={<CloseIcon />} onClick={() => { setEditingId(null); setEditNotes(''); }} sx={{ textTransform: 'none' }}>Cancel</Button>
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Box sx={{ mt: 1 }}>
+                            <Typography variant="body2" sx={{ color: listing.notes ? 'text.primary' : 'text.disabled', fontStyle: listing.notes ? 'italic' : 'normal', mb: 2, minHeight: 40 }}>
+                              {listing.notes || 'No notes added yet.'}
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                              <Button size="small" variant="outlined" startIcon={<EditOutlinedIcon />} onClick={() => { setEditingId(listing._id); setEditNotes(listing.notes); }} sx={{ textTransform: 'none' }}>Edit</Button>
+                              <Button size="small" variant="outlined" color="error" startIcon={<DeleteOutlinedIcon />} onClick={() => handleRemove(listing._id)} sx={{ textTransform: 'none' }}>Remove</Button>
+                            </Box>
+                          </Box>
+                        )}
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+          )}
+        </Container>
+      </Box>
+    </ThemeProvider>
   );
 }

@@ -5,30 +5,37 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import api from '@/services/api';
-import { MdLocationOn, MdAccessTime } from 'react-icons/md';
-import { HiCheck, HiX } from 'react-icons/hi';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+
+const theme = createTheme({
+  typography: {
+    fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
+  },
+  shape: { borderRadius: 8 },
+});
 
 interface Request {
   _id: string;
-  propertyId: {
-    _id: string;
-    name: string;
-    images: string[];
-    location: {
-      city: string;
-      address: string;
-    };
-    pricing: {
-      minRent: number;
-    };
-  };
-  moveInDate: string;
-  leaseDuration: string;
-  fundingType: string;
-  message: string;
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
+  propertyId: { _id: string; name: string; images: string[]; location: { city: string; address: string }; pricing: { minRent: number } };
+  moveInDate: string; leaseDuration: string; fundingType: string; message: string;
+  status: 'pending' | 'approved' | 'rejected'; createdAt: string;
 }
+
+const statusColor: Record<string, 'warning' | 'success' | 'error'> = {
+  pending: 'warning', approved: 'success', rejected: 'error',
+};
 
 export default function RequestsPage() {
   const router = useRouter();
@@ -39,220 +46,160 @@ export default function RequestsPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || user?.role !== 'student')) {
-      router.push('/login');
-    }
+    if (!isLoading && (!isAuthenticated || user?.role !== 'student')) router.push('/login');
   }, [isAuthenticated, isLoading, user, router]);
 
   useEffect(() => {
-    const fetchRequests = async () => {
+    if (!isAuthenticated) return;
+    const fetch = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/requests/my');
-        setRequests(response.data.data);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to load requests');
-      } finally {
-        setLoading(false);
-      }
+        const res = await api.get('/requests/my');
+        setRequests(res.data.data);
+      } catch (e: any) {
+        setError(e.response?.data?.message || 'Failed to load requests');
+      } finally { setLoading(false); }
     };
-
-    if (isAuthenticated) {
-      fetchRequests();
-    }
+    fetch();
   }, [isAuthenticated]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading...</p>
-      </div>
-    );
-  }
+  if (isLoading) return (
+    <ThemeProvider theme={theme}>
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Box>
+    </ThemeProvider>
+  );
 
-  if (!isAuthenticated || user?.role !== 'student') {
-    return null;
-  }
+  if (!isAuthenticated || user?.role !== 'student') return null;
 
-  const filteredRequests =
-    filter === 'all' ? requests : requests.filter((r) => r.status === filter);
-
-  const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { bg: string; text: string; icon: JSX.Element }> = {
-      pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: <MdAccessTime className="w-4 h-4" /> },
-      approved: { bg: 'bg-green-100', text: 'text-green-800', icon: <HiCheck className="w-4 h-4" /> },
-      rejected: { bg: 'bg-red-100', text: 'text-red-800', icon: <HiX className="w-4 h-4" /> },
-    };
-    const config = statusConfig[status];
-    return (
-      <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold ${config.bg} ${config.text}`}>
-        {config.icon}
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
-    );
-  };
+  const filtered = filter === 'all' ? requests : requests.filter((r) => r.status === filter);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="container py-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">My Requests</h1>
-              <p className="text-gray-600 mt-1">Track your accommodation requests</p>
-            </div>
-            <Link href="/browse" className="btn-primary px-6 py-3 font-semibold">
+    <ThemeProvider theme={theme}>
+      <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh' }}>
+        {/* Header */}
+        <Box sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', py: 3, px: 2 }}>
+          <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>My Requests</Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>Track your accommodation requests</Typography>
+            </Box>
+            <Button variant="contained" component={Link} href="/browse" sx={{ textTransform: 'none', fontWeight: 600 }}>
               + New Request
-            </Link>
-          </div>
-        </div>
-      </div>
+            </Button>
+          </Container>
+        </Box>
 
-      <div className="container py-8">
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">{error}</p>
-          </div>
-        )}
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          {error && <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>}
 
-        {/* Filters */}
-        <div className="flex gap-3 mb-8 flex-wrap">
-          {(['all', 'pending', 'approved', 'rejected'] as const).map((status) => (
-            <button
-              key={status}
-              onClick={() => setFilter(status)}
-              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                filter === status
-                  ? 'bg-primary text-white'
-                  : 'bg-white border border-gray-300 text-gray-700 hover:border-primary hover:text-primary'
-              }`}
-            >
-              {status === 'all'
-                ? 'All Requests'
-                : status.charAt(0).toUpperCase() + status.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin">
-              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full"></div>
-            </div>
-            <p className="text-gray-600 mt-4">Loading requests...</p>
-          </div>
-        ) : filteredRequests.length === 0 ? (
-          <div className="card p-12 text-center">
-            <p className="text-gray-600 text-lg mb-6">
-              {filter === 'all'
-                ? 'No requests yet. Start by browsing properties!'
-                : `No ${filter} requests.`}
-            </p>
-            <Link href="/browse" className="btn-primary px-6 py-3 inline-block font-semibold">
-              Browse Properties
-            </Link>
-          </div>
-        ) : (
-          <div className="grid gap-6">
-            {filteredRequests.map((request) => (
-              <div key={request._id} className="card overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
-                  {/* Property Image */}
-                  <div className="md:col-span-1">
-                    {request.propertyId.images && request.propertyId.images.length > 0 ? (
-                      <img
-                        src={request.propertyId.images[0]}
-                        alt={request.propertyId.name}
-                        className="w-full h-40 object-cover rounded-lg"
-                      />
-                    ) : (
-                      <div className="w-full h-40 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
-                        No image
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Property Details */}
-                  <div className="md:col-span-2">
-                    <Link href={`/browse/${request.propertyId._id}`}>
-                      <h3 className="text-xl font-bold text-gray-800 hover:text-primary mb-2">
-                        {request.propertyId.name}
-                      </h3>
-                    </Link>
-
-                    <p className="text-gray-600 mb-4 flex items-center gap-2">
-                      <MdLocationOn className="w-4 h-4 text-primary" />
-                      <span>{request.propertyId.location.address}, {request.propertyId.location.city}</span>
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <p className="text-sm text-gray-600">Monthly Rent</p>
-                        <p className="text-lg font-bold text-primary">
-                          R{request.propertyId.pricing.minRent.toLocaleString()}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Move-in Date</p>
-                        <p className="text-lg font-semibold text-gray-800">
-                          {new Date(request.moveInDate).toLocaleDateString('en-ZA')}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-4 flex-wrap">
-                      <span className="text-sm bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
-                        {request.leaseDuration === 'monthly'
-                          ? 'Monthly'
-                          : request.leaseDuration === 'semester'
-                          ? 'Semester (6 months)'
-                          : 'Yearly (12 months)'}
-                      </span>
-                      <span className="text-sm bg-purple-50 text-purple-700 px-3 py-1 rounded-full">
-                        {request.fundingType === 'self-funded'
-                          ? 'Self-funded'
-                          : request.fundingType === 'private'
-                          ? 'Private Funding'
-                          : 'NSFAS'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Status & Actions */}
-                  <div className="md:col-span-1 flex flex-col justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-2">Status</p>
-                      {getStatusBadge(request.status)}
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-gray-500 mb-2">
-                        Requested on {new Date(request.createdAt).toLocaleDateString('en-ZA')}
-                      </p>
-                      {request.message && (
-                        <details className="text-sm">
-                          <summary className="cursor-pointer text-primary font-semibold hover:underline">
-                            View Message
-                          </summary>
-                          <p className="mt-2 text-gray-700 bg-gray-50 p-2 rounded">{request.message}</p>
-                        </details>
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => router.push(`/browse/${request.propertyId._id}`)}
-                      className="btn-secondary py-2 text-sm font-semibold mt-4"
-                    >
-                      View Property
-                    </button>
-                  </div>
-                </div>
-              </div>
+          {/* Filter */}
+          <ToggleButtonGroup
+            value={filter}
+            exclusive
+            onChange={(_, v) => v && setFilter(v)}
+            size="small"
+            sx={{ mb: 3 }}
+          >
+            {(['all', 'pending', 'approved', 'rejected'] as const).map((s) => (
+              <ToggleButton key={s} value={s} sx={{ textTransform: 'capitalize', fontFamily: 'inherit', px: 2 }}>
+                {s === 'all' ? 'All' : s}
+              </ToggleButton>
             ))}
-          </div>
-        )}
-      </div>
-    </div>
+          </ToggleButtonGroup>
+
+          {loading ? (
+            <Box sx={{ textAlign: 'center', py: 10 }}><CircularProgress /></Box>
+          ) : filtered.length === 0 ? (
+            <Card variant="outlined" sx={{ textAlign: 'center', py: 8 }}>
+              <Typography sx={{ color: 'text.secondary', mb: 3 }}>
+                {filter === 'all' ? 'No requests yet. Browse properties to get started!' : `No ${filter} requests.`}
+              </Typography>
+              <Button variant="contained" component={Link} href="/browse" sx={{ textTransform: 'none' }}>
+                Browse Properties
+              </Button>
+            </Card>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {filtered.map((request) => (
+                <Card key={request._id} variant="outlined" sx={{ boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px', '&:hover': { boxShadow: 'hsla(220, 30%, 5%, 0.1) 0px 10px 25px 0px' }, transition: 'box-shadow 0.2s' }}>
+                  <CardContent>
+                    <Grid container spacing={3}>
+                      {/* Image */}
+                      <Grid size={{ xs: 12, sm: 3 }}>
+                        {request.propertyId.images?.[0] ? (
+                          <Box sx={{ height: 140, borderRadius: 1, overflow: 'hidden' }}>
+                            <img src={request.propertyId.images[0]} alt={request.propertyId.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </Box>
+                        ) : (
+                          <Box sx={{ height: 140, bgcolor: 'grey.200', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Typography color="text.disabled">No image</Typography>
+                          </Box>
+                        )}
+                      </Grid>
+
+                      {/* Details */}
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>{request.propertyId.name}</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1.5 }}>
+                          <LocationOnOutlinedIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                          <Typography variant="body2" color="text.secondary">
+                            {request.propertyId.location.address}, {request.propertyId.location.city}
+                          </Typography>
+                        </Box>
+                        <Grid container spacing={2}>
+                          <Grid size={{ xs: 6 }}>
+                            <Typography variant="caption" color="text.secondary">Monthly Rent</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                              R{request.propertyId.pricing.minRent.toLocaleString()}
+                            </Typography>
+                          </Grid>
+                          <Grid size={{ xs: 6 }}>
+                            <Typography variant="caption" color="text.secondary">Move-in Date</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {new Date(request.moveInDate).toLocaleDateString('en-ZA')}
+                            </Typography>
+                          </Grid>
+                        </Grid>
+                        <Box sx={{ display: 'flex', gap: 1, mt: 1.5, flexWrap: 'wrap' }}>
+                          <Chip label={request.leaseDuration} size="small" variant="outlined" color="primary" />
+                          <Chip label={request.fundingType} size="small" variant="outlined" />
+                        </Box>
+                      </Grid>
+
+                      {/* Status */}
+                      <Grid size={{ xs: 12, sm: 3 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+                          <Box>
+                            <Typography variant="caption" color="text.secondary">Status</Typography>
+                            <Box sx={{ mt: 0.5 }}>
+                              <Chip
+                                label={request.status}
+                                color={statusColor[request.status]}
+                                size="small"
+                                sx={{ textTransform: 'capitalize', fontWeight: 600 }}
+                              />
+                            </Box>
+                          </Box>
+                          <Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                              {new Date(request.createdAt).toLocaleDateString('en-ZA')}
+                            </Typography>
+                            <Button variant="outlined" size="small" fullWidth onClick={() => router.push(`/browse/${request.propertyId._id}`)} sx={{ textTransform: 'none' }}>
+                              View Property
+                            </Button>
+                          </Box>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+          )}
+        </Container>
+      </Box>
+    </ThemeProvider>
   );
 }

@@ -4,40 +4,53 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Container from '@mui/material/Container';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import StarIcon from '@mui/icons-material/Star';
+import WifiIcon from '@mui/icons-material/Wifi';
+import LocalParkingIcon from '@mui/icons-material/LocalParking';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import LocalLaundryServiceIcon from '@mui/icons-material/LocalLaundryService';
+import KitchenIcon from '@mui/icons-material/Kitchen';
+import TvIcon from '@mui/icons-material/Tv';
+import NatureIcon from '@mui/icons-material/Nature';
+import LockIcon from '@mui/icons-material/Lock';
+import ShowerIcon from '@mui/icons-material/Shower';
+import SatelliteIcon from '@mui/icons-material/Satellite';
+import VerifiedIcon from '@mui/icons-material/Verified';
 import api from '@/services/api';
-import { MdLocationOn, MdWifi, MdLocalParking, MdFitnessCenter, MdLocalLaundryService, MdKitchen, MdTv, MdNature, MdLock, MdShower, MdSatellite } from 'react-icons/md';
-import { HiCheck } from 'react-icons/hi';
+
+const theme = createTheme({
+  typography: {
+    fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
+  },
+  shape: { borderRadius: 8 },
+});
+
+const amenityIcons: Record<string, React.ReactNode> = {
+  WiFi: <WifiIcon />, Parking: <LocalParkingIcon />, Gym: <FitnessCenterIcon />,
+  Laundry: <LocalLaundryServiceIcon />, Kitchen: <KitchenIcon />, 'TV Lounge': <TvIcon />,
+  Garden: <NatureIcon />, Security: <LockIcon />, 'Water Heater': <ShowerIcon />, DSTV: <SatelliteIcon />,
+};
 
 interface Property {
-  _id: string;
-  name: string;
-  description: string;
-  location: {
-    address: string;
-    city: string;
-    university: string;
-    postalCode: string;
-  };
-  pricing: {
-    minRent: number;
-    maxRent: number;
-    deposit: number;
-  };
-  images: string[];
-  amenities: string[];
-  nsfasAccreditation: boolean;
-  rooms: {
-    total: number;
-    available: number;
-  };
-  rating: number;
-  reviewCount: number;
-  reviews: any[];
-  owner: {
-    name: string;
-    email: string;
-  };
-  createdAt: string;
+  _id: string; name: string; description: string;
+  location: { address: string; city: string; university: string; postalCode: string };
+  pricing: { minRent: number; maxRent: number; deposit: number };
+  images: string[]; amenities: string[]; nsfasAccreditation: boolean;
+  rooms: { total: number; available: number };
+  rating: number; reviewCount: number; reviews: any[];
+  owner: { name: string; email: string }; createdAt: string;
 }
 
 export default function PropertyDetailsPage() {
@@ -63,289 +76,251 @@ export default function PropertyDetailsPage() {
         setLoading(false);
       }
     };
-
-    if (propertyId) {
-      fetchProperty();
-    }
+    if (propertyId) fetchProperty();
   }, [propertyId]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="inline-block animate-spin mb-4">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full"></div>
-          </div>
-          <p className="text-gray-600">Loading property details...</p>
-        </div>
-      </div>
+      <ThemeProvider theme={theme}>
+        <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box sx={{ textAlign: 'center' }}>
+            <CircularProgress sx={{ mb: 2 }} />
+            <Typography color="text.secondary">Loading property details...</Typography>
+          </Box>
+        </Box>
+      </ThemeProvider>
     );
   }
 
   if (error || !property) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="container text-center">
-          <p className="text-gray-600 text-lg mb-4">{error || 'Property not found'}</p>
-          <Link href="/browse" className="btn-primary px-4 py-2 inline-block">
-            Back to Browse
-          </Link>
-        </div>
-      </div>
+      <ThemeProvider theme={theme}>
+        <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography sx={{ mb: 2, color: 'text.secondary' }}>{error || 'Property not found'}</Typography>
+            <Button variant="contained" component={Link} href="/browse" sx={{ textTransform: 'none' }}>
+              Back to Browse
+            </Button>
+          </Box>
+        </Box>
+      </ThemeProvider>
     );
   }
 
   const handleApplyClick = () => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
+    if (!isAuthenticated) { router.push('/login'); return; }
     router.push(`/browse/${propertyId}/request`);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-        <div className="container py-4 flex items-center justify-between">
-          <Link href="/browse" className="text-primary hover:underline font-semibold">
-            ← Back to Browse
-          </Link>
-          <button
-            onClick={handleApplyClick}
-            className="btn-primary px-6 py-2 font-semibold"
-          >
-            Apply Now
-          </button>
-        </div>
-      </div>
+    <ThemeProvider theme={theme}>
+      <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh' }}>
+        {/* Sub-header */}
+        <Box sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', py: 2, px: 2 }}>
+          <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Button component={Link} href="/browse" variant="text" sx={{ textTransform: 'none' }}>
+              ← Back to Browse
+            </Button>
+            <Button onClick={handleApplyClick} variant="contained" sx={{ textTransform: 'none', fontWeight: 700 }}>
+              Apply Now
+            </Button>
+          </Container>
+        </Box>
 
-      <div className="container py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Image Gallery */}
-            <div className="card overflow-hidden">
-              {property.images && property.images.length > 0 ? (
-                <div>
-                  <div className="relative bg-gray-200 h-96 overflow-hidden">
-                    <img
-                      src={property.images[activeImageIndex]}
-                      alt={property.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  {property.images.length > 1 && (
-                    <div className="flex gap-2 p-4 overflow-x-auto">
-                      {property.images.map((image, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setActiveImageIndex(index)}
-                          className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                            index === activeImageIndex
-                              ? 'border-primary'
-                              : 'border-gray-300 opacity-50 hover:opacity-75'
-                          }`}
-                        >
-                          <img
-                            src={image}
-                            alt={`${property.name} ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </button>
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Grid container spacing={3}>
+            {/* Main Content */}
+            <Grid size={{ xs: 12, md: 8 }}>
+              {/* Image Gallery */}
+              <Card variant="outlined" sx={{ mb: 3, overflow: 'hidden' }}>
+                {property.images && property.images.length > 0 ? (
+                  <>
+                    <Box sx={{ height: 400, overflow: 'hidden' }}>
+                      <img
+                        src={property.images[activeImageIndex]}
+                        alt={property.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    </Box>
+                    {property.images.length > 1 && (
+                      <Box sx={{ display: 'flex', gap: 1, p: 2, overflowX: 'auto' }}>
+                        {property.images.map((img, i) => (
+                          <Box
+                            key={i}
+                            onClick={() => setActiveImageIndex(i)}
+                            sx={{
+                              flexShrink: 0, width: 80, height: 80, borderRadius: 1, overflow: 'hidden',
+                              border: '2px solid', cursor: 'pointer',
+                              borderColor: i === activeImageIndex ? 'primary.main' : 'transparent',
+                              opacity: i === activeImageIndex ? 1 : 0.6,
+                              '&:hover': { opacity: 1 },
+                            }}
+                          >
+                            <img src={img} alt={`${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                  </>
+                ) : (
+                  <Box sx={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100' }}>
+                    <Typography color="text.disabled">No images available</Typography>
+                  </Box>
+                )}
+              </Card>
+
+              {/* Description */}
+              <Card variant="outlined" sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>About this property</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                    {property.description}
+                  </Typography>
+                </CardContent>
+              </Card>
+
+              {/* Amenities */}
+              {property.amenities && property.amenities.length > 0 && (
+                <Card variant="outlined" sx={{ mb: 3 }}>
+                  <CardContent>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Amenities</Typography>
+                    <Grid container spacing={1.5}>
+                      {property.amenities.map((amenity) => (
+                        <Grid key={amenity} size={{ xs: 6, sm: 4 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
+                            <Box sx={{ color: 'primary.main', display: 'flex' }}>
+                              {amenityIcons[amenity] || null}
+                            </Box>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>{amenity}</Typography>
+                          </Box>
+                        </Grid>
                       ))}
-                    </div>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Reviews */}
+              <Card variant="outlined">
+                <CardContent>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Reviews</Typography>
+                  {property.reviewCount > 0 ? (
+                    <>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                        <Typography variant="h3" sx={{ fontWeight: 800 }}>{property.rating.toFixed(1)}</Typography>
+                        <Box>
+                          <Box sx={{ display: 'flex', color: 'warning.main' }}>
+                            {[1,2,3,4,5].map((s) => (
+                              <StarIcon key={s} sx={{ fontSize: 18, opacity: s <= Math.round(property.rating) ? 1 : 0.3 }} />
+                            ))}
+                          </Box>
+                          <Typography variant="caption" color="text.secondary">
+                            {property.reviewCount} {property.reviewCount === 1 ? 'review' : 'reviews'}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      {property.reviews.map((review: any) => (
+                        <Box key={review._id} sx={{ mb: 2 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>{review.student?.name || 'Anonymous'}</Typography>
+                            <Typography variant="caption" color="text.secondary">{new Date(review.createdAt).toLocaleDateString()}</Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', color: 'warning.main', mb: 0.5 }}>
+                            {[1,2,3,4,5].map((s) => <StarIcon key={s} sx={{ fontSize: 14, opacity: s <= review.rating ? 1 : 0.3 }} />)}
+                          </Box>
+                          {review.comment && <Typography variant="body2" color="text.secondary">{review.comment}</Typography>}
+                          <Divider sx={{ mt: 2 }} />
+                        </Box>
+                      ))}
+                    </>
+                  ) : (
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                      <Typography color="text.secondary">No reviews yet</Typography>
+                    </Box>
                   )}
-                </div>
-              ) : (
-                <div className="w-full h-96 flex items-center justify-center text-gray-400">
-                  No images available
-                </div>
-              )}
-            </div>
+                </CardContent>
+              </Card>
+            </Grid>
 
-            {/* Description */}
-            <div className="card p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">About this property</h2>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                {property.description}
-              </p>
-            </div>
+            {/* Sidebar */}
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Card variant="outlined" sx={{ position: { md: 'sticky' }, top: { md: 80 } }}>
+                <CardContent>
+                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>{property.name}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, mb: 2 }}>
+                    <LocationOnOutlinedIcon sx={{ fontSize: 16, color: 'primary.main', mt: 0.3 }} />
+                    <Box>
+                      <Typography variant="body2">{property.location.address}</Typography>
+                      <Typography variant="body2" color="text.secondary">{property.location.city}</Typography>
+                    </Box>
+                  </Box>
 
-            {/* Amenities */}
-            {property.amenities && property.amenities.length > 0 && (
-              <div className="card p-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Amenities</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {property.amenities.map((amenity) => (
-                    <div
-                      key={amenity}
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                    >
-                      <span className="text-2xl">
-                        {amenity === 'WiFi' && <MdWifi className="w-6 h-6" />}
-                        {amenity === 'Parking' && <MdLocalParking className="w-6 h-6" />}
-                        {amenity === 'Gym' && <MdFitnessCenter className="w-6 h-6" />}
-                        {amenity === 'Laundry' && <MdLocalLaundryService className="w-6 h-6" />}
-                        {amenity === 'Kitchen' && <MdKitchen className="w-6 h-6" />}
-                        {amenity === 'TV Lounge' && <MdTv className="w-6 h-6" />}
-                        {amenity === 'Garden' && <MdNature className="w-6 h-6" />}
-                        {amenity === 'Security' && <MdLock className="w-6 h-6" />}
-                        {amenity === 'Water Heater' && <MdShower className="w-6 h-6" />}
-                        {amenity === 'DSTV' && <MdSatellite className="w-6 h-6" />}
-                      </span>
-                      <span className="font-medium text-gray-700">{amenity}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                    <Box sx={{ display: 'flex', color: 'warning.main' }}>
+                      {[1,2,3,4,5].map((s) => <StarIcon key={s} sx={{ fontSize: 16, opacity: s <= Math.round(property.rating) ? 1 : 0.3 }} />)}
+                    </Box>
+                    <Typography variant="body2">{property.rating.toFixed(1)} ({property.reviewCount})</Typography>
+                  </Box>
 
-            {/* Reviews Section */}
-            <div className="card p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Reviews</h2>
-              {property.reviewCount > 0 ? (
-                <div>
-                  <div className="flex items-center gap-4 mb-6">
-                    <div>
-                      <p className="text-4xl font-bold text-gray-800">
-                        {property.rating.toFixed(1)}
-                      </p>
-                      <div className="flex text-yellow-400 mt-1">
-                        {'★'.repeat(Math.round(property.rating))}
-                        {'☆'.repeat(5 - Math.round(property.rating))}
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Based on {property.reviewCount} {property.reviewCount === 1 ? 'review' : 'reviews'}
-                      </p>
-                    </div>
-                  </div>
+                  {/* Pricing */}
+                  <Box sx={{ bgcolor: 'primary.50', border: '1px solid', borderColor: 'primary.100', borderRadius: 1, p: 2, mb: 2 }}>
+                    <Typography variant="caption" color="text.secondary">Monthly Rent Range</Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main', my: 0.5 }}>
+                      R{property.pricing.minRent.toLocaleString()} – R{property.pricing.maxRent.toLocaleString()}
+                    </Typography>
+                    <Divider sx={{ my: 1 }} />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Deposit</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>R{property.pricing.deposit.toLocaleString()}</Typography>
+                    </Box>
+                  </Box>
 
-                  <div className="space-y-4">
-                    {property.reviews.map((review) => (
-                      <div
-                        key={review._id}
-                        className="border-b border-gray-200 pb-4 last:border-0"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <p className="font-semibold text-gray-800">
-                              {review.student?.name || 'Anonymous'}
-                            </p>
-                            <div className="flex text-yellow-400 text-sm">
-                              {'★'.repeat(review.rating)}
-                              {'☆'.repeat(5 - review.rating)}
-                            </div>
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            {new Date(review.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        {review.comment && (
-                          <p className="text-gray-700 text-sm">{review.comment}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-600 mb-4">No reviews yet</p>
-                  <p className="text-sm text-gray-500">
-                    Be the first to review this property after staying here
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+                  {/* Rooms */}
+                  <Grid container spacing={1.5} sx={{ mb: 2, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                    <Grid size={{ xs: 6 }}>
+                      <Box sx={{ bgcolor: 'grey.50', p: 1.5, borderRadius: 1, textAlign: 'center' }}>
+                        <Typography variant="caption" color="text.secondary">Available</Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>{property.rooms.available}</Typography>
+                      </Box>
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                      <Box sx={{ bgcolor: 'grey.50', p: 1.5, borderRadius: 1, textAlign: 'center' }}>
+                        <Typography variant="caption" color="text.secondary">Total</Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 800 }}>{property.rooms.total}</Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-4">
-            {/* Quick Info Card */}
-            <div className="card p-6 sticky top-24">
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">{property.name}</h1>
+                  {/* NSFAS */}
+                  {property.nsfasAccreditation && (
+                    <Box sx={{ bgcolor: 'success.50', border: '1px solid', borderColor: 'success.200', borderRadius: 1, p: 1.5, mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <VerifiedIcon sx={{ fontSize: 16, color: 'success.main' }} />
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: 'success.dark' }}>NSFAS Accredited</Typography>
+                      </Box>
+                      <Typography variant="caption" color="success.main">Accepts NSFAS funding</Typography>
+                    </Box>
+                  )}
 
-                <p className="text-gray-600 mb-4 flex items-start gap-2">
-                  <MdLocationOn className="w-5 h-5 text-primary mt-1" />
-                  <div>
-                    <p>{property.location.address}</p>
-                    <p className="text-sm">{property.location.city}</p>
-                  </div>
-                </p>
+                  {/* Owner */}
+                  <Box sx={{ bgcolor: 'grey.50', p: 2, borderRadius: 1, mb: 2 }}>
+                    <Typography variant="caption" color="text.secondary">Property Owner</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{property.owner.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">{property.owner.email}</Typography>
+                  </Box>
 
-              {/* Rating */}
-              <div className="flex items-center gap-2 mb-4 pb-4 border-b">
-                <div className="flex text-yellow-400">
-                  {'★'.repeat(Math.round(property.rating))}
-                  {'☆'.repeat(5 - Math.round(property.rating))}
-                </div>
-                <span className="text-sm text-gray-600">
-                  {property.rating.toFixed(1)} ({property.reviewCount})
-                </span>
-              </div>
-
-              {/* Pricing */}
-              <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-4 rounded-lg mb-4">
-                <p className="text-xs text-gray-600 mb-1">Monthly Rent Range</p>
-                <p className="text-3xl font-bold text-primary mb-3">
-                  R{property.pricing.minRent.toLocaleString()} - R{property.pricing.maxRent.toLocaleString()}
-                </p>
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Deposit:</span>
-                    <span className="font-semibold text-gray-800">
-                      R{property.pricing.deposit.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Room Info */}
-              <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b">
-                <div className="bg-gray-50 p-3 rounded-lg text-center">
-                  <p className="text-xs text-gray-600 mb-1">Available Rooms</p>
-                  <p className="text-2xl font-bold text-primary">{property.rooms.available}</p>
-                </div>
-                <div className="bg-gray-50 p-3 rounded-lg text-center">
-                  <p className="text-xs text-gray-600 mb-1">Total Rooms</p>
-                  <p className="text-2xl font-bold text-gray-800">{property.rooms.total}</p>
-                </div>
-              </div>
-
-              {/* NSFAS Badge */}
-              {property.nsfasAccreditation && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                  <p className="text-sm font-semibold text-green-700"><HiCheck className="inline-block mr-1 w-4 h-4" />NSFAS Accredited</p>
-                  <p className="text-xs text-green-600 mt-1">Accepts NSFAS funding</p>
-                </div>
-              )}
-
-              {/* Property Owner */}
-              <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                <p className="text-xs text-gray-600 mb-2">Property Owner</p>
-                <p className="font-semibold text-gray-800">{property.owner.name}</p>
-                <p className="text-sm text-gray-600">{property.owner.email}</p>
-              </div>
-
-              {/* Apply Button */}
-              <button
-                onClick={handleApplyClick}
-                className="w-full btn-primary py-3 font-semibold rounded-lg mb-3"
-              >
-                Apply Now
-              </button>
-
-              <button
-                onClick={() => router.push('/browse')}
-                className="w-full btn-secondary py-2 font-medium rounded-lg"
-              >
-                Back to Browse
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+                  <Button onClick={handleApplyClick} variant="contained" fullWidth sx={{ mb: 1, textTransform: 'none', fontWeight: 700, py: 1.5 }}>
+                    Apply Now
+                  </Button>
+                  <Button onClick={() => router.push('/browse')} variant="outlined" fullWidth sx={{ textTransform: 'none' }}>
+                    Back to Browse
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+    </ThemeProvider>
   );
 }

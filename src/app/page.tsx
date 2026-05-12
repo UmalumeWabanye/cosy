@@ -1,224 +1,325 @@
 'use client';
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Container from '@mui/material/Container';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import MenuItem from '@mui/material/MenuItem';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import SearchIcon from '@mui/icons-material/Search';
+import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
+import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
+import SupportAgentOutlinedIcon from '@mui/icons-material/SupportAgentOutlined';
+import VerifiedOutlinedIcon from '@mui/icons-material/VerifiedOutlined';
 
-export default function Home() {
+const theme = createTheme({
+  typography: {
+    fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
+  },
+  shape: { borderRadius: 8 },
+});
+
+const UNIVERSITIES = [
+  'University of Cape Town',
+  'Stellenbosch University',
+  'University of the Witwatersrand',
+  'University of Pretoria',
+  'University of KwaZulu-Natal',
+  'Rhodes University',
+  'University of the Free State',
+  'Nelson Mandela University',
+  'Cape Peninsula University of Technology',
+  'Tshwane University of Technology',
+];
+
+const CITIES = ['Cape Town', 'Johannesburg', 'Pretoria', 'Durban', 'Port Elizabeth', 'Bloemfontein', 'Grahamstown'];
+
+const features = [
+  {
+    icon: <SchoolOutlinedIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
+    title: 'Student-Focused',
+    desc: 'Properties verified and tailored specifically for university students near campus.',
+  },
+  {
+    icon: <VerifiedOutlinedIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
+    title: 'NSFAS Accredited',
+    desc: 'Easily find properties that accept NSFAS funding to make accommodation accessible.',
+  },
+  {
+    icon: <SecurityOutlinedIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
+    title: 'Secure & Verified',
+    desc: 'All listings are verified to ensure you find safe, quality accommodation.',
+  },
+  {
+    icon: <SupportAgentOutlinedIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
+    title: '24/7 Support',
+    desc: 'Our team is always available to help you find your perfect student home.',
+  },
+];
+
+export default function HomePage() {
   const router = useRouter();
-  const [searchForm, setSearchForm] = useState({
-    university: '',
-    city: '',
-    fundingType: '',
-    roomType: '',
-  });
+  const [university, setUniversity] = useState('');
+  const [city, setCity] = useState('');
+  const [fundingType, setFundingType] = useState('');
+  const [roomType, setRoomType] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (searchForm.university) params.append('university', searchForm.university);
-    if (searchForm.city) params.append('city', searchForm.city);
-    if (searchForm.fundingType) params.append('fundingType', searchForm.fundingType);
-    if (searchForm.roomType) params.append('roomType', searchForm.roomType);
+    if (university) params.set('university', university);
+    if (city) params.set('city', city);
+    if (fundingType) params.set('fundingType', fundingType);
+    if (roomType) params.set('roomType', roomType);
     router.push(`/browse?${params.toString()}`);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setSearchForm(prev => ({ ...prev, [name]: value }));
-  };
-
   return (
-    <div className="min-h-screen bg-white">
-      <section className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-24 px-4">
-        <div className="container text-center">
-          <h2 className="text-5xl md:text-6xl font-bold mb-4 text-gray-900">
-            Find Your Perfect Student Home
-          </h2>
-          <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
-            Discover safe, affordable accommodation near your university. Browse verified listings from trusted property owners.
-          </p>
-          
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-              <form onSubmit={handleSearch} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">University</label>
-                    <input
-                      type="text"
-                      name="university"
-                      placeholder="e.g. UCT, Wits"
-                      value={searchForm.university}
-                      onChange={handleInputChange}
-                      className="input-base w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">City</label>
-                    <input
-                      type="text"
-                      name="city"
-                      placeholder="e.g. Cape Town"
-                      value={searchForm.city}
-                      onChange={handleInputChange}
-                      className="input-base w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Funding</label>
-                    <select 
-                      name="fundingType"
-                      value={searchForm.fundingType}
-                      onChange={handleInputChange}
-                      className="input-base w-full"
-                    >
-                      <option value="">All types</option>
-                      <option value="NSFAS">NSFAS</option>
-                      <option value="Private">Private</option>
-                      <option value="Self-funded">Self-funded</option>
-                    </select>
-                  </div>
+    <ThemeProvider theme={theme}>
+      <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
+        {/* Hero */}
+        <Box
+          sx={{
+            background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 50%, #42a5f5 100%)',
+            py: { xs: 8, md: 14 },
+            px: 2,
+          }}
+        >
+          <Container maxWidth="md" sx={{ textAlign: 'center' }}>
+            <Typography
+              variant="h2"
+              sx={{ fontWeight: 800, color: 'white', mb: 2, fontSize: { xs: '2rem', md: '3rem' } }}
+            >
+              Find Your Perfect Student Home
+            </Typography>
+            <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.85)', mb: 6, fontWeight: 400 }}>
+              Browse verified student accommodation near your university
+            </Typography>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Room Type</label>
-                    <select
-                      name="roomType"
-                      value={searchForm.roomType}
-                      onChange={handleInputChange}
-                      className="input-base w-full"
-                    >
-                      <option value="">Any</option>
-                      <option value="Single">Single</option>
-                      <option value="Sharing">Sharing</option>
-                      <option value="Ensuite">Ensuite</option>
-                      <option value="Bachelor">Bachelor</option>
-                    </select>
-                  </div>
-                  <div className="flex items-end">
-                    <button type="submit" className="btn-primary w-full py-2.5 font-semibold">
-                      Search
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </section>
+            {/* Search Form */}
+            <Paper
+              component="form"
+              onSubmit={handleSearch}
+              elevation={4}
+              sx={{ p: 3, borderRadius: 3 }}
+            >
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="University"
+                    value={university}
+                    onChange={(e) => setUniversity(e.target.value)}
+                    size="small"
+                  >
+                    <MenuItem value="">Any University</MenuItem>
+                    {UNIVERSITIES.map((u) => (
+                      <MenuItem key={u} value={u}>{u}</MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="City"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    size="small"
+                  >
+                    <MenuItem value="">Any City</MenuItem>
+                    {CITIES.map((c) => (
+                      <MenuItem key={c} value={c}>{c}</MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Funding Type"
+                    value={fundingType}
+                    onChange={(e) => setFundingType(e.target.value)}
+                    size="small"
+                  >
+                    <MenuItem value="">Any Funding</MenuItem>
+                    <MenuItem value="nsfas">NSFAS</MenuItem>
+                    <MenuItem value="private">Private Funding</MenuItem>
+                    <MenuItem value="self-funded">Self-Funded</MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Room Type"
+                    value={roomType}
+                    onChange={(e) => setRoomType(e.target.value)}
+                    size="small"
+                  >
+                    <MenuItem value="">Any Room</MenuItem>
+                    <MenuItem value="single">Single</MenuItem>
+                    <MenuItem value="double">Double</MenuItem>
+                    <MenuItem value="sharing">Sharing</MenuItem>
+                    <MenuItem value="studio">Studio</MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    startIcon={<SearchIcon />}
+                    sx={{ fontWeight: 600, textTransform: 'none', py: 1.5, borderRadius: 2 }}
+                  >
+                    Search Properties
+                  </Button>
+                </Grid>
+              </Grid>
+            </Paper>
+          </Container>
+        </Box>
 
-      <section className="py-16 px-4 bg-gray-50">
-        <div className="container">
-          <h3 className="text-3xl font-bold text-center mb-12">Why Choose Cosy?</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="bg-white p-6 rounded-lg text-center">
-              <div className="text-4xl mb-4">✓</div>
-              <h4 className="font-bold text-lg mb-2">Verified Listings</h4>
-              <p className="text-gray-600">All properties verified and reviewed</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg text-center">
-              <div className="text-4xl mb-4">🛡️</div>
-              <h4 className="font-bold text-lg mb-2">Safe & Secure</h4>
-              <p className="text-gray-600">Secure booking and payment process</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg text-center">
-              <div className="text-4xl mb-4">⭐</div>
-              <h4 className="font-bold text-lg mb-2">Real Reviews</h4>
-              <p className="text-gray-600">Honest reviews from students</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg text-center">
-              <div className="text-4xl mb-4">💰</div>
-              <h4 className="font-bold text-lg mb-2">Best Prices</h4>
-              <p className="text-gray-600">Direct from owners, no hidden fees</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 px-4">
-        <div className="container">
-          <div className="mb-12">
-            <h3 className="text-3xl font-bold mb-2">Featured Listings</h3>
-            <p className="text-gray-600">Discover some of our most popular student accommodations</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="card overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="bg-gradient-to-br from-gray-200 to-gray-300 h-48 flex items-center justify-center text-gray-400 text-sm">
-                  Property Image {item}
-                </div>
-                <div className="p-6">
-                  <h4 className="font-bold text-lg mb-2">Student Home {item}</h4>
-                  <p className="text-gray-600 mb-4">📍 Near University of Cape Town</p>
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-yellow-400">★★★★★</span>
-                    <span className="text-sm text-gray-600">(24 reviews)</span>
-                  </div>
-                  <p className="text-primary font-bold text-2xl mb-4">R{5000 * item}/month</p>
-                  <Link href="/browse" className="btn-primary w-full py-2 text-center block">
-                    View Details
-                  </Link>
-                </div>
-              </div>
+        {/* Features */}
+        <Container maxWidth="lg" sx={{ py: 10 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, textAlign: 'center', mb: 1 }}>
+            Why Choose Cosy?
+          </Typography>
+          <Typography variant="body1" sx={{ color: 'text.secondary', textAlign: 'center', mb: 6 }}>
+            We make finding student accommodation simple, safe, and stress-free.
+          </Typography>
+          <Grid container spacing={3}>
+            {features.map((f) => (
+              <Grid key={f.title} size={{ xs: 12, sm: 6, md: 3 }}>
+                <Card
+                  variant="outlined"
+                  sx={{
+                    height: '100%',
+                    textAlign: 'center',
+                    p: 1,
+                    boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
+                    transition: 'box-shadow 0.2s',
+                    '&:hover': { boxShadow: 'hsla(220, 30%, 5%, 0.1) 0px 10px 25px 0px' },
+                  }}
+                >
+                  <CardContent>
+                    <Box sx={{ mb: 2 }}>{f.icon}</Box>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>{f.title}</Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>{f.desc}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
             ))}
-          </div>
-          <div className="text-center mt-12">
-            <Link href="/browse" className="btn-primary py-3 px-8 text-lg font-semibold">
-              Browse All Listings
-            </Link>
-          </div>
-        </div>
-      </section>
+          </Grid>
+        </Container>
 
-      <section className="bg-primary text-white py-16 px-4">
-        <div className="container text-center">
-          <h3 className="text-3xl font-bold mb-6">Ready to Find Your Home?</h3>
-          <p className="text-lg mb-8 opacity-90">Join thousands of students who found their perfect accommodation on Cosy</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/browse" className="btn-base bg-white text-primary hover:bg-gray-100 font-semibold">
-              Start Browsing
-            </Link>
-            <Link href="/register" className="btn-base bg-white/20 hover:bg-white/30 text-white border border-white font-semibold">
+        <Divider />
+
+        {/* CTA */}
+        <Box sx={{ bgcolor: 'primary.main', py: 8, px: 2, textAlign: 'center' }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, color: 'white', mb: 2 }}>
+            Ready to Find Your Home?
+          </Typography>
+          <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.85)', mb: 4 }}>
+            Join thousands of students who found their perfect accommodation with Cosy.
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Button
+              component={Link}
+              href="/browse"
+              variant="contained"
+              size="large"
+              sx={{
+                bgcolor: 'white',
+                color: 'primary.main',
+                fontWeight: 700,
+                textTransform: 'none',
+                px: 4,
+                '&:hover': { bgcolor: 'grey.100' },
+              }}
+            >
+              Browse Properties
+            </Button>
+            <Button
+              component={Link}
+              href="/register"
+              variant="outlined"
+              size="large"
+              sx={{
+                borderColor: 'white',
+                color: 'white',
+                fontWeight: 700,
+                textTransform: 'none',
+                px: 4,
+                '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' },
+              }}
+            >
               Create Account
-            </Link>
-          </div>
-        </div>
-      </section>
+            </Button>
+          </Box>
+        </Box>
 
-      <footer className="bg-gray-900 text-gray-300 py-12 px-4">
-        <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h4 className="text-white font-bold text-lg mb-4">Cosy</h4>
-              <p className="text-sm">Making student accommodation easy and affordable</p>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Browse</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/browse" className="hover:text-white transition">All Properties</Link></li>
-                <li><a href="#" className="hover:text-white transition">NSFAS Accredited</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition">About</a></li>
-                <li><a href="#" className="hover:text-white transition">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition">Privacy</a></li>
-                <li><a href="#" className="hover:text-white transition">Terms</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 pt-8 text-center text-sm">
-            <p>&copy; 2026 Cosy. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+        {/* Footer */}
+        <Box sx={{ bgcolor: 'grey.900', color: 'grey.400', py: 6, px: 2 }}>
+          <Container maxWidth="lg">
+            <Grid container spacing={4}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <Box
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 1,
+                      background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 14 }}>C</Typography>
+                  </Box>
+                  <Typography sx={{ fontWeight: 700, color: 'white', fontSize: 18 }}>Cosy</Typography>
+                </Box>
+                <Typography variant="body2">
+                  Student accommodation made simple. Find your perfect home near campus.
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Typography sx={{ fontWeight: 600, color: 'white', mb: 2 }}>Quick Links</Typography>
+                {['Browse Properties', 'How It Works', 'About Us'].map((l) => (
+                  <Typography key={l} variant="body2" sx={{ mb: 1 }}>{l}</Typography>
+                ))}
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Typography sx={{ fontWeight: 600, color: 'white', mb: 2 }}>For Students</Typography>
+                {['Register', 'Login', 'Dashboard', 'Saved Listings'].map((l) => (
+                  <Typography key={l} variant="body2" sx={{ mb: 1 }}>{l}</Typography>
+                ))}
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Typography sx={{ fontWeight: 600, color: 'white', mb: 2 }}>Contact</Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>support@cosy.co.za</Typography>
+                <Typography variant="body2">+27 21 000 0000</Typography>
+              </Grid>
+            </Grid>
+            <Divider sx={{ borderColor: 'grey.700', my: 4 }} />
+            <Typography variant="body2" sx={{ textAlign: 'center' }}>
+              © {new Date().getFullYear()} Cosy. All rights reserved.
+            </Typography>
+          </Container>
+        </Box>
+      </Box>
+    </ThemeProvider>
   );
 }
