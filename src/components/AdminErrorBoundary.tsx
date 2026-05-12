@@ -1,21 +1,20 @@
-"use client";
+'use client'
 
-import React, { Component } from 'react';
+import React, { Component } from 'react'
 
 export default class AdminErrorBoundary extends Component<
   { children: React.ReactNode },
   { error: Error | null; info: React.ErrorInfo | null }
 > {
   constructor(props: any) {
-    super(props);
-    this.state = { error: null, info: null };
+    super(props)
+    this.state = { error: null, info: null }
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    // Log for server-side diagnostics; keep local console too
     // eslint-disable-next-line no-console
-    console.error('AdminDashboard caught error:', error, info);
-    this.setState({ error, info });
+    console.error('AdminDashboard caught error:', error, info)
+    this.setState({ error, info })
   }
 
   render() {
@@ -34,8 +33,8 @@ export default class AdminErrorBoundary extends Component<
             </details>
           </div>
         </div>
-      );
+      )
     }
-    return this.props.children as React.ReactElement;
+    return this.props.children as React.ReactElement
   }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import type { User } from '@/store/authStore';
@@ -8,14 +8,18 @@ export function useAuth() {
   const { user, token, isAuthenticated, setUser, setToken } = useAuthStore();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  const initRef = useRef(false);
 
   useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
+
     const initAuth = async () => {
       try {
         // If token isn't in zustand but is in localStorage (page refresh), restore it
         const persisted = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         if (!token && persisted) {
-          setToken(persisted);
+          if (persisted !== token) setToken(persisted);
         }
 
         if (token || persisted) {
@@ -27,8 +31,8 @@ export function useAuth() {
               const userObj = data.user || data;
               setUser(userObj);
 
-              // Auto-redirect admins to admin dashboard
-              if (userObj.role === 'admin' && window.location.pathname === '/dashboard') {
+              // Auto-redirect admins to admin dashboard when user explicitly navigates from /dashboard
+              if (userObj.role === 'admin' && typeof window !== 'undefined' && window.location.pathname === '/dashboard') {
                 router.push('/admin/dashboard');
               }
             } else {
@@ -48,7 +52,10 @@ export function useAuth() {
     };
 
     initAuth();
-  }, [token, isAuthenticated, router, setUser]);
+    // We intentionally run this effect only once on mount to avoid repeated
+    // calls to /auth/me and router pushes which can cause infinite update loops.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     user: (user as User) || null,

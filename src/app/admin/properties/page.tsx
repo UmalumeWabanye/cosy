@@ -3,26 +3,44 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/services/api';
-import { MdOutlineErrorOutline, MdAutorenew, MdEdit, MdDeleteOutline, MdRemoveRedEye, MdVisibilityOff } from 'react-icons/md';
-import { HiPlus } from 'react-icons/hi';
+import AdminLayout from '@/components/admin/AdminLayout';
+
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Chip from '@mui/material/Chip';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import Pagination from '@mui/material/Pagination';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
+
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
+import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 
 interface Property {
   _id: string;
   name: string;
   description: string;
-  location: {
-    address: string;
-    city: string;
-    university: string;
-  };
-  pricing: {
-    minRent: number;
-    maxRent: number;
-  };
-  rooms: {
-    total: number;
-    available: number;
-  };
+  location: { address: string; city: string; university: string };
+  pricing: { minRent: number; maxRent: number };
+  rooms: { total: number; available: number };
   published: boolean;
   isActive: boolean;
   createdAt: string;
@@ -33,311 +51,166 @@ export default function AdminPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filters, setFilters] = useState({
-    status: 'all',
-    search: '',
-    page: 1,
-    limit: 10,
-  });
-  const [pagination, setPagination] = useState({
-    total: 0,
-    pages: 0,
-    currentPage: 1,
-  });
+  const [filters, setFilters] = useState({ status: 'all', search: '', page: 1, limit: 10 });
+  const [pagination, setPagination] = useState({ total: 0, pages: 0, currentPage: 1 });
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
-  // Fetch properties
   useEffect(() => {
-    const fetchProperties = async () => {
+    const fetchProps = async () => {
       try {
         setLoading(true);
         setError('');
-
         const params = new URLSearchParams();
         if (filters.status !== 'all') params.append('status', filters.status);
         if (filters.search) params.append('search', filters.search);
-        params.append('page', filters.page.toString());
-        params.append('limit', filters.limit.toString());
-
-        const response = await api.get(`/properties/admin/list?${params.toString()}`);
-
-        setProperties(response.data.data);
-        setPagination({
-          total: response.data.total,
-          pages: response.data.pages,
-          currentPage: response.data.currentPage,
-        });
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to load properties');
+        params.append('page', String(filters.page));
+        params.append('limit', String(filters.limit));
+        const res = await api.get(`/properties/admin/list?${params}`);
+        const raw = res.data.data;
+        setProperties(Array.isArray(raw) ? raw : []);
+        setPagination({ total: res.data.total ?? 0, pages: res.data.pages ?? 0, currentPage: res.data.currentPage ?? 1 });
+      } catch (e: any) {
+        setError(e.response?.data?.message || 'Failed to load properties');
       } finally {
         setLoading(false);
       }
     };
-
-    fetchProperties();
+    fetchProps();
   }, [filters]);
 
-  // Handle delete
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this property?')) return;
-
+    if (!window.confirm('Delete this property?')) return;
     try {
       setDeletingId(id);
       await api.delete(`/properties/${id}`);
-      setProperties(properties.filter((p) => p._id !== id));
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to delete property');
+      setProperties(prev => prev.filter(p => p._id !== id));
+    } catch (e: any) {
+      alert(e.response?.data?.message || 'Failed to delete');
     } finally {
       setDeletingId(null);
     }
   };
 
-  // Handle publish/unpublish
   const handleTogglePublish = async (id: string) => {
     try {
       setTogglingId(id);
-      const response = await api.patch(`/properties/${id}/publish`);
-      
-      setProperties(
-        properties.map((p) =>
-          p._id === id ? { ...p, published: response.data.data.published } : p
-        )
-      );
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to update property');
+      const res = await api.patch(`/properties/${id}/publish`);
+      setProperties(prev => prev.map(p => p._id === id ? { ...p, published: res.data.data.published } : p));
+    } catch (e: any) {
+      alert(e.response?.data?.message || 'Failed to update');
     } finally {
       setTogglingId(null);
     }
   };
 
-  const handleFilterChange = (key: string, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-      page: 1,
-    }));
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900">My Properties</h1>
-            <p className="text-gray-600 mt-2">Manage and publish your accommodation listings</p>
-          </div>
-            <button
-            onClick={() => router.push('/admin/properties/new')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition"
-          >
-            <HiPlus size={20} />
+    <AdminLayout>
+      <Box sx={{ p: { xs: 2, md: 4 } }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} sx={{  justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 4, gap: 2 }}>
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>Properties</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Manage and publish your accommodation listings</Typography>
+          </Box>
+          <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => router.push('/admin/properties/new')}>
             Add Property
-          </button>
-        </div>
+          </Button>
+        </Stack>
 
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-              <select
-                value={filters.status}
-                onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              >
-                <option value="all">All Properties</option>
-                <option value="published">Published</option>
-                <option value="draft">Draft</option>
-              </select>
-            </div>
+        <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 2 }}>
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>Status</InputLabel>
+              <Select label="Status" value={filters.status} onChange={e => setFilters(prev => ({ ...prev, status: e.target.value, page: 1 }))}>
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="published">Published</MenuItem>
+                <MenuItem value="draft">Draft</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField size="small" label="Search" placeholder="Name, city, address…" value={filters.search} onChange={e => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))} sx={{ flexGrow: 1 }} />
+          </Stack>
+        </Paper>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
-              <input
-                type="text"
-                placeholder="Search by name, city, or address..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              />
-            </div>
-          </div>
-        </div>
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
-            <MdOutlineErrorOutline size={20} />
-            {error}
-          </div>
-        )}
-
-        {/* Loading State */}
-        {loading && (
-          <div className="flex justify-center items-center h-64">
-            <MdAutorenew className="animate-spin text-blue-600" size={40} />
-          </div>
-        )}
-
-        {/* Properties Table */}
-        {!loading && properties.length > 0 && (
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Property</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Location</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Price Range</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Rooms</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {properties.map((property) => (
-                    <tr key={property._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="font-semibold text-gray-900">{property.name}</p>
-                          <p className="text-sm text-gray-600 line-clamp-1">{property.description}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm">
-                          <p className="font-medium text-gray-900">{property.location.city}</p>
-                          <p className="text-gray-600">{property.location.university}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        <p className="font-medium text-gray-900">
-                          R{property.pricing.minRent} - R{property.pricing.maxRent}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        <p className="text-gray-900">
-                          {property.rooms.available} / {property.rooms.total}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          {property.published ? (
-                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                              <MdRemoveRedEye size={14} />
-                              Published
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">
-                              <MdVisibilityOff size={14} />
-                              Draft
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-3">
-                          {/* Publish/Unpublish Button */}
-                          <button
-                            onClick={() => handleTogglePublish(property._id)}
-                            disabled={togglingId === property._id}
-                            className={`p-2 rounded-lg transition ${
-                              property.published
-                                ? 'text-gray-600 hover:bg-gray-100'
-                                : 'text-green-600 hover:bg-green-50'
-                            }`}
-                            title={property.published ? 'Unpublish' : 'Publish'}
-                          >
-                            {togglingId === property._id ? (
-                              <MdAutorenew size={18} className="animate-spin" />
-                            ) : property.published ? (
-                              <MdVisibilityOff size={18} />
-                            ) : (
-                              <MdRemoveRedEye size={18} />
-                            )}
-                          </button>
-
-                          {/* Edit Button */}
-                          <button
-                            onClick={() => router.push(`/admin/properties/${property._id}/edit`)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                            title="Edit"
-                          >
-                            <MdEdit size={18} />
-                          </button>
-
-                          {/* Delete Button */}
-                          <button
-                            onClick={() => handleDelete(property._id)}
-                            disabled={deletingId === property._id}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
-                            title="Delete"
-                          >
-                            {deletingId === property._id ? (
-                              <MdAutorenew size={18} className="animate-spin" />
-                            ) : (
-                              <MdDeleteOutline size={18} />
-                            )}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            {pagination.pages > 1 && (
-              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-between items-center">
-                <p className="text-sm text-gray-600">
-                  Showing {(filters.page - 1) * filters.limit + 1} to{' '}
-                  {Math.min(filters.page * filters.limit, pagination.total)} of {pagination.total} properties
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleFilterChange('page', String(filters.page - 1))}
-                    disabled={filters.page === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-100 transition"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => handleFilterChange('page', String(filters.page + 1))}
-                    disabled={filters.page === pagination.pages}
-                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-100 transition"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!loading && properties.length === 0 && (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <MdOutlineErrorOutline className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No properties found</h3>
-            <p className="text-gray-600 mb-6">
-              {filters.search || filters.status !== 'all'
-                ? 'Try adjusting your filters'
-                : 'Get started by creating your first property listing'}
-            </p>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}><CircularProgress /></Box>
+        ) : properties.length === 0 ? (
+          <Paper variant="outlined" sx={{ p: 8, textAlign: 'center' }}>
+            <Typography color="text.secondary" gutterBottom>No properties found</Typography>
             {!filters.search && filters.status === 'all' && (
-              <button
-                onClick={() => router.push('/admin/properties/new')}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center gap-2 transition"
-              >
-                <HiPlus size={20} />
-                Create Property
-              </button>
+              <Button variant="contained" startIcon={<AddRoundedIcon />} sx={{ mt: 2 }} onClick={() => router.push('/admin/properties/new')}>Create Property</Button>
             )}
-          </div>
+          </Paper>
+        ) : (
+          <>
+            <TableContainer component={Paper} variant="outlined">
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: 'action.hover' }}>
+                    <TableCell sx={{ fontWeight: 700 }}>Property</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Location</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Price Range</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Rooms</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }} align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {properties.map(p => (
+                    <TableRow key={p._id} hover>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }} >{p.name}</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.description}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }} >{p.location.city}</Typography>
+                        <Typography variant="caption" color="text.secondary">{p.location.university}</Typography>
+                      </TableCell>
+                      <TableCell><Typography variant="body2">R{p.pricing.minRent} – R{p.pricing.maxRent}</Typography></TableCell>
+                      <TableCell><Typography variant="body2">{p.rooms.available} / {p.rooms.total}</Typography></TableCell>
+                      <TableCell>
+                        <Chip size="small" label={p.published ? 'Published' : 'Draft'} color={p.published ? 'success' : 'default'} variant={p.published ? 'filled' : 'outlined'} />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" sx={{  justifyContent: 'flex-end', gap: 0.5 }}>
+                          <Tooltip title={p.published ? 'Unpublish' : 'Publish'}>
+                            <span>
+                              <IconButton size="small" disabled={togglingId === p._id} onClick={() => handleTogglePublish(p._id)} color={p.published ? 'default' : 'success'}>
+                                {togglingId === p._id ? <CircularProgress size={16} /> : p.published ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                          <Tooltip title="Edit">
+                            <IconButton size="small" color="primary" onClick={() => router.push(`/admin/properties/${p._id}/edit`)}>
+                              <EditRoundedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <span>
+                              <IconButton size="small" color="error" disabled={deletingId === p._id} onClick={() => handleDelete(p._id)}>
+                                {deletingId === p._id ? <CircularProgress size={16} /> : <DeleteRoundedIcon fontSize="small" />}
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            {pagination.pages > 1 && (
+              <Stack direction="row" sx={{  justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                <Typography variant="caption" color="text.secondary">
+                  {(filters.page - 1) * filters.limit + 1}–{Math.min(filters.page * filters.limit, pagination.total)} of {pagination.total}
+                </Typography>
+                <Pagination count={pagination.pages} page={filters.page} onChange={(_, page) => setFilters(prev => ({ ...prev, page }))} size="small" color="primary" />
+              </Stack>
+            )}
+          </>
         )}
-      </div>
-    </div>
+      </Box>
+    </AdminLayout>
   );
 }

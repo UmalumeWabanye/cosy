@@ -3,44 +3,36 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import Link from 'next/link';
 import api from '@/services/api';
-import { HiX } from 'react-icons/hi';
+import AdminLayout from '@/components/admin/AdminLayout';
 
-const DEFAULT_AMENITIES = [
-  'WiFi',
-  'Parking',
-  'Gym',
-  'Laundry',
-  'Kitchen',
-  'TV Lounge',
-  'Garden',
-  'Security',
-  'DSTV',
-  'Water Heater',
-];
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Paper from '@mui/material/Paper';
+import Divider from '@mui/material/Divider';
+import Alert from '@mui/material/Alert';
+import Chip from '@mui/material/Chip';
+import IconButton from '@mui/material/IconButton';
+import CircularProgress from '@mui/material/CircularProgress';
+import Grid from '@mui/material/Grid';
 
-const UNIVERSITIES = [
-  'University of Cape Town',
-  'Stellenbosch University',
-  'University of the Western Cape',
-  'University of Johannesburg',
-  'University of Pretoria',
-  'Wits University',
-  'University of KwaZulu-Natal',
-  'North West University',
-  'University of Free State',
-  'Rhodes University',
-];
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 
-interface RoomType {
-  type: string;
-  quantity: string;
-  availableQuantity: string;
-  pricePerMonth: string;
-  description: string;
-  leaseDuration: string;
-}
+const DEFAULT_AMENITIES = ['WiFi','Parking','Gym','Laundry','Kitchen','TV Lounge','Garden','Security','DSTV','Water Heater'];
+const UNIVERSITIES = ['University of Cape Town','Stellenbosch University','University of the Western Cape','University of Johannesburg','University of Pretoria','Wits University','University of KwaZulu-Natal','North West University','University of Free State','Rhodes University'];
+
+interface RoomType { type: string; quantity: string; availableQuantity: string; pricePerMonth: string; description: string; leaseDuration: string; }
 
 export default function NewPropertyPage() {
   const router = useRouter();
@@ -48,828 +40,184 @@ export default function NewPropertyPage() {
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState('');
-  const [customRoomTypes, setCustomRoomTypes] = useState<string[]>([
-    'Single',
-    'Shared/Communal',
-    'Double',
-    'Studio',
-    'Other',
-  ]);
+  const [customRoomTypes, setCustomRoomTypes] = useState(['Single','Shared/Communal','Double','Studio','Other']);
   const [newRoomTypeInput, setNewRoomTypeInput] = useState('');
-  const [customAmenities, setCustomAmenities] = useState<string[]>([...DEFAULT_AMENITIES]);
+  const [customAmenities, setCustomAmenities] = useState([...DEFAULT_AMENITIES]);
   const [newAmenityInput, setNewAmenityInput] = useState('');
-
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    university: '',
-    minRent: '',
-    maxRent: '',
-    deposit: '',
-    totalRooms: '',
-    availableRooms: '',
-    roomTypes: [] as RoomType[],
-    amenities: [] as string[],
-    nsfasAccreditation: false,
-  });
-
   const [newImages, setNewImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [formData, setFormData] = useState({
+    name: '', description: '', address: '', city: '', postalCode: '', university: '',
+    minRent: '', maxRent: '', deposit: '', totalRooms: '', availableRooms: '',
+    roomTypes: [] as RoomType[], amenities: [] as string[], nsfasAccreditation: false,
+  });
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading...</p>
-      </div>
-    );
-  }
+  if (isLoading) return null;
+  if (!isAuthenticated || user?.role !== 'admin') return null;
 
-  if (!isAuthenticated || user?.role !== 'admin') {
-    return null;
-  }
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type } = e.target as HTMLInputElement;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    }));
-  };
-
-  const handleAmenityChange = (amenity: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      amenities: prev.amenities.includes(amenity)
-        ? prev.amenities.filter((a) => a !== amenity)
-        : [...prev.amenities, amenity],
-    }));
-  };
-
-  const handleAddCustomAmenity = () => {
-    if (newAmenityInput.trim() && !customAmenities.includes(newAmenityInput.trim())) {
-      setCustomAmenities([...customAmenities, newAmenityInput.trim()]);
-      setNewAmenityInput('');
-    }
-  };
-
-  const handleRemoveCustomAmenity = (index: number) => {
-    setCustomAmenities((prev) => prev.filter((_, i) => i !== index));
-  };
+  const set = (field: string, value: any) => setFormData(p => ({ ...p, [field]: value }));
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
-    const previews = files.map((file) => {
-      const reader = new FileReader();
-      return new Promise<string>((resolve) => {
-        reader.onloadend = () => {
-          resolve(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      });
-    });
-
-    Promise.all(previews).then((results) => {
-      setImagePreviews((prev) => [...prev, ...results]);
-    });
-
-    setNewImages((prev) => [...prev, ...files]);
-  };
-
-  const handleRemoveImage = (index: number) => {
-    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
-    setNewImages((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleAddCustomRoomType = () => {
-    if (newRoomTypeInput.trim() && !customRoomTypes.includes(newRoomTypeInput.trim())) {
-      setCustomRoomTypes([...customRoomTypes, newRoomTypeInput.trim()]);
-      setNewRoomTypeInput('');
-    }
-  };
-
-  const handleRemoveCustomRoomType = (index: number) => {
-    setCustomRoomTypes((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleAddRoomType = () => {
-    setFormData((prev) => ({
-      ...prev,
-      roomTypes: [
-        ...prev.roomTypes,
-        {
-          type: '',
-          quantity: '',
-          availableQuantity: '',
-          pricePerMonth: '',
-          description: '',
-          leaseDuration: '',
-        },
-      ],
-    }));
-  };
-
-  const handleRemoveRoomType = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      roomTypes: prev.roomTypes.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleRoomTypeChange = (index: number, field: string, value: string) => {
-    setFormData((prev) => {
-      const updated = [...prev.roomTypes];
-      let parsedValue: any = value;
-      
-      if (['quantity', 'availableQuantity', 'pricePerMonth'].includes(field)) {
-        parsedValue = parseInt(value) || 0;
-      }
-      
-      updated[index] = { ...updated[index], [field]: parsedValue };
-      return { ...prev, roomTypes: updated };
-    });
+    Promise.all(files.map(f => new Promise<string>(res => { const r = new FileReader(); r.onloadend = () => res(r.result as string); r.readAsDataURL(f); }))).then(p => setImagePreviews(prev => [...prev, ...p]));
+    setNewImages(prev => [...prev, ...files]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!formData.name || !formData.description || !formData.address || !formData.city || !formData.university || !formData.minRent || !formData.maxRent || !formData.deposit || !formData.totalRooms || formData.availableRooms === '') { setError('Please fill in all required fields'); return; }
+    const avail = parseInt(formData.availableRooms), total = parseInt(formData.totalRooms);
+    if (avail > total) { setError('Available rooms cannot exceed total rooms'); return; }
+    if (formData.roomTypes.length > 0) {
+      for (const rt of formData.roomTypes) { if (!rt.type || !rt.quantity || rt.quantity === '0' || !rt.leaseDuration) { setError('Please fill in all room type fields'); return; } }
+      const qty = formData.roomTypes.reduce((s, rt) => s + parseInt(rt.quantity || '0'), 0);
+      if (qty !== total) { setError(`Room types total (${qty}) must equal total rooms (${total})`); return; }
+    }
     setLoading(true);
-
     try {
-      if (
-        !formData.name ||
-        !formData.description ||
-        !formData.address ||
-        !formData.city ||
-        !formData.university ||
-        !formData.minRent ||
-        !formData.maxRent ||
-        !formData.deposit ||
-        !formData.totalRooms ||
-        formData.availableRooms === ''
-      ) {
-        setError('Please fill in all required fields');
-        setLoading(false);
-        return;
-      }
-
-      const availableRooms = parseInt(formData.availableRooms);
-      const totalRooms = parseInt(formData.totalRooms);
-
-      if (availableRooms > totalRooms) {
-        setError('Available rooms cannot exceed total rooms');
-        setLoading(false);
-        return;
-      }
-
-      if (formData.roomTypes.length > 0) {
-        for (let rt of formData.roomTypes) {
-          if (!rt.type || !rt.quantity || rt.quantity === '0' || !rt.availableQuantity || rt.availableQuantity === '0' || !rt.pricePerMonth || rt.pricePerMonth === '0' || !rt.leaseDuration) {
-            setError('Please fill in all room type fields (Type, Quantity, Available, Price, and Lease Duration)');
-            setLoading(false);
-            return;
-          }
-        }
-
-        const totalRoomTypesQty = formData.roomTypes.reduce((sum, rt) => sum + parseInt(rt.quantity || '0'), 0);
-        if (totalRoomTypesQty !== totalRooms) {
-          setError(
-            `Total room types quantity (${totalRoomTypesQty}) must equal total rooms (${totalRooms})`
-          );
-          setLoading(false);
-          return;
-        }
-      }
-
-      const response = await api.post('/admin/properties', {
-        name: formData.name,
-        description: formData.description,
-        address: formData.address,
-        city: formData.city,
-        postalCode: formData.postalCode,
-        university: formData.university,
-        minRent: parseInt(formData.minRent),
-        maxRent: parseInt(formData.maxRent),
-        deposit: parseInt(formData.deposit),
-        totalRooms: parseInt(formData.totalRooms),
-        availableRooms: parseInt(formData.availableRooms),
-        roomTypes: formData.roomTypes.length > 0 ? formData.roomTypes : undefined,
-        amenities: formData.amenities,
-        nsfasAccreditation: formData.nsfasAccreditation,
-      });
-
-      if (!response.data.success) {
-        setError('Failed to create property');
-        setLoading(false);
-        return;
-      }
-
-      const propertyId = response.data.data._id;
-      let uploadedImages: string[] = [];
-
+      const res = await api.post('/admin/properties', { name: formData.name, description: formData.description, address: formData.address, city: formData.city, postalCode: formData.postalCode, university: formData.university, minRent: parseInt(formData.minRent), maxRent: parseInt(formData.maxRent), deposit: parseInt(formData.deposit), totalRooms: total, availableRooms: avail, roomTypes: formData.roomTypes.length > 0 ? formData.roomTypes : undefined, amenities: formData.amenities, nsfasAccreditation: formData.nsfasAccreditation });
+      if (!res.data.success) { setError('Failed to create property'); return; }
+      const pid = res.data.data._id;
       if (newImages.length > 0) {
         setUploadingImage(true);
-        for (const file of newImages) {
-          const imageFormData = new FormData();
-          imageFormData.append('file', file);
-
-          try {
-            const uploadResponse = await api.post(
-              `/admin/properties/${propertyId}/upload-image`,
-              imageFormData,
-              {
-                headers: {
-                  'Content-Type': 'multipart/form-data',
-                },
-              }
-            );
-
-            if (uploadResponse.data.imageUrl) {
-              uploadedImages.push(uploadResponse.data.imageUrl);
-            }
-          } catch (imgErr: any) {
-            console.error('Image upload failed:', imgErr);
-          }
-        }
-
-        if (uploadedImages.length > 0) {
-          await api.put(`/admin/properties/${propertyId}`, {
-            images: uploadedImages,
-          });
-        }
+        const uploaded: string[] = [];
+        for (const file of newImages) { try { const fd = new FormData(); fd.append('file', file); const up = await api.post(`/admin/properties/${pid}/upload-image`, fd, { headers: { 'Content-Type': 'multipart/form-data' } }); if (up.data.imageUrl) uploaded.push(up.data.imageUrl); } catch {} }
+        if (uploaded.length) await api.put(`/admin/properties/${pid}`, { images: uploaded });
         setUploadingImage(false);
       }
-
-      router.push('/admin/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create property');
-    } finally {
-      setLoading(false);
-    }
+      router.push('/admin/properties');
+    } catch (err: any) { setError(err.response?.data?.message || 'Failed to create property'); }
+    finally { setLoading(false); }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="container py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary">Cosy Admin</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-gray-700">{user?.name}</span>
-            <button
-              onClick={() => {
-                localStorage.clear();
-                router.push('/');
-              }}
-              className="btn-secondary px-4 py-2 text-sm"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </nav>
+    <AdminLayout>
+      <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 760, mx: 'auto' }}>
+        <Stack direction="row" sx={{  justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>New Property</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Create a new accommodation listing</Typography>
+          </Box>
+          <Button variant="outlined" onClick={() => router.push('/admin/properties')}>Cancel</Button>
+        </Stack>
 
-      <div className="container py-8">
-        <div className="mb-6">
-          <Link href="/admin/dashboard" className="text-primary hover:underline font-semibold">
-            ← Back to Dashboard
-          </Link>
-        </div>
+        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-        <div className="max-w-2xl">
-          <h2 className="text-3xl font-bold mb-8">Create New Property</h2>
+        <Paper variant="outlined" sx={{ p: 3 }} component="form" onSubmit={handleSubmit}>
+          {/* Basic Info */}
+          <Typography variant="subtitle1"  sx={{ mb: 2, fontWeight: 700 }}>Basic Information</Typography>
+          <Stack sx={{ gap: 2.5 }}>
+            <TextField required label="Property Name" placeholder="e.g., Cosy Student Residence" value={formData.name} onChange={e => set('name', e.target.value)} fullWidth />
+            <TextField required label="Description" multiline rows={4} value={formData.description} onChange={e => set('description', e.target.value)} fullWidth />
+          </Stack>
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700">{error}</p>
-            </div>
+          <Divider sx={{ my: 3 }} />
+          <Typography variant="subtitle1"  sx={{ mb: 2, fontWeight: 700 }}>Location</Typography>
+          <Stack sx={{ gap: 2.5 }}>
+            <TextField required label="Address" placeholder="e.g., 123 Main Street" value={formData.address} onChange={e => set('address', e.target.value)} fullWidth />
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6 }}><TextField required label="City" value={formData.city} onChange={e => set('city', e.target.value)} fullWidth /></Grid>
+              <Grid size={{ xs: 12, sm: 6 }}><TextField label="Postal Code" value={formData.postalCode} onChange={e => set('postalCode', e.target.value)} fullWidth /></Grid>
+            </Grid>
+            <FormControl required fullWidth>
+              <InputLabel>Nearby University</InputLabel>
+              <Select label="Nearby University" value={formData.university} onChange={e => set('university', e.target.value)}>
+                {UNIVERSITIES.map(u => <MenuItem key={u} value={u}>{u}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Stack>
+
+          <Divider sx={{ my: 3 }} />
+          <Typography variant="subtitle1"  sx={{ mb: 2, fontWeight: 700 }}>Pricing (R)</Typography>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 4 }}><TextField required type="number" label="Min Rent" value={formData.minRent} onChange={e => set('minRent', e.target.value)} fullWidth /></Grid>
+            <Grid size={{ xs: 12, sm: 4 }}><TextField required type="number" label="Max Rent" value={formData.maxRent} onChange={e => set('maxRent', e.target.value)} fullWidth /></Grid>
+            <Grid size={{ xs: 12, sm: 4 }}><TextField required type="number" label="Deposit" value={formData.deposit} onChange={e => set('deposit', e.target.value)} fullWidth /></Grid>
+          </Grid>
+
+          <Divider sx={{ my: 3 }} />
+          <Typography variant="subtitle1"  sx={{ mb: 2, fontWeight: 700 }}>Rooms</Typography>
+          <Grid container spacing={2} sx={{ mb: 2 }} >
+            <Grid size={{ xs: 12, sm: 6 }}><TextField required type="number" label="Total Rooms" value={formData.totalRooms} onChange={e => set('totalRooms', e.target.value)} fullWidth /></Grid>
+            <Grid size={{ xs: 12, sm: 6 }}><TextField required type="number" label="Available Rooms" value={formData.availableRooms} onChange={e => set('availableRooms', e.target.value)} fullWidth /></Grid>
+          </Grid>
+          <Paper variant="outlined" sx={{ p: 2 }}>
+            <Stack direction="row" sx={{  justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }} >Room Types (optional)</Typography>
+              <Button size="small" startIcon={<AddRoundedIcon />} onClick={() => set('roomTypes', [...formData.roomTypes, { type: '', quantity: '', availableQuantity: '', pricePerMonth: '', description: '', leaseDuration: '' }])}>Add Room Type</Button>
+            </Stack>
+            {formData.roomTypes.length === 0 ? (
+              <Typography variant="caption" color="text.secondary">Add room types to help students find exactly what they need.</Typography>
+            ) : formData.roomTypes.map((rt, i) => (
+              <Paper key={i} variant="outlined" sx={{ p: 2, mb: 2, bgcolor: 'action.hover' }}>
+                <Stack direction="row" sx={{  justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }} >Room Type {i + 1}</Typography>
+                  <IconButton size="small" color="error" onClick={() => set('roomTypes', formData.roomTypes.filter((_, j) => j !== i))}><DeleteRoundedIcon fontSize="small" /></IconButton>
+                </Stack>
+                <Grid container spacing={2}>
+                  <Grid size={{ xs: 12, sm: 6 }}><TextField size="small" label="Type" placeholder="e.g., Single, Double" value={rt.type} onChange={e => { const u = [...formData.roomTypes]; u[i] = { ...u[i], type: e.target.value }; set('roomTypes', u); }} fullWidth /></Grid>
+                  <Grid size={{ xs: 6, sm: 3 }}><TextField size="small" type="number" label="Qty" value={rt.quantity} onChange={e => { const u = [...formData.roomTypes]; u[i] = { ...u[i], quantity: e.target.value }; set('roomTypes', u); }} fullWidth /></Grid>
+                  <Grid size={{ xs: 6, sm: 3 }}><TextField size="small" type="number" label="Available" value={rt.availableQuantity} onChange={e => { const u = [...formData.roomTypes]; u[i] = { ...u[i], availableQuantity: e.target.value }; set('roomTypes', u); }} fullWidth /></Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}><TextField size="small" type="number" label="Price/Month (R)" value={rt.pricePerMonth} onChange={e => { const u = [...formData.roomTypes]; u[i] = { ...u[i], pricePerMonth: e.target.value }; set('roomTypes', u); }} fullWidth /></Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}><TextField size="small" label="Lease Duration" placeholder="e.g., 1 year, Flexible" value={rt.leaseDuration} onChange={e => { const u = [...formData.roomTypes]; u[i] = { ...u[i], leaseDuration: e.target.value }; set('roomTypes', u); }} fullWidth /></Grid>
+                  <Grid size={{ xs: 12 }}><TextField size="small" label="Description (optional)" value={rt.description} onChange={e => { const u = [...formData.roomTypes]; u[i] = { ...u[i], description: e.target.value }; set('roomTypes', u); }} fullWidth /></Grid>
+                </Grid>
+              </Paper>
+            ))}
+          </Paper>
+
+          <Divider sx={{ my: 3 }} />
+          <Typography variant="subtitle1"  sx={{ mb: 2, fontWeight: 700 }}>Amenities</Typography>
+          <Stack direction="row" sx={{ mb: 2, gap: 1 }}>
+            <TextField size="small" label="Add amenity" value={newAmenityInput} onChange={e => setNewAmenityInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (newAmenityInput.trim() && !customAmenities.includes(newAmenityInput.trim())) { setCustomAmenities(p => [...p, newAmenityInput.trim()]); setNewAmenityInput(''); } }}} sx={{ flexGrow: 1 }} />
+            <Button variant="outlined" onClick={() => { if (newAmenityInput.trim() && !customAmenities.includes(newAmenityInput.trim())) { setCustomAmenities(p => [...p, newAmenityInput.trim()]); setNewAmenityInput(''); } }}>Add</Button>
+          </Stack>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {customAmenities.map(a => (
+              <Chip
+                key={a}
+                label={a}
+                onClick={() => set('amenities', formData.amenities.includes(a) ? formData.amenities.filter(x => x !== a) : [...formData.amenities, a])}
+                color={formData.amenities.includes(a) ? 'primary' : 'default'}
+                variant={formData.amenities.includes(a) ? 'filled' : 'outlined'}
+                onDelete={() => setCustomAmenities(p => p.filter(x => x !== a))}
+                deleteIcon={<CloseRoundedIcon />}
+                size="small"
+              />
+            ))}
+          </Box>
+
+          <Divider sx={{ my: 3 }} />
+          <Typography variant="subtitle1"  sx={{ mb: 2, fontWeight: 700 }}>Images (optional)</Typography>
+          {imagePreviews.length > 0 && (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+              {imagePreviews.map((src, i) => (
+                <Box key={i} sx={{ position: 'relative' }}>
+                  <Box component="img" src={src} sx={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 1 }} />
+                  <IconButton size="small" sx={{ position: 'absolute', top: 0, right: 0, bgcolor: 'error.main', color: '#fff', '&:hover': { bgcolor: 'error.dark' }, p: 0.25 }} onClick={() => { setImagePreviews(p => p.filter((_, j) => j !== i)); setNewImages(p => p.filter((_, j) => j !== i)); }}><CloseRoundedIcon sx={{ fontSize: 14 }} /></IconButton>
+                </Box>
+              ))}
+            </Box>
           )}
+          <Button variant="outlined" component="label" disabled={uploadingImage}>
+            Select Images
+            <input type="file" hidden multiple accept="image/*" onChange={handleImageSelect} />
+          </Button>
 
-          <form onSubmit={handleSubmit} className="card p-8 space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Property Name *
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="e.g., Cosy Student Residence"
-                className="input-base"
-                required
-              />
-            </div>
+          <Divider sx={{ my: 3 }} />
+          <FormControlLabel control={<Checkbox checked={formData.nsfasAccreditation} onChange={e => set('nsfasAccreditation', e.target.checked)} />} label="NSFAS Accredited" />
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>Mark if your property is accredited for NSFAS funding</Typography>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Describe your property..."
-                rows={4}
-                className="input-base"
-                required
-              />
-            </div>
-
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold mb-4">Location</h3>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Address *
-                  </label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    placeholder="e.g., 123 Main Street"
-                    className="input-base"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      City *
-                    </label>
-                    <input
-                      type="text"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      placeholder="e.g., Cape Town"
-                      className="input-base"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Postal Code
-                    </label>
-                    <input
-                      type="text"
-                      name="postalCode"
-                      value={formData.postalCode}
-                      onChange={handleChange}
-                      placeholder="e.g., 8000"
-                      className="input-base"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nearby University *
-                  </label>
-                  <select
-                    name="university"
-                    value={formData.university}
-                    onChange={handleChange}
-                    className="input-base"
-                    required
-                  >
-                    <option value="">Select university</option>
-                    {UNIVERSITIES.map((uni) => (
-                      <option key={uni} value={uni}>
-                        {uni}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold mb-4">Pricing</h3>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Min Rent (R) *
-                  </label>
-                  <input
-                    type="number"
-                    name="minRent"
-                    value={formData.minRent}
-                    onChange={handleChange}
-                    placeholder="e.g., 3000"
-                    className="input-base"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Max Rent (R) *
-                  </label>
-                  <input
-                    type="number"
-                    name="maxRent"
-                    value={formData.maxRent}
-                    onChange={handleChange}
-                    placeholder="e.g., 5000"
-                    className="input-base"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Deposit (R) *
-                  </label>
-                  <input
-                    type="number"
-                    name="deposit"
-                    value={formData.deposit}
-                    onChange={handleChange}
-                    placeholder="e.g., 5000"
-                    className="input-base"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold mb-4">Images</h3>
-
-              {imagePreviews.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="font-medium text-gray-700 mb-3">Selected Images</h4>
-                  <div className="grid grid-cols-3 gap-4">
-                    {imagePreviews.map((preview, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={preview}
-                          alt={`Preview ${index}`}
-                          className="w-full h-24 object-cover rounded border-2 border-blue-300 bg-blue-50"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImage(index)}
-                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <HiX className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300">
-                <label className="block">
-                  <span className="text-sm font-medium text-gray-700 mb-2 block">
-                    Add Property Images
-                  </span>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageSelect}
-                    className="block w-full text-sm text-gray-500
-                      file:mr-4 file:py-2 file:px-4
-                      file:rounded file:border-0
-                      file:text-sm file:font-semibold
-                      file:bg-primary file:text-white
-                      hover:file:bg-primary/90"
-                    disabled={uploadingImage}
-                  />
-                  <p className="text-xs text-gray-500 mt-2">PNG, JPG, GIF up to 10MB each (Optional)</p>
-                </label>
-              </div>
-            </div>
-
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold mb-4">Rooms</h3>
-
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Total Rooms *
-                  </label>
-                  <input
-                    type="number"
-                    name="totalRooms"
-                    value={formData.totalRooms}
-                    onChange={handleChange}
-                    placeholder="e.g., 10"
-                    className="input-base"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Available Rooms *
-                  </label>
-                  <input
-                    type="number"
-                    name="availableRooms"
-                    value={formData.availableRooms}
-                    onChange={handleChange}
-                    placeholder="e.g., 3"
-                    className="input-base"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <h4 className="font-semibold text-gray-700">Room Type Details (Optional)</h4>
-                  <button
-                    type="button"
-                    onClick={handleAddRoomType}
-                    className="text-sm bg-primary text-white px-3 py-1 rounded hover:bg-primary/90"
-                  >
-                    + Add Room Type
-                  </button>
-                </div>
-
-                {formData.roomTypes.length === 0 ? (
-                  <p className="text-sm text-gray-500">
-                    Specify room type details to help students find what they need
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {formData.roomTypes.map((roomType, index) => (
-                      <div key={index} className="bg-white p-4 rounded border border-gray-200">
-                        <div className="flex justify-between items-start mb-3">
-                          <span className="font-medium text-gray-700">Room Type {index + 1}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveRoomType(index)}
-                            className="text-red-500 hover:text-red-700 text-sm font-semibold"
-                          >
-                            Remove
-                          </button>
-                        </div>
-
-                        {index === 0 && (
-                          <div className="bg-blue-50 p-3 rounded mb-4 border border-blue-200">
-                            <h5 className="font-semibold text-gray-700 mb-3 text-sm">Manage Room Types</h5>
-                            <p className="text-xs text-gray-600 mb-3">Add custom room types for your property</p>
-                            
-                            <div className="flex gap-2 mb-3">
-                              <input
-                                type="text"
-                                value={newRoomTypeInput}
-                                onChange={(e) => setNewRoomTypeInput(e.target.value)}
-                                placeholder="e.g., Single Deluxe, Double Trio"
-                                className="input-base flex-1 text-sm"
-                                onKeyPress={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    handleAddCustomRoomType();
-                                  }
-                                }}
-                              />
-                              <button
-                                type="button"
-                                onClick={handleAddCustomRoomType}
-                                className="bg-primary text-white px-3 py-2 rounded hover:bg-primary/90 font-medium text-sm"
-                              >
-                                Add
-                              </button>
-                            </div>
-
-                            <div className="flex flex-wrap gap-2">
-                              {customRoomTypes.map((type, typeIndex) => (
-                                <div
-                                  key={typeIndex}
-                                  className="bg-white px-2 py-1 rounded border border-gray-300 flex items-center gap-2"
-                                >
-                                  <span className="text-xs text-gray-700">{type}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveCustomRoomType(typeIndex)}
-                                    className="text-red-500 hover:text-red-700"
-                                  >
-                                    <HiX className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="grid grid-cols-2 gap-3 mb-3">
-                          <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                              Room Type *
-                            </label>
-                            <input
-                              type="text"
-                              value={roomType.type}
-                              onChange={(e) =>
-                                handleRoomTypeChange(index, 'type', e.target.value)
-                              }
-                              placeholder="e.g., Single, Double, Single Duo"
-                              className="input-base text-sm"
-                              required
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                              Quantity *
-                            </label>
-                            <input
-                              type="number"
-                              value={roomType.quantity}
-                              onChange={(e) =>
-                                handleRoomTypeChange(index, 'quantity', e.target.value)
-                              }
-                              placeholder="e.g., 3"
-                              className="input-base text-sm"
-                              required
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                              Available *
-                            </label>
-                            <input
-                              type="number"
-                              value={roomType.availableQuantity}
-                              onChange={(e) =>
-                                handleRoomTypeChange(index, 'availableQuantity', e.target.value)
-                              }
-                              placeholder="e.g., 1"
-                              className="input-base text-sm"
-                              required
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                              Price/Month (R) *
-                            </label>
-                            <input
-                              type="number"
-                              value={roomType.pricePerMonth}
-                              onChange={(e) =>
-                                handleRoomTypeChange(index, 'pricePerMonth', e.target.value)
-                              }
-                              placeholder="e.g., 3500"
-                              className="input-base text-sm"
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        <div className="mb-3">
-                          <label className="block text-xs font-medium text-gray-700 mb-1">
-                            Description
-                          </label>
-                          <input
-                            type="text"
-                            value={roomType.description}
-                            onChange={(e) =>
-                              handleRoomTypeChange(index, 'description', e.target.value)
-                            }
-                            placeholder="e.g., Ensuite bathroom, window view"
-                            className="input-base text-sm"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">
-                            Lease Duration *
-                          </label>
-                          <input
-                            type="text"
-                            value={roomType.leaseDuration}
-                            onChange={(e) =>
-                              handleRoomTypeChange(index, 'leaseDuration', e.target.value)
-                            }
-                            placeholder="e.g., 1 year, Flexible, Semester only"
-                            className="input-base text-sm"
-                            required
-                          />
-                          <p className="text-xs text-gray-500 mt-1">Enter custom lease duration</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold mb-4">Amenities</h3>
-
-              <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                <h4 className="font-semibold text-gray-700 mb-3">Manage Amenities</h4>
-                <p className="text-sm text-gray-600 mb-4">Add custom amenities specific to your property</p>
-                
-                <div className="flex gap-2 mb-4">
-                  <input
-                    type="text"
-                    value={newAmenityInput}
-                    onChange={(e) => setNewAmenityInput(e.target.value)}
-                    placeholder="e.g., Air Conditioning, Balcony, Pool"
-                    className="input-base flex-1"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddCustomAmenity();
-                      }
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddCustomAmenity}
-                    className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 font-medium"
-                  >
-                    Add
-                  </button>
-                </div>
-
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {customAmenities.map((amenity, index) => (
-                    <div
-                      key={index}
-                      className="bg-white px-3 py-2 rounded border border-gray-300 flex items-center gap-2"
-                    >
-                      <span className="text-sm text-gray-700">{amenity}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveCustomAmenity(index)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <HiX className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {customAmenities.map((amenity) => (
-                  <label key={amenity} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.amenities.includes(amenity)}
-                      onChange={() => handleAmenityChange(amenity)}
-                      className="w-4 h-4 text-primary rounded"
-                    />
-                    <span className="text-gray-700">{amenity}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t pt-6">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="nsfasAccreditation"
-                  checked={formData.nsfasAccreditation}
-                  onChange={handleChange}
-                  className="w-4 h-4 text-primary rounded"
-                />
-                <span className="text-gray-700 font-medium">NSFAS Accredited</span>
-              </label>
-              <p className="text-sm text-gray-500 mt-2">
-                Mark if your property is accredited for NSFAS funding
-              </p>
-            </div>
-
-            <div className="border-t pt-6 flex gap-4">
-              <button
-                type="submit"
-                disabled={loading || uploadingImage}
-                className="flex-1 btn-primary py-3 font-semibold disabled:opacity-50"
-              >
-                {loading ? 'Creating...' : uploadingImage ? 'Uploading images...' : 'Create Property'}
-              </button>
-              <button
-                type="button"
-                onClick={() => router.push('/admin/dashboard')}
-                className="flex-1 btn-secondary py-3 font-semibold"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          <Divider sx={{ my: 3 }} />
+          <Stack direction="row" sx={{ gap: 2 }}>
+            <Button type="submit" variant="contained" disabled={loading || uploadingImage} startIcon={loading || uploadingImage ? <CircularProgress size={16} /> : undefined} sx={{ flex: 1 }}>
+              {loading ? 'Creating…' : uploadingImage ? 'Uploading images…' : 'Create Property'}
+            </Button>
+            <Button variant="outlined" onClick={() => router.push('/admin/properties')} sx={{ flex: 1 }}>Cancel</Button>
+          </Stack>
+        </Paper>
+      </Box>
+    </AdminLayout>
   );
 }
