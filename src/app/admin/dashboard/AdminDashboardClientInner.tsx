@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/services/api';
 
-import { alpha, createTheme, ThemeProvider, useColorScheme } from '@mui/material/styles';
+import { alpha, createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -46,10 +46,7 @@ import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
-import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
 import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
-import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
-import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
@@ -75,26 +72,11 @@ interface RequestItem {
 }
 
 const theme = createTheme({
-  cssVariables: { colorSchemeSelector: 'data-toolpad-color-scheme' },
-  colorSchemes: { light: true, dark: true },
   typography: { fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(',') },
   shape: { borderRadius: 8 },
 });
 
 const DRAWER_WIDTH = 240;
-
-function ColorModeToggle() {
-  const { mode, setMode } = useColorScheme();
-  if (!mode) return null;
-  return (
-    <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>
-      <IconButton size="small" onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')}
-        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-        {mode === 'dark' ? <LightModeRoundedIcon fontSize="small" /> : <DarkModeRoundedIcon fontSize="small" />}
-      </IconButton>
-    </Tooltip>
-  );
-}
 
 function StatCard({ title, value, interval, trend = 'neutral', trendLabel, data = [], color = '#1976d2' }: {
   title: string; value: string | number; interval?: string;
@@ -202,7 +184,6 @@ function SideMenu({ user, pendingCount, pathname, onNavigate, onLogout }: {
           <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }} noWrap>{user?.name ?? 'Admin'}</Typography>
           <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>{user?.email ?? ''}</Typography>
         </Box>
-        <ColorModeToggle />
         <Tooltip title="Sign out">
           <IconButton size="small" onClick={onLogout}><LogoutRoundedIcon fontSize="small" /></IconButton>
         </Tooltip>
@@ -222,7 +203,6 @@ function AppNavbar({ pendingCount, onToggleMobile }: { pendingCount: number; onT
           <Typography variant="h6" sx={{ fontWeight: 700 }}>Cosy Admin</Typography>
         </Stack>
         <Stack direction="row" sx={{ gap: 0.5 }}>
-          <ColorModeToggle />
           <IconButton><Badge badgeContent={pendingCount || undefined} color="error"><NotificationsRoundedIcon /></Badge></IconButton>
           <IconButton onClick={onToggleMobile}><MenuRoundedIcon /></IconButton>
         </Stack>
@@ -319,7 +299,7 @@ export default function AdminDashboardClientInner() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box data-toolpad-color-scheme="light" sx={{ display: 'flex', minHeight: '100vh' }}>
+      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
         <CssBaseline enableColorScheme />
 
         <SideMenu user={user} pendingCount={pendingReqs} pathname={pathname ?? ''} onNavigate={router.push} onLogout={() => { logout(); router.push('/login'); }} />
