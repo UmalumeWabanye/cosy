@@ -52,6 +52,8 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 import PendingActionsRoundedIcon from '@mui/icons-material/PendingActionsRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
+import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
 
 import { SparkLineChart } from '@mui/x-charts/SparkLineChart';
 import { LineChart } from '@mui/x-charts/LineChart';
@@ -111,6 +113,8 @@ const PRIMARY_NAV = [
   { label: 'Properties', icon: <ApartmentRoundedIcon />, path: '/admin/properties' },
   { label: 'Applications', icon: <AssignmentRoundedIcon />, path: '/admin/requests' },
   { label: 'Add Property', icon: <AddRoundedIcon />, path: '/admin/properties/new' },
+  { label: 'Users', icon: <PeopleRoundedIcon />, path: '/admin/users' },
+  { label: 'Reports', icon: <BarChartRoundedIcon />, path: '/admin/reports' },
 ];
 const SECONDARY_NAV = [
   { label: 'Back to site', icon: <HomeRoundedIcon />, path: '/' },

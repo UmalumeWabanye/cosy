@@ -35,6 +35,8 @@ import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
+import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
+import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
 
 
 const DRAWER_WIDTH = 240;
@@ -59,6 +61,8 @@ function getBreadcrumb(pathname: string): string[] {
   if (/\/admin\/properties\/[^/]+/.test(pathname)) return ['Admin', 'Properties', 'View Property'];
   if (pathname.startsWith('/admin/properties')) return ['Admin', 'Properties'];
   if (pathname.startsWith('/admin/requests')) return ['Admin', 'Applications'];
+  if (pathname.startsWith('/admin/users')) return ['Admin', 'Users'];
+  if (pathname.startsWith('/admin/reports')) return ['Admin', 'Reports'];
   return ['Admin'];
 }
 
@@ -151,6 +155,8 @@ const NAV_ITEMS = [
   { label: 'Properties', icon: <ApartmentRoundedIcon />, path: '/admin/properties' },
   { label: 'Applications', icon: <AssignmentRoundedIcon />, path: '/admin/requests' },
   { label: 'Add Property', icon: <AddRoundedIcon />, path: '/admin/properties/new' },
+  { label: 'Users', icon: <PeopleRoundedIcon />, path: '/admin/users' },
+  { label: 'Reports', icon: <BarChartRoundedIcon />, path: '/admin/reports' },
 ];
 
 interface SideMenuInnerProps {

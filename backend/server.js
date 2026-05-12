@@ -10,6 +10,7 @@ const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/authRoutes');
 const propertyRoutes = require('./routes/propertyRoutes');
 const requestRoutes = require('./routes/requestRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -86,6 +87,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/requests', requestRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Backwards-compatible admin-prefixed routes (some frontends call /api/admin/...)
 app.use('/api/admin/properties', propertyRoutes);
