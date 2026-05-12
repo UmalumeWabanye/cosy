@@ -109,7 +109,7 @@ function StatCard({ title, value, interval, trend = 'neutral', trendLabel, data 
 const PRIMARY_NAV = [
   { label: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/admin/dashboard' },
   { label: 'Properties', icon: <ApartmentRoundedIcon />, path: '/admin/properties' },
-  { label: 'Requests', icon: <AssignmentRoundedIcon />, path: '/admin/requests' },
+  { label: 'Applications', icon: <AssignmentRoundedIcon />, path: '/admin/requests' },
   { label: 'Add Property', icon: <AddRoundedIcon />, path: '/admin/properties/new' },
 ];
 const SECONDARY_NAV = [
@@ -124,7 +124,7 @@ function NavList({ items, pathname, pendingCount = 0, onNavigate }: {
     <List dense disablePadding>
       {items.map(({ label, icon, path }) => {
         const selected = pathname === path || (path.startsWith('/admin') && path !== '/admin/dashboard' && pathname.startsWith(path));
-        const badge = label === 'Requests' ? pendingCount : 0;
+        const badge = label === 'Applications' ? pendingCount : 0;
         return (
           <ListItem key={label} disablePadding sx={{ px: 1, mb: 0.25 }}>
             <ListItemButton selected={selected} onClick={() => onNavigate(path)} sx={{
