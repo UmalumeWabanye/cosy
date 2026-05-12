@@ -1,11 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/services/api';
 
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
+import CssBaseline from '@mui/material/CssBaseline';
+import Divider from '@mui/material/Divider';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormLabel from '@mui/material/FormLabel';
+import FormControl from '@mui/material/FormControl';
+import Link from '@mui/material/Link';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import MuiCard from '@mui/material/Card';
+import MenuItem from '@mui/material/MenuItem';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
+import SvgIcon from '@mui/material/SvgIcon';
+import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
+
+// ── Data ───────────────────────────────────────────────────────────────────────
 const UNIVERSITIES = [
   'University of Cape Town',
   'Stellenbosch University',
@@ -25,398 +44,324 @@ const FUNDING_TYPES = [
   { value: 'self-funded', label: 'Self-funded' },
 ];
 
+// ── Icons ──────────────────────────────────────────────────────────────────────
+function CosyIcon() {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+      <Box sx={{
+        width: 32, height: 32, borderRadius: 1.5,
+        background: 'linear-gradient(135deg, hsl(210,98%,60%) 0%, hsl(210,100%,35%) 100%)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      }}>
+        <SvgIcon sx={{ color: '#fff', fontSize: 18 }}>
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+        </SvgIcon>
+      </Box>
+      <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.3px', lineHeight: 1 }}>Cosy</Typography>
+    </Box>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <SvgIcon>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" fill="currentColor" />
+      </svg>
+    </SvgIcon>
+  );
+}
+
+function FacebookIcon() {
+  return (
+    <SvgIcon>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" fill="currentColor" />
+      </svg>
+    </SvgIcon>
+  );
+}
+
+// ── Styled components ──────────────────────────────────────────────────────────
+const Card = styled(MuiCard)(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignSelf: 'center',
+  width: '100%',
+  padding: theme.spacing(4),
+  gap: theme.spacing(2),
+  margin: 'auto',
+  [theme.breakpoints.up('sm')]: { maxWidth: '450px' },
+  boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
+  ...theme.applyStyles('dark', {
+    boxShadow: 'hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px',
+  }),
+}));
+
+const SignUpContainer = styled(Stack)(({ theme }) => ({
+  minHeight: '100dvh',
+  padding: theme.spacing(2),
+  [theme.breakpoints.up('sm')]: { padding: theme.spacing(4) },
+  '&::before': {
+    content: '""',
+    display: 'block',
+    position: 'absolute',
+    zIndex: -1,
+    inset: 0,
+    backgroundImage: 'radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))',
+    backgroundRepeat: 'no-repeat',
+    ...theme.applyStyles('dark', {
+      backgroundImage: 'radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))',
+    }),
+  },
+}));
+
+const theme = createTheme({
+  cssVariables: { colorSchemeSelector: 'data-toolpad-color-scheme' },
+  colorSchemes: { light: true, dark: true },
+  typography: { fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(',') },
+  shape: { borderRadius: 8 },
+});
+
+// ── Main page ──────────────────────────────────────────────────────────────────
 export default function RegisterPage() {
   const router = useRouter();
   const { setUser, setToken } = useAuthStore();
 
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    university: '',
-    fundingType: '',
-  });
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [nameError, setNameError] = useState(false);
+  const [nameErrorMessage, setNameErrorMessage] = useState('');
+  const [emailError, setEmailError] = useState(false);
+  const [emailErrorMessage, setEmailErrorMessage] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState(false);
+  const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] = useState('');
+  const [universityError, setUniversityError] = useState(false);
+  const [fundingError, setFundingError] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [serverError, setServerError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const validateInputs = () => {
+    const nameEl = document.getElementById('name') as HTMLInputElement;
+    const emailEl = document.getElementById('email') as HTMLInputElement;
+    const passwordEl = document.getElementById('password') as HTMLInputElement;
+    const confirmEl = document.getElementById('confirmPassword') as HTMLInputElement;
+    const uniEl = document.getElementById('university') as HTMLInputElement;
+    const fundingEl = document.getElementById('fundingType') as HTMLInputElement;
+    let valid = true;
+
+    if (!nameEl?.value || nameEl.value.trim().length < 2) {
+      setNameError(true); setNameErrorMessage('Please enter your full name.'); valid = false;
+    } else { setNameError(false); setNameErrorMessage(''); }
+
+    if (!emailEl?.value || !/\S+@\S+\.\S+/.test(emailEl.value)) {
+      setEmailError(true); setEmailErrorMessage('Please enter a valid email address.'); valid = false;
+    } else { setEmailError(false); setEmailErrorMessage(''); }
+
+    if (!passwordEl?.value || passwordEl.value.length < 6) {
+      setPasswordError(true); setPasswordErrorMessage('Password must be at least 6 characters.'); valid = false;
+    } else { setPasswordError(false); setPasswordErrorMessage(''); }
+
+    if (!confirmEl?.value || confirmEl.value !== passwordEl?.value) {
+      setConfirmPasswordError(true); setConfirmPasswordErrorMessage('Passwords do not match.'); valid = false;
+    } else { setConfirmPasswordError(false); setConfirmPasswordErrorMessage(''); }
+
+    if (!uniEl?.value) { setUniversityError(true); valid = false; } else { setUniversityError(false); }
+    if (!fundingEl?.value) { setFundingError(true); valid = false; } else { setFundingError(false); }
+
+    return valid;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-    setLoading(true);
+    if (!validateInputs()) return;
+
+    const data = new FormData(e.currentTarget);
+    const name = data.get('name') as string;
+    const email = data.get('email') as string;
+    const password = data.get('password') as string;
+    const university = data.get('university') as string;
+    const fundingType = data.get('fundingType') as string;
 
     try {
-      // Validation
-      if (
-        !formData.name ||
-        !formData.email ||
-        !formData.password ||
-        !formData.university ||
-        !formData.fundingType
-      ) {
-        setError('Please fill in all fields');
-        setLoading(false);
-        return;
-      }
+      setLoading(true);
+      setServerError('');
+      const response = await api.post('/auth/register', { name, email, password, university, fundingType });
+      const res = response.data;
 
-      if (formData.password.length < 6) {
-        setError('Password must be at least 6 characters');
-        setLoading(false);
-        return;
-      }
-
-      if (formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match');
-        setLoading(false);
-        return;
-      }
-
-      console.log('Submitting registration:', formData);
-
-      const response = await api.post('/auth/register', {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        university: formData.university,
-        fundingType: formData.fundingType,
-      });
-
-      console.log('Registration response:', response.data);
-
-      // Support multiple backend response shapes:
-      // 1) { success: true, token, user }
-      // 2) { token, user: { ... } }
-      // 3) { token, _id, email, name, role, ... }
-      const data = response.data;
-      let token = data.token || null;
+      const token = res.token;
       let user = null;
-
-      if (data.user) {
-        user = data.user;
-      } else if (data._id) {
-        user = {
-          id: data._id,
-          email: data.email,
-          name: data.name,
-          role: data.role,
-          university: data.university,
-          fundingType: data.fundingType,
-        };
+      if (res.user) {
+        user = res.user;
+      } else if (res._id) {
+        user = { id: res._id, email: res.email, name: res.name, role: res.role, university: res.university, fundingType: res.fundingType };
       }
 
       if (!token || !user) {
-        const msg = data.message || 'Unexpected response from server';
-        setError(msg);
+        setServerError(res.message || 'Unexpected response from server. Please try again.');
         return;
       }
 
-      setSuccess('Registration successful! Redirecting...');
-      // Persist and set global store
       localStorage.setItem('token', token);
       setToken(token);
       setUser(user);
-
-      // Redirect to dashboard after 1 second
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 1000);
+      router.push('/dashboard');
     } catch (err: any) {
-      console.error('Registration error:', err);
-      const errorMessage = err.response?.data?.message || err.message || 'Registration failed';
-      setError(errorMessage);
+      setServerError(err?.response?.data?.message || err.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-primary mb-2">Cosy</h1>
-          <p className="text-gray-600">Find Your Perfect Student Home</p>
-        </div>
+    <ThemeProvider theme={theme}>
+      <CssBaseline enableColorScheme />
+      <SignUpContainer direction="column" sx={{ justifyContent: 'center' }}>
+        <Card variant="outlined">
+          <CosyIcon />
 
-        {/* Card */}
-        <div className="card p-8 shadow-lg">
-          <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Create Account</h2>
+          <Typography component="h1" variant="h4" sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)', fontWeight: 700 }}>
+            Sign up
+          </Typography>
 
-          {/* Error Message */}
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700 text-sm font-medium">{error}</p>
-            </div>
-          )}
+          {serverError && <Alert severity="error" sx={{ width: '100%' }}>{serverError}</Alert>}
 
-          {/* Success Message */}
-          {success && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-700 text-sm font-medium">{success}</p>
-            </div>
-          )}
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Full Name */}
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name
-              </label>
-              <input
-                id="name"
-                type="text"
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <FormControl>
+              <FormLabel htmlFor="name">Full name</FormLabel>
+              <TextField
+                error={nameError}
+                helperText={nameErrorMessage}
+                autoComplete="name"
                 name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="John Doe"
-                className="input-base"
                 required
+                fullWidth
+                id="name"
+                placeholder="Jon Snow"
+                color={nameError ? 'error' : 'primary'}
               />
-            </div>
+            </FormControl>
 
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
-              </label>
-              <input
+            <FormControl>
+              <FormLabel htmlFor="email">Email</FormLabel>
+              <TextField
+                error={emailError}
+                helperText={emailErrorMessage}
                 id="email"
                 type="email"
                 name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="john@example.com"
-                className="input-base"
+                placeholder="your@email.com"
+                autoComplete="email"
                 required
+                fullWidth
+                variant="outlined"
+                color={emailError ? 'error' : 'primary'}
               />
-            </div>
+            </FormControl>
 
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••"
-                  className="input-base pr-10"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-primary transition-colors"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15.364 5.364l1.414-1.414M9.172 9.172L7.757 7.757m3.536 9.172l-1.414 1.414M20.485 4.515l1.414-1.414"
-                      />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
-            </div>
+            <FormControl>
+              <FormLabel htmlFor="password">Password</FormLabel>
+              <TextField
+                error={passwordError}
+                helperText={passwordErrorMessage}
+                name="password"
+                placeholder="••••••"
+                type="password"
+                id="password"
+                autoComplete="new-password"
+                required
+                fullWidth
+                variant="outlined"
+                color={passwordError ? 'error' : 'primary'}
+              />
+            </FormControl>
 
-            {/* Confirm Password */}
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="••••••"
-                  className="input-base pr-10"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-primary transition-colors"
-                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showConfirmPassword ? (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15.364 5.364l1.414-1.414M9.172 9.172L7.757 7.757m3.536 9.172l-1.414 1.414M20.485 4.515l1.414-1.414"
-                      />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
+            <FormControl>
+              <FormLabel htmlFor="confirmPassword">Confirm password</FormLabel>
+              <TextField
+                error={confirmPasswordError}
+                helperText={confirmPasswordErrorMessage}
+                name="confirmPassword"
+                placeholder="••••••"
+                type="password"
+                id="confirmPassword"
+                autoComplete="new-password"
+                required
+                fullWidth
+                variant="outlined"
+                color={confirmPasswordError ? 'error' : 'primary'}
+              />
+            </FormControl>
 
-            {/* University */}
-            <div>
-              <label htmlFor="university" className="block text-sm font-medium text-gray-700 mb-2">
-                University
-              </label>
-              <select
+            <FormControl error={universityError}>
+              <FormLabel htmlFor="university">University</FormLabel>
+              <TextField
+                select
                 id="university"
                 name="university"
-                value={formData.university}
-                onChange={handleChange}
-                className="input-base"
                 required
+                fullWidth
+                defaultValue=""
+                variant="outlined"
+                error={universityError}
+                helperText={universityError ? 'Please select your university.' : ''}
               >
-                <option value="">Select your university</option>
-                {UNIVERSITIES.map((uni) => (
-                  <option key={uni} value={uni}>
-                    {uni}
-                  </option>
+                <MenuItem value="" disabled>Select your university</MenuItem>
+                {UNIVERSITIES.map(uni => (
+                  <MenuItem key={uni} value={uni}>{uni}</MenuItem>
                 ))}
-              </select>
-            </div>
+              </TextField>
+            </FormControl>
 
-            {/* Funding Type */}
-            <div>
-              <label htmlFor="fundingType" className="block text-sm font-medium text-gray-700 mb-2">
-                Funding Type
-              </label>
-              <select
+            <FormControl error={fundingError}>
+              <FormLabel htmlFor="fundingType">Funding type</FormLabel>
+              <TextField
+                select
                 id="fundingType"
                 name="fundingType"
-                value={formData.fundingType}
-                onChange={handleChange}
-                className="input-base"
                 required
+                fullWidth
+                defaultValue=""
+                variant="outlined"
+                error={fundingError}
+                helperText={fundingError ? 'Please select your funding type.' : ''}
               >
-                <option value="">Select funding type</option>
-                {FUNDING_TYPES.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
+                <MenuItem value="" disabled>Select funding type</MenuItem>
+                {FUNDING_TYPES.map(({ value, label }) => (
+                  <MenuItem key={value} value={value}>{label}</MenuItem>
                 ))}
-              </select>
-            </div>
+              </TextField>
+            </FormControl>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn-primary py-3 mt-6 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-            >
-              {loading ? 'Creating account...' : 'Sign Up'}
-            </button>
-          </form>
+            <FormControlLabel
+              control={<Checkbox value="updates" color="primary" />}
+              label="I want to receive updates via email."
+            />
 
-          {/* Divider */}
-          <div className="my-6 flex items-center">
-            <div className="flex-1 border-t border-gray-300"></div>
-            <span className="px-3 text-gray-500 text-sm">or</span>
-            <div className="flex-1 border-t border-gray-300"></div>
-          </div>
+            <Button type="submit" fullWidth variant="contained" disabled={loading}
+              onClick={validateInputs}
+              sx={{ bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'text.secondary' } }}>
+              {loading ? <CircularProgress size={22} color="inherit" /> : 'Sign up'}
+            </Button>
 
-          {/* Login Link */}
-          <p className="text-center text-gray-600">
-            Already have an account?{' '}
-            <Link href="/login" className="text-primary font-semibold hover:opacity-80 transition-opacity">
-              Sign in
-            </Link>
-          </p>
-        </div>
+            <Typography sx={{ textAlign: 'center' }}>
+              Already have an account?{' '}
+              <Link href="/login" variant="body2" sx={{ alignSelf: 'center' }}>Sign in</Link>
+            </Typography>
+          </Box>
 
-        {/* Footer */}
-        <p className="text-center text-gray-600 text-sm mt-6">
-          <Link href="/" className="hover:text-primary transition-colors">
-            ← Back to Home
-          </Link>
-        </p>
-      </div>
-    </div>
+          <Divider>or</Divider>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Button fullWidth variant="outlined" startIcon={<GoogleIcon />} onClick={() => alert('Google sign-up not yet configured')}>
+              Sign up with Google
+            </Button>
+            <Button fullWidth variant="outlined" startIcon={<FacebookIcon />} onClick={() => alert('Facebook sign-up not yet configured')}>
+              Sign up with Facebook
+            </Button>
+          </Box>
+        </Card>
+      </SignUpContainer>
+    </ThemeProvider>
   );
 }
