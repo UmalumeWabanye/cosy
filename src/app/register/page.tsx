@@ -21,8 +21,12 @@ import MuiCard from '@mui/material/Card';
 import MenuItem from '@mui/material/MenuItem';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
+import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
+import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 
 // ── Data ───────────────────────────────────────────────────────────────────────
 const UNIVERSITIES = [
@@ -128,6 +132,8 @@ export default function RegisterPage() {
   const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [universityError, setUniversityError] = useState(false);
   const [fundingError, setFundingError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -258,13 +264,29 @@ export default function RegisterPage() {
                 helperText={passwordErrorMessage}
                 name="password"
                 placeholder="••••••"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 id="password"
                 autoComplete="new-password"
                 required
                 fullWidth
                 variant="outlined"
                 color={passwordError ? 'error' : 'primary'}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                          onClick={() => setShowPassword(v => !v)}
+                          edge="end"
+                          size="small"
+                        >
+                          {showPassword ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
               />
             </FormControl>
 
@@ -275,13 +297,29 @@ export default function RegisterPage() {
                 helperText={confirmPasswordErrorMessage}
                 name="confirmPassword"
                 placeholder="••••••"
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 id="confirmPassword"
                 autoComplete="new-password"
                 required
                 fullWidth
                 variant="outlined"
                 color={confirmPasswordError ? 'error' : 'primary'}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                          onClick={() => setShowConfirmPassword(v => !v)}
+                          edge="end"
+                          size="small"
+                        >
+                          {showConfirmPassword ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
               />
             </FormControl>
 

@@ -14,6 +14,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
+import InputBase from '@mui/material/InputBase';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -31,6 +32,9 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 
 
 const DRAWER_WIDTH = 240;
@@ -48,6 +52,99 @@ export const adminTheme = createTheme({
   shape: { borderRadius: 8 },
 });
 
+function getBreadcrumb(pathname: string): string[] {
+  if (pathname === '/admin/dashboard') return ['Admin', 'Dashboard'];
+  if (pathname === '/admin/properties/new') return ['Admin', 'Properties', 'New Property'];
+  if (/\/admin\/properties\/[^/]+\/edit/.test(pathname)) return ['Admin', 'Properties', 'Edit Property'];
+  if (/\/admin\/properties\/[^/]+/.test(pathname)) return ['Admin', 'Properties', 'View Property'];
+  if (pathname.startsWith('/admin/properties')) return ['Admin', 'Properties'];
+  if (pathname.startsWith('/admin/requests')) return ['Admin', 'Requests'];
+  return ['Admin'];
+}
+
+function ContentHeader({ pathname, pendingCount, onNavigate }: {
+  pathname: string;
+  pendingCount: number;
+  onNavigate: (path: string) => void;
+}) {
+  const breadcrumb = getBreadcrumb(pathname);
+  const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  return (
+    <Stack
+      direction="row"
+      sx={{
+        display: { xs: 'none', md: 'flex' },
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        pb: 2,
+        mb: 1,
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
+        {breadcrumb.map((crumb, i) => (
+          <React.Fragment key={crumb}>
+            {i > 0 && <ChevronRightRoundedIcon sx={{ fontSize: 16, color: 'text.disabled' }} />}
+            <Typography
+              variant="body2"
+              sx={{
+                color: i === breadcrumb.length - 1 ? 'text.primary' : 'text.secondary',
+                fontWeight: i === breadcrumb.length - 1 ? 600 : 400,
+                cursor: i === 0 ? 'pointer' : 'default',
+              }}
+              onClick={i === 0 ? () => onNavigate('/admin/dashboard') : undefined}
+            >
+              {crumb}
+            </Typography>
+          </React.Fragment>
+        ))}
+      </Stack>
+
+      <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5 }}>
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center', gap: 0.75, px: 1.5, py: 0.5,
+            border: '1px solid', borderColor: 'divider', borderRadius: 2,
+            bgcolor: 'background.paper', minWidth: 180,
+            '&:focus-within': { borderColor: 'primary.main' },
+          }}
+        >
+          <SearchRoundedIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+          <InputBase placeholder="Search…" sx={{ fontSize: 13, flex: 1 }} inputProps={{ 'aria-label': 'search' }} />
+        </Stack>
+
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center', gap: 0.75, px: 1.5, py: 0.5,
+            border: '1px solid', borderColor: 'divider', borderRadius: 2,
+            bgcolor: 'background.paper',
+          }}
+        >
+          <CalendarTodayRoundedIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+          <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.secondary', whiteSpace: 'nowrap' }}>
+            {today}
+          </Typography>
+        </Stack>
+
+        <Tooltip title={`${pendingCount} pending requests`}>
+          <IconButton
+            size="small"
+            onClick={() => onNavigate('/admin/requests')}
+            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}
+          >
+            <Badge badgeContent={pendingCount > 0 ? ' ' : undefined} color="error" variant="dot">
+              <NotificationsRoundedIcon fontSize="small" />
+            </Badge>
+          </IconButton>
+        </Tooltip>
+      </Stack>
+    </Stack>
+  );
+}
 
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/admin/dashboard' },
@@ -68,39 +165,43 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
   return (
     <>
       {/* Brand */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 2, mt: 1 }}>
+      <Stack direction="row" sx={{ alignItems: 'center', gap: 1, p: 2, pt: 2.5 }}>
         <Box
           sx={{
-            width: 32, height: 32, borderRadius: '50%',
+            width: 30, height: 30, borderRadius: 1.5,
             background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}
         >
-          <DashboardRoundedIcon sx={{ color: '#fff', fontSize: 18 }} />
+          <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 17 }} />
         </Box>
-        <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: -0.3 }}>
-          Cosy Admin
-        </Typography>
-      </Box>
+        <Box>
+          <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.1 }}>Cosy Admin</Typography>
+          <Typography variant="caption" color="text.secondary">Web app</Typography>
+        </Box>
+      </Stack>
 
       <Divider />
 
       {/* Nav */}
-      <Box sx={{ flexGrow: 1, overflow: 'auto', py: 1 }}>
-        <List dense>
+      <Box sx={{ pt: 1 }}>
+        <List dense disablePadding>
           {NAV_ITEMS.map(({ label, icon, path }) => {
             const selected = pathname === path || (path !== '/admin/dashboard' && pathname.startsWith(path) && path !== '/admin/properties/new');
             const badge = label === 'Requests' ? pendingCount : 0;
             return (
-              <ListItem key={label} disablePadding sx={{ px: 1 }}>
+              <ListItem key={label} disablePadding sx={{ px: 1, mb: 0.25 }}>
                 <ListItemButton
                   selected={selected}
                   onClick={() => onNavigate(path)}
                   sx={{
                     borderRadius: 1.5,
-                    mb: 0.5,
-                    '&.Mui-selected': { bgcolor: 'primary.main', color: 'primary.contrastText', '& .MuiListItemIcon-root': { color: 'primary.contrastText' } },
-                    '&.Mui-selected:hover': { bgcolor: 'primary.dark' },
+                    '&.Mui-selected': {
+                      bgcolor: 'primary.main',
+                      color: 'primary.contrastText',
+                      '& .MuiListItemIcon-root': { color: 'primary.contrastText' },
+                      '&:hover': { bgcolor: 'primary.dark' },
+                    },
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 36 }}>
@@ -112,7 +213,7 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
                   </ListItemIcon>
                   <ListItemText
                     primary={label}
-                    slotProps={{ primary: { style: { fontSize: 14, fontWeight: selected ? 600 : 400 } } }}
+                    slotProps={{ primary: { sx: { fontSize: 14, fontWeight: selected ? 600 : 400 } } }}
                   />
                 </ListItemButton>
               </ListItem>
@@ -121,18 +222,20 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
         </List>
       </Box>
 
+      <Box sx={{ flexGrow: 1 }} />
+
       <Divider />
 
-      {/* User footer */}
-      <Stack direction="row" sx={{ p: 2, gap: 1.5, alignItems: 'center' }}>
-        <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: 14 }}>
+      {/* User footer — matches dashboard exactly */}
+      <Stack direction="row" sx={{ p: 1.5, gap: 1, alignItems: 'center' }}>
+        <Avatar sx={{ width: 34, height: 34, bgcolor: 'primary.main', fontSize: 13, flexShrink: 0 }}>
           {(user?.name ?? user?.email ?? 'A')[0].toUpperCase()}
         </Avatar>
         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }} noWrap>
             {user?.name ?? 'Admin'}
           </Typography>
-          <Typography variant="caption" color="text.secondary" noWrap>
+          <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
             {user?.email ?? ''}
           </Typography>
         </Box>
@@ -236,12 +339,12 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
           <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
             <Box
               sx={{
-                width: 28, height: 28, borderRadius: '50%',
+                width: 28, height: 28, borderRadius: 1,
                 background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
-              <DashboardRoundedIcon sx={{ color: '#fff', fontSize: 16 }} />
+              <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 16 }} />
             </Box>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>Cosy Admin</Typography>
           </Stack>
@@ -269,6 +372,10 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
           bgcolor: 'background.default',
         }}
       >
+        {/* Breadcrumb / top bar — visible on all admin screens */}
+        <Box sx={{ px: { xs: 2, md: 3 }, pt: { xs: 1.5, md: 2.5 } }}>
+          <ContentHeader pathname={pathname} pendingCount={pendingCount} onNavigate={handleNavigate} />
+        </Box>
         {children}
       </Box>
     </Box>
