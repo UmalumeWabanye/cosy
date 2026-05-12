@@ -338,7 +338,7 @@ export default function AdminDashboardClientInner() {
           </Box>
         </MuiDrawer>
 
-        <Box component="main" sx={t => ({ flexGrow: 1, overflow: 'auto', minHeight: '100vh', bgcolor: alpha(t.palette.background.default, 1), ml: { xs: 0, md: `${DRAWER_WIDTH}px` } })}>
+        <Box component="main" sx={t => ({ flexGrow: 1, overflow: 'auto', minHeight: '100vh', bgcolor: alpha(t.palette.background.default, 1) })}>
           <Box sx={{ px: { xs: 2, md: 3 }, pt: { xs: 9, md: 2.5 }, pb: 6 }}>
 
             <ContentHeader breadcrumb={['Dashboard', 'Overview']} pendingCount={pendingReqs} onNavigate={router.push} />
