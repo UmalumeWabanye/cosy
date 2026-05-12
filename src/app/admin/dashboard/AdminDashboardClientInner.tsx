@@ -84,22 +84,8 @@ export default function AdminDashboardClientInner() {
 
   const pendingRequests = requests.filter((r) => r.status === 'pending').length;
 
-  // Temporary debug panel to surface auth state during troubleshooting.
-  const debugToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-
   return (
     <Box sx={{ display: 'flex' }}>
-      <div style={{ position: 'fixed', right: 12, top: 12, zIndex: 9999 }}>
-        <div style={{ background: '#fff', padding: 8, borderRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}>
-          <strong style={{ display: 'block', marginBottom: 6 }}>DEBUG</strong>
-          <div style={{ fontSize: 12, whiteSpace: 'pre-wrap', maxWidth: 320 }}>
-            {`isLoading: ${String(isLoading)}\n`}
-            {`isAuthenticated: ${String(isAuthenticated)}\n`}
-            {`user.role: ${user?.role ?? 'null'}\n`}
-            {`token: ${debugToken ? '[present]' : '[missing]'}`}
-          </div>
-        </div>
-      </div>
       <CssBaseline />
       <AppBar position="absolute">
         <Toolbar sx={{ pr: '24px' }}>
