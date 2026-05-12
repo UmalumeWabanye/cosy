@@ -58,7 +58,7 @@ function getBreadcrumb(pathname: string): string[] {
   if (/\/admin\/properties\/[^/]+\/edit/.test(pathname)) return ['Admin', 'Properties', 'Edit Property'];
   if (/\/admin\/properties\/[^/]+/.test(pathname)) return ['Admin', 'Properties', 'View Property'];
   if (pathname.startsWith('/admin/properties')) return ['Admin', 'Properties'];
-  if (pathname.startsWith('/admin/requests')) return ['Admin', 'Requests'];
+  if (pathname.startsWith('/admin/requests')) return ['Admin', 'Applications'];
   return ['Admin'];
 }
 
@@ -149,7 +149,7 @@ function ContentHeader({ pathname, pendingCount, onNavigate }: {
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/admin/dashboard' },
   { label: 'Properties', icon: <ApartmentRoundedIcon />, path: '/admin/properties' },
-  { label: 'Requests', icon: <AssignmentRoundedIcon />, path: '/admin/requests' },
+  { label: 'Applications', icon: <AssignmentRoundedIcon />, path: '/admin/requests' },
   { label: 'Add Property', icon: <AddRoundedIcon />, path: '/admin/properties/new' },
 ];
 
