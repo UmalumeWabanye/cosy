@@ -406,49 +406,77 @@ export default function HomePage() {
             </Typography>
           </Box>
 
-          <Grid container spacing={4} sx={{ alignItems: 'stretch' }}>
-            {STEPS.map((step, i) => (
-              <Grid key={step.num} size={{ xs: 12, md: 4 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', height: '100%' }}>
-                  {/* Number + connector */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mb: 4 }}>
-                    <Box
-                      sx={{
-                        width: 64, height: 64, borderRadius: '50%', flexShrink: 0,
-                        background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 8px 24px rgba(25,118,210,0.35)',
-                        mx: 'auto',
-                      }}
-                    >
-                      {step.icon}
-                    </Box>
-                    {i < 2 && (
-                      <Box
-                        sx={{
-                          display: { xs: 'none', md: 'block' },
-                          flexGrow: 1,
-                          height: 2,
-                          background: 'repeating-linear-gradient(90deg, #1976d2 0, #1976d2 6px, transparent 6px, transparent 12px)',
-                          ml: 3,
-                        }}
-                      />
-                    )}
-                  </Box>
-                  <Typography
+          {/* Desktop: single row with circles + connectors, then text below */}
+          <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+            {/* Circle + connector row */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4, px: 6 }}>
+              {STEPS.map((step, i) => (
+                <Box key={step.num} sx={{ display: 'flex', alignItems: 'center', flex: i < 2 ? 1 : 'none' }}>
+                  <Box
                     sx={{
-                      fontWeight: 900, fontSize: '0.75rem', color: '#1976d2',
-                      letterSpacing: 3, mb: 1, textTransform: 'uppercase',
+                      width: 72, height: 72, borderRadius: '50%', flexShrink: 0,
+                      background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: '0 8px 28px rgba(25,118,210,0.35)',
+                      position: 'relative', zIndex: 1,
                     }}
                   >
+                    {step.icon}
+                  </Box>
+                  {i < 2 && (
+                    <Box sx={{
+                      flexGrow: 1, height: 2, mx: 2,
+                      background: 'repeating-linear-gradient(90deg, #1976d2 0, #1976d2 8px, transparent 8px, transparent 16px)',
+                    }} />
+                  )}
+                </Box>
+              ))}
+            </Box>
+            {/* Text row — aligned under each circle */}
+            <Grid container>
+              {STEPS.map((step) => (
+                <Grid key={step.num} size={{ md: 4 }}>
+                  <Box sx={{ textAlign: 'center', px: 3 }}>
+                    <Typography sx={{ fontWeight: 900, fontSize: '0.7rem', color: '#1976d2', letterSpacing: 3, mb: 1, textTransform: 'uppercase' }}>
+                      Step {step.num}
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>{step.title}</Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.75 }}>{step.desc}</Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+
+          {/* Mobile: vertical stack */}
+          <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 5 }}>
+            {STEPS.map((step, i) => (
+              <Box key={step.num} sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
+                <Box>
+                  <Box
+                    sx={{
+                      width: 56, height: 56, borderRadius: '50%', flexShrink: 0,
+                      background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: '0 6px 20px rgba(25,118,210,0.3)',
+                    }}
+                  >
+                    {step.icon}
+                  </Box>
+                  {i < 2 && (
+                    <Box sx={{ width: 2, height: 32, background: 'linear-gradient(#1976d2, transparent)', mx: 'auto', mt: 1 }} />
+                  )}
+                </Box>
+                <Box sx={{ pt: 0.5 }}>
+                  <Typography sx={{ fontWeight: 900, fontSize: '0.7rem', color: '#1976d2', letterSpacing: 3, mb: 0.5, textTransform: 'uppercase' }}>
                     Step {step.num}
                   </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>{step.title}</Typography>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>{step.desc}</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.75 }}>{step.title}</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.75 }}>{step.desc}</Typography>
                 </Box>
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         </Container>
 
         {/* ─── FEATURED LISTINGS ────────────────────────────────── */}
