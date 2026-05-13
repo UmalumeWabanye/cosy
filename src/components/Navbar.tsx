@@ -170,19 +170,34 @@ export default function Navbar() {
               </>
             ) : (
               /* ── Default nav item: Become a Landlord ── */
-              <Button
-                component={Link}
-                href="/landlord"
-                size="small"
-                sx={{
-                  textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
-                  color: '#1565c0', bgcolor: 'transparent',
-                  display: { xs: 'none', sm: 'inline-flex' }, px: 1,
-                  '&:hover': { bgcolor: 'transparent', color: '#0d47a1' },
-                }}
-              >
-                Become a Landlord
-              </Button>
+              <>
+                <Button
+                  component={Link}
+                  href="/about"
+                  size="small"
+                  sx={{
+                    textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
+                    color: '#1565c0', bgcolor: 'transparent',
+                    display: { xs: 'none', md: 'inline-flex' }, px: 1,
+                    '&:hover': { bgcolor: 'transparent', color: '#0d47a1' },
+                  }}
+                >
+                  About us
+                </Button>
+                <Button
+                  component={Link}
+                  href="/landlord"
+                  size="small"
+                  sx={{
+                    textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
+                    color: '#1565c0', bgcolor: 'transparent',
+                    display: { xs: 'none', sm: 'inline-flex' }, px: 1,
+                    '&:hover': { bgcolor: 'transparent', color: '#0d47a1' },
+                  }}
+                >
+                  Become a Landlord
+                </Button>
+              </>
             )}
 
             {isAuthenticated && user ? (
