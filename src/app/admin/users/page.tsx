@@ -41,12 +41,14 @@ import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
+import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded';
+import Snackbar from '@mui/material/Snackbar';
 
 interface User {
   _id: string;
   name: string;
   email: string;
-  role: 'student' | 'admin';
+  role: 'student' | 'admin' | 'landlord';
   university?: string;
   fundingType?: string;
   isVerified: boolean;
@@ -71,6 +73,13 @@ export default function AdminUsersPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<User | null>(null);
+
+  // Invite state
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ name: '', email: '', role: 'student' });
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteError, setInviteError] = useState('');
+  const [snackbar, setSnackbar] = useState('');
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || authUser?.role !== 'admin')) router.push('/');
@@ -129,6 +138,25 @@ export default function AdminUsersPage() {
   const setFilter = (key: string, value: string | number) =>
     setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
 
+  const handleInviteSubmit = async () => {
+    setInviteError('');
+    if (!inviteForm.name.trim() || !inviteForm.email.trim()) {
+      setInviteError('Name and email are required.');
+      return;
+    }
+    try {
+      setInviteLoading(true);
+      await api.post('/auth/invite', inviteForm);
+      setSnackbar(`Invite sent to ${inviteForm.email}`);
+      setInviteOpen(false);
+      setInviteForm({ name: '', email: '', role: 'student' });
+    } catch (e: any) {
+      setInviteError(e?.response?.data?.message || 'Failed to send invite');
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <Box sx={{ p: { xs: 2, md: 4 } }}>
@@ -146,6 +174,14 @@ export default function AdminUsersPage() {
             variant="outlined"
             sx={{ fontWeight: 600 }}
           />
+          <Button
+            variant="contained"
+            startIcon={<PersonAddRoundedIcon />}
+            onClick={() => { setInviteOpen(true); setInviteError(''); }}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            Add User
+          </Button>
         </Stack>
 
         {/* Filters */}
@@ -219,9 +255,9 @@ export default function AdminUsersPage() {
                       <TableCell>
                         <Chip
                           size="small"
-                          label={u.role === 'admin' ? 'Admin' : 'Student'}
-                          color={u.role === 'admin' ? 'secondary' : 'default'}
-                          variant={u.role === 'admin' ? 'filled' : 'outlined'}
+                          label={u.role === 'admin' ? 'Admin' : u.role === 'landlord' ? 'Landlord' : 'Student'}
+                          color={u.role === 'admin' ? 'secondary' : u.role === 'landlord' ? 'primary' : 'default'}
+                          variant={u.role === 'student' ? 'outlined' : 'filled'}
                         />
                       </TableCell>
                       <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
@@ -335,6 +371,70 @@ export default function AdminUsersPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Invite User Dialog */}
+      <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700 }}>Add User</DialogTitle>
+        <Divider />
+        <DialogContent>
+          <Stack sx={{ gap: 2, pt: 1 }}>
+            {inviteError && <Alert severity="error">{inviteError}</Alert>}
+            <TextField
+              label="Full Name"
+              placeholder="Jane Smith"
+              value={inviteForm.name}
+              onChange={e => setInviteForm(p => ({ ...p, name: e.target.value }))}
+              size="small"
+              fullWidth
+              required
+            />
+            <TextField
+              label="Email Address"
+              type="email"
+              placeholder="jane@example.com"
+              value={inviteForm.email}
+              onChange={e => setInviteForm(p => ({ ...p, email: e.target.value }))}
+              size="small"
+              fullWidth
+              required
+            />
+            <FormControl size="small" fullWidth>
+              <InputLabel>Role</InputLabel>
+              <Select
+                label="Role"
+                value={inviteForm.role}
+                onChange={e => setInviteForm(p => ({ ...p, role: e.target.value }))}
+              >
+                <MenuItem value="student">Student</MenuItem>
+                <MenuItem value="landlord">Landlord</MenuItem>
+                <MenuItem value="admin">Admin</MenuItem>
+              </Select>
+            </FormControl>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setInviteOpen(false)} variant="outlined" sx={{ textTransform: 'none' }}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleInviteSubmit}
+            variant="contained"
+            disabled={inviteLoading}
+            sx={{ textTransform: 'none' }}
+          >
+            {inviteLoading ? <CircularProgress size={18} color="inherit" /> : 'Send Invite'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Success snackbar */}
+      <Snackbar
+        open={!!snackbar}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar('')}
+        message={snackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
     </AdminLayout>
   );
 }

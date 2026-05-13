@@ -17,13 +17,12 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
       minlength: 6,
       select: false,
     },
     role: {
       type: String,
-      enum: ['student', 'admin'],
+      enum: ['student', 'admin', 'landlord'],
       default: 'student',
     },
     university: {
@@ -48,12 +47,18 @@ const userSchema = new mongoose.Schema(
     numberOfProperties: { type: String, trim: true },
     idNumber: { type: String, trim: true },
     profileComplete: { type: Boolean, default: false },
+
+    // Invite system
+    inviteToken: { type: String, select: false },
+    inviteTokenExpiry: { type: Date },
+    isInvited: { type: Boolean, default: false },
+    passwordSet: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || !this.password) return next();
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
   next();

@@ -1,8 +1,10 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const generateToken = require('../utils/generateToken');
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
+const sendInviteEmail = require('../utils/sendInviteEmail');
 
 const router = express.Router();
 
@@ -110,3 +112,98 @@ router.put('/profile', protect, async (req, res) => {
   }
 });
 
+// POST /api/auth/invite — admin invites a new user
+router.post('/invite', protect, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+    const { name, email, role } = req.body;
+    if (!name || !email || !role) {
+      return res.status(400).json({ message: 'Name, email and role are required' });
+    }
+    const allowedRoles = ['student', 'landlord', 'admin'];
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+    if (await User.findOne({ email })) {
+      return res.status(400).json({ message: 'A user with that email already exists' });
+    }
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+    const user = await User.create({
+      name,
+      email,
+      role,
+      isInvited: true,
+      passwordSet: false,
+      isVerified: false,
+      inviteToken: hashedToken,
+      inviteTokenExpiry: new Date(Date.now() + 48 * 60 * 60 * 1000),
+    });
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const setupUrl = `${frontendUrl}/setup-password?token=${rawToken}`;
+
+    await sendInviteEmail({ name, email, role, setupUrl });
+
+    res.status(201).json({ message: `Invite sent to ${email}`, userId: user._id });
+  } catch (err) {
+    console.error('Invite error:', err);
+    res.status(500).json({ message: err.message || 'Could not send invite' });
+  }
+});
+
+// GET /api/auth/invite/:token — validate invite token
+router.get('/invite/:token', async (req, res) => {
+  try {
+    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+    const user = await User.findOne({
+      inviteToken: hashedToken,
+      inviteTokenExpiry: { $gt: Date.now() },
+    });
+    if (!user) {
+      return res.status(400).json({ message: 'Invite link is invalid or has expired' });
+    }
+    res.json({ name: user.name, email: user.email, role: user.role });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /api/auth/setup-password — complete account setup via invite
+router.post('/setup-password', async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password || password.length < 6) {
+      return res.status(400).json({ message: 'Token and a password of at least 6 characters are required' });
+    }
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await User.findOne({
+      inviteToken: hashedToken,
+      inviteTokenExpiry: { $gt: Date.now() },
+    }).select('+password');
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invite link is invalid or has expired' });
+    }
+
+    user.password = password;
+    user.passwordSet = true;
+    user.isVerified = true;
+    user.inviteToken = undefined;
+    user.inviteTokenExpiry = undefined;
+    await user.save();
+
+    const jwtToken = generateToken(user._id);
+    res.json({
+      token: jwtToken,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+    });
+  } catch (err) {
+    console.error('Setup password error:', err);
+    res.status(500).json({ message: 'Could not complete setup' });
+  }
+});

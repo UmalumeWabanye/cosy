@@ -162,10 +162,10 @@ function RegisterForm() {
       localStorage.setItem('token', token);
       setToken(token);
       setUser(user);
-      // Landlords → admin dashboard with onboarding wizard, students → student dashboard
+      // Landlords → landlord dashboard with onboarding wizard, students → student dashboard
       if (isLandlord) {
         localStorage.setItem('showLandlordWizard', 'true');
-        router.push('/admin/dashboard');
+        router.push('/landlord/dashboard');
       } else {
         router.push('/dashboard');
       }

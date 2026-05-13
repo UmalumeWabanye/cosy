@@ -175,6 +175,8 @@ export default function LoginPage() {
 
       if (user.role === 'admin') {
         router.push('/admin/dashboard');
+      } else if (user.role === 'landlord') {
+        router.push('/landlord/dashboard');
       } else {
         router.push('/dashboard');
       }
