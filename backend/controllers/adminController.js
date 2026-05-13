@@ -179,4 +179,72 @@ const getReports = async (req, res, next) => {
   }
 };
 
-module.exports = { getUsers, getUser, toggleUser, deleteUser, getReports };
+// @desc   Monthly collection report — approved requests with payment breakdown
+// @route  GET /api/admin/reports/collection
+// @access Admin
+const getCollectionReport = async (req, res, next) => {
+  try {
+    const { month, year } = req.query;
+    const now = new Date();
+    const targetYear = Number(year) || now.getFullYear();
+    const targetMonth = Number(month) || now.getMonth() + 1; // 1-12
+
+    // Fetch all approved requests, populate student + property
+    const approved = await Request.find({ status: 'approved' })
+      .populate('student', 'name email fundingType phone')
+      .populate('property', 'propertyName city price roomType')
+      .sort({ moveInDate: 1 });
+
+    // Build a row per tenant — flag payment status based on moveInDate + leaseDuration
+    const rows = approved.map((r) => {
+      const moveIn = new Date(r.moveInDate);
+      const leaseEndDate = new Date(moveIn);
+      leaseEndDate.setMonth(leaseEndDate.getMonth() + r.leaseDuration);
+
+      const targetDate = new Date(targetYear, targetMonth - 1, 1);
+      const isActiveInMonth = moveIn <= new Date(targetYear, targetMonth, 0) && leaseEndDate >= targetDate;
+
+      // Simple heuristic: if moveInDate is in the future for this month → expected
+      // In a real system you'd have a payments collection; for now we derive from dates
+      const isPastDue = moveIn < targetDate && isActiveInMonth;
+      const paymentStatus = !isActiveInMonth ? 'inactive' : isPastDue ? 'expected' : 'upcoming';
+
+      return {
+        requestId: r._id,
+        student: r.student,
+        property: r.property,
+        moveInDate: r.moveInDate,
+        leaseDuration: r.leaseDuration,
+        leaseEndDate,
+        fundingType: r.fundingType,
+        monthlyRent: r.property?.price ?? 0,
+        paymentStatus,
+        isActiveInMonth,
+      };
+    });
+
+    const active = rows.filter((r) => r.isActiveInMonth);
+    const totalExpected = active.reduce((s, r) => s + r.monthlyRent, 0);
+
+    res.json({
+      data: {
+        month: targetMonth,
+        year: targetYear,
+        rows: active,
+        summary: {
+          totalActiveTenants: active.length,
+          totalExpected,
+          byFunding: {
+            NSFAS: active.filter((r) => r.fundingType === 'NSFAS').length,
+            Private: active.filter((r) => r.fundingType === 'Private').length,
+            'Self-funded': active.filter((r) => r.fundingType === 'Self-funded').length,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getUsers, getUser, toggleUser, deleteUser, getReports, getCollectionReport };

@@ -37,6 +37,11 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
 import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
+import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
+import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
+import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
+import Collapse from '@mui/material/Collapse';
 
 
 const DRAWER_WIDTH = 240;
@@ -62,6 +67,8 @@ function getBreadcrumb(pathname: string): string[] {
   if (pathname.startsWith('/admin/properties')) return ['Admin', 'Properties'];
   if (pathname.startsWith('/admin/requests')) return ['Admin', 'Applications'];
   if (pathname.startsWith('/admin/users')) return ['Admin', 'Users'];
+  if (pathname.startsWith('/admin/reports/analytics')) return ['Admin', 'Reports', 'Analytics'];
+  if (pathname.startsWith('/admin/reports/collection')) return ['Admin', 'Reports', 'Monthly Collection'];
   if (pathname.startsWith('/admin/reports')) return ['Admin', 'Reports'];
   return ['Admin'];
 }
@@ -156,7 +163,11 @@ const NAV_ITEMS = [
   { label: 'Applications', icon: <AssignmentRoundedIcon />, path: '/admin/requests' },
   { label: 'Add Property', icon: <AddRoundedIcon />, path: '/admin/properties/new' },
   { label: 'Users', icon: <PeopleRoundedIcon />, path: '/admin/users' },
-  { label: 'Reports', icon: <BarChartRoundedIcon />, path: '/admin/reports' },
+];
+
+const REPORT_SUB_ITEMS = [
+  { label: 'Analytics', icon: <InsightsRoundedIcon />, path: '/admin/reports/analytics' },
+  { label: 'Monthly Collection', icon: <ReceiptLongRoundedIcon />, path: '/admin/reports/collection' },
 ];
 
 interface SideMenuInnerProps {
@@ -168,6 +179,8 @@ interface SideMenuInnerProps {
 }
 
 function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout }: SideMenuInnerProps) {
+  const reportsOpen = pathname.startsWith('/admin/reports');
+  const [reportsExpanded, setReportsExpanded] = React.useState(reportsOpen);
   return (
     <>
       {/* Brand */}
@@ -225,6 +238,62 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
               </ListItem>
             );
           })}
+
+          {/* Reports — collapsible */}
+          <ListItem disablePadding sx={{ px: 1, mb: 0.25 }}>
+            <ListItemButton
+              onClick={() => setReportsExpanded(v => !v)}
+              selected={pathname.startsWith('/admin/reports') && !reportsExpanded}
+              sx={{
+                borderRadius: 1.5,
+                '&.Mui-selected': {
+                  bgcolor: 'action.selected',
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 36 }}>
+                <BarChartRoundedIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="Reports"
+                slotProps={{ primary: { sx: { fontSize: 14, fontWeight: pathname.startsWith('/admin/reports') ? 600 : 400 } } }}
+              />
+              {reportsExpanded ? <ExpandLessRoundedIcon fontSize="small" /> : <ExpandMoreRoundedIcon fontSize="small" />}
+            </ListItemButton>
+          </ListItem>
+
+          <Collapse in={reportsExpanded} timeout="auto" unmountOnExit>
+            <List dense disablePadding>
+              {REPORT_SUB_ITEMS.map(({ label, icon, path }) => {
+                const selected = pathname === path || pathname.startsWith(path);
+                return (
+                  <ListItem key={label} disablePadding sx={{ pl: 3, pr: 1, mb: 0.25 }}>
+                    <ListItemButton
+                      selected={selected}
+                      onClick={() => onNavigate(path)}
+                      sx={{
+                        borderRadius: 1.5,
+                        '&.Mui-selected': {
+                          bgcolor: 'primary.main',
+                          color: 'primary.contrastText',
+                          '& .MuiListItemIcon-root': { color: 'primary.contrastText' },
+                          '&:hover': { bgcolor: 'primary.dark' },
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 32, '& svg': { fontSize: 18 } }}>
+                        {icon}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={label}
+                        slotProps={{ primary: { sx: { fontSize: 13, fontWeight: selected ? 600 : 400 } } }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </List>
+          </Collapse>
         </List>
       </Box>
 

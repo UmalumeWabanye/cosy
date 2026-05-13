@@ -7,6 +7,7 @@ const {
   toggleUser,
   deleteUser,
   getReports,
+  getCollectionReport,
 } = require('../controllers/adminController');
 
 // All routes require auth + admin role
@@ -18,5 +19,6 @@ router.patch('/users/:id/toggle', toggleUser);
 router.delete('/users/:id', deleteUser);
 
 router.get('/reports', getReports);
+router.get('/reports/collection', getCollectionReport);
 
 module.exports = router;
