@@ -363,120 +363,113 @@ export default function LandlordPage() {
         </Box>
 
         {/* ─── RENTAL INCOME CALCULATOR ─────────────────────────── */}
-        <Box sx={{ bgcolor: '#0a1929', py: { xs: 8, md: 12 }, px: 2 }}>
-          <Container maxWidth="lg">
+        <Box sx={{ bgcolor: '#f0f4f8', py: { xs: 6, md: 8 }, px: 2 }}>
+          <Container maxWidth="md">
             {/* Header */}
-            <Box sx={{ textAlign: 'center', mb: { xs: 6, md: 8 } }}>
+            <Box sx={{ textAlign: 'center', mb: { xs: 4, md: 5 } }}>
               <Chip
                 icon={<CalculateRoundedIcon sx={{ fontSize: 16 }} />}
                 label="Income Calculator"
                 size="small"
-                sx={{ bgcolor: 'rgba(25,118,210,0.25)', color: '#90caf9', fontWeight: 600, mb: 2 }}
+                sx={{ bgcolor: 'rgba(25,118,210,0.1)', color: 'primary.main', fontWeight: 600, mb: 2 }}
               />
-              <Typography variant="h3" sx={{ fontWeight: 800, color: 'white', mb: 1.5, fontSize: { xs: '1.75rem', md: '2.4rem' } }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', mb: 1, fontSize: { xs: '1.5rem', md: '2rem' } }}>
                 How much can you earn?
               </Typography>
-              <Typography variant="body1" sx={{ color: '#90caf9', maxWidth: 520, mx: 'auto', lineHeight: 1.7 }}>
+              <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 480, mx: 'auto', lineHeight: 1.7 }}>
                 Adjust the sliders to estimate your monthly and annual rental income across our lease packages.
               </Typography>
             </Box>
 
-            <Grid container spacing={{ xs: 4, md: 6 }} sx={{ alignItems: 'flex-start' }}>
+            <Grid container spacing={{ xs: 3, md: 4 }} sx={{ alignItems: 'flex-start' }}>
               {/* Controls */}
               <Grid size={{ xs: 12, md: 6 }}>
-                <Paper sx={{ bgcolor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3, p: { xs: 3, md: 4 }, backdropFilter: 'blur(8px)' }}>
+                <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: { xs: 2.5, md: 3 } }}>
 
                   {/* Rooms */}
-                  <Box sx={{ mb: 4 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography sx={{ color: '#90caf9', fontWeight: 600, fontSize: '0.9rem', letterSpacing: 0.5 }}>
-                        NUMBER OF ROOMS
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                      <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.8rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                        Rooms
                       </Typography>
-                      <Typography sx={{ color: 'white', fontWeight: 800, fontSize: '1.4rem' }}>{rooms}</Typography>
+                      <Typography sx={{ color: 'primary.main', fontWeight: 800, fontSize: '1.1rem' }}>{rooms}</Typography>
                     </Box>
                     <Slider
                       min={1} max={30} step={1} value={rooms}
                       onChange={(_, v) => setRooms(v as number)}
-                      sx={{ color: '#1976d2', '& .MuiSlider-thumb': { bgcolor: 'white', border: '2px solid #1976d2' }, '& .MuiSlider-track': { background: 'linear-gradient(90deg,#1565c0,#42a5f5)' } }}
+                      size="small"
+                      sx={{ color: 'primary.main' }}
                     />
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>1 room</Typography>
-                      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>30 rooms</Typography>
+                      <Typography sx={{ color: 'text.disabled', fontSize: '0.72rem' }}>1</Typography>
+                      <Typography sx={{ color: 'text.disabled', fontSize: '0.72rem' }}>30</Typography>
                     </Box>
                   </Box>
 
                   {/* Price per room */}
-                  <Box sx={{ mb: 4 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography sx={{ color: '#90caf9', fontWeight: 600, fontSize: '0.9rem', letterSpacing: 0.5 }}>
-                        PRICE PER ROOM / MONTH
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                      <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.8rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                        Price / Room / Month
                       </Typography>
-                      <Typography sx={{ color: 'white', fontWeight: 800, fontSize: '1.4rem' }}>
+                      <Typography sx={{ color: 'primary.main', fontWeight: 800, fontSize: '1.1rem' }}>
                         R{pricePerRoom.toLocaleString()}
                       </Typography>
                     </Box>
                     <Slider
                       min={2000} max={15000} step={100} value={pricePerRoom}
                       onChange={(_, v) => setPricePerRoom(v as number)}
-                      sx={{ color: '#1976d2', '& .MuiSlider-thumb': { bgcolor: 'white', border: '2px solid #1976d2' }, '& .MuiSlider-track': { background: 'linear-gradient(90deg,#1565c0,#42a5f5)' } }}
+                      size="small"
+                      sx={{ color: 'primary.main' }}
                     />
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>R2,000</Typography>
-                      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>R15,000</Typography>
+                      <Typography sx={{ color: 'text.disabled', fontSize: '0.72rem' }}>R2,000</Typography>
+                      <Typography sx={{ color: 'text.disabled', fontSize: '0.72rem' }}>R15,000</Typography>
                     </Box>
                   </Box>
 
                   {/* Occupancy */}
-                  <Box sx={{ mb: 4 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography sx={{ color: '#90caf9', fontWeight: 600, fontSize: '0.9rem', letterSpacing: 0.5 }}>
-                        OCCUPANCY RATE
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                      <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.8rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                        Occupancy Rate
                       </Typography>
-                      <Typography sx={{ color: 'white', fontWeight: 800, fontSize: '1.4rem' }}>{occupancy}%</Typography>
+                      <Typography sx={{ color: 'primary.main', fontWeight: 800, fontSize: '1.1rem' }}>{occupancy}%</Typography>
                     </Box>
                     <Slider
                       min={50} max={100} step={5} value={occupancy}
                       onChange={(_, v) => setOccupancy(v as number)}
-                      sx={{ color: '#1976d2', '& .MuiSlider-thumb': { bgcolor: 'white', border: '2px solid #1976d2' }, '& .MuiSlider-track': { background: 'linear-gradient(90deg,#1565c0,#42a5f5)' } }}
+                      size="small"
+                      sx={{ color: 'primary.main' }}
                     />
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>50%</Typography>
-                      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>100%</Typography>
+                      <Typography sx={{ color: 'text.disabled', fontSize: '0.72rem' }}>50%</Typography>
+                      <Typography sx={{ color: 'text.disabled', fontSize: '0.72rem' }}>100%</Typography>
                     </Box>
                   </Box>
 
                   {/* Lease package */}
                   <Box>
-                    <Typography sx={{ color: '#90caf9', fontWeight: 600, fontSize: '0.9rem', letterSpacing: 0.5, mb: 1.5 }}>
-                      LEASE PACKAGE
+                    <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.8rem', letterSpacing: 0.5, textTransform: 'uppercase', mb: 1 }}>
+                      Lease Package
                     </Typography>
                     <ToggleButtonGroup
                       exclusive value={leasePackage}
                       onChange={(_, v) => v && setLeasePackage(v)}
-                      fullWidth
+                      fullWidth size="small"
                       sx={{
-                        gap: 1,
+                        gap: 0.75,
                         '& .MuiToggleButton-root': {
-                          color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.15)',
-                          borderRadius: '8px !important', fontWeight: 600, fontSize: '0.82rem', py: 1,
-                          textTransform: 'none',
-                          '&.Mui-selected': { bgcolor: '#1976d2', color: 'white', border: '1px solid #1976d2' },
+                          border: '1px solid', borderColor: 'divider',
+                          borderRadius: '8px !important', fontWeight: 600, fontSize: '0.8rem',
+                          textTransform: 'none', color: 'text.secondary',
+                          '&.Mui-selected': { bgcolor: 'primary.main', color: 'white', borderColor: 'primary.main' },
                         },
                       }}
                     >
                       <ToggleButton value="monthly">Monthly</ToggleButton>
-                      <ToggleButton value="semester">
-                        <Box>
-                          <Box component="span" sx={{ display: 'block' }}>Semester</Box>
-                          <Box component="span" sx={{ display: 'block', fontSize: '0.7rem', color: '#90caf9' }}>+5%</Box>
-                        </Box>
-                      </ToggleButton>
-                      <ToggleButton value="annual">
-                        <Box>
-                          <Box component="span" sx={{ display: 'block' }}>Annual</Box>
-                          <Box component="span" sx={{ display: 'block', fontSize: '0.7rem', color: '#90caf9' }}>+12%</Box>
-                        </Box>
-                      </ToggleButton>
+                      <ToggleButton value="semester">Semester +5%</ToggleButton>
+                      <ToggleButton value="annual">Annual +12%</ToggleButton>
                     </ToggleButtonGroup>
                   </Box>
                 </Paper>
@@ -484,50 +477,48 @@ export default function LandlordPage() {
 
               {/* Results */}
               <Grid size={{ xs: 12, md: 6 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 
                   {/* Monthly income */}
-                  <Paper sx={{ bgcolor: 'rgba(25,118,210,0.15)', border: '1px solid rgba(25,118,210,0.4)', borderRadius: 3, p: { xs: 3, md: 4 } }}>
-                    <Typography sx={{ color: '#90caf9', fontWeight: 600, fontSize: '0.85rem', letterSpacing: 1, mb: 1 }}>
-                      MONTHLY INCOME
+                  <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: { xs: 2.5, md: 3 } }}>
+                    <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.75rem', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>
+                      Monthly Income
                     </Typography>
-                    <Typography sx={{ color: 'white', fontWeight: 900, fontSize: { xs: '2.6rem', md: '3.2rem' }, lineHeight: 1, letterSpacing: -1 }}>
+                    <Typography sx={{ color: 'text.primary', fontWeight: 900, fontSize: { xs: '2rem', md: '2.4rem' }, lineHeight: 1, letterSpacing: -1 }}>
                       R{monthlyIncome.toLocaleString()}
                     </Typography>
-                    <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem', mt: 0.75 }}>
-                      per month across {rooms} rooms at {occupancy}% occupancy
+                    <Typography sx={{ color: 'text.disabled', fontSize: '0.78rem', mt: 0.5 }}>
+                      {rooms} rooms · {occupancy}% occupancy
                     </Typography>
                   </Paper>
 
                   {/* Annual income */}
-                  <Paper sx={{ bgcolor: 'rgba(25,118,210,0.25)', border: '2px solid #1976d2', borderRadius: 3, p: { xs: 3, md: 4 }, position: 'relative', overflow: 'hidden' }}>
-                    <Box sx={{ position: 'absolute', top: 12, right: 14 }}>
-                      <Chip label="Best value" size="small" sx={{ bgcolor: '#1976d2', color: 'white', fontWeight: 700, fontSize: '0.7rem' }} />
-                    </Box>
-                    <Typography sx={{ color: '#90caf9', fontWeight: 600, fontSize: '0.85rem', letterSpacing: 1, mb: 1 }}>
-                      ANNUAL INCOME
+                  <Paper elevation={0} sx={{ border: '2px solid', borderColor: 'primary.main', borderRadius: 3, p: { xs: 2.5, md: 3 }, bgcolor: 'rgba(25,118,210,0.04)', position: 'relative' }}>
+                    <Chip label="Best value" size="small" sx={{ position: 'absolute', top: 12, right: 12, bgcolor: 'primary.main', color: 'white', fontWeight: 700, fontSize: '0.68rem', height: 20 }} />
+                    <Typography sx={{ color: 'primary.main', fontWeight: 600, fontSize: '0.75rem', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>
+                      Annual Income
                     </Typography>
-                    <Typography sx={{ color: 'white', fontWeight: 900, fontSize: { xs: '2.8rem', md: '3.6rem' }, lineHeight: 1, letterSpacing: -1 }}>
+                    <Typography sx={{ color: 'text.primary', fontWeight: 900, fontSize: { xs: '2.2rem', md: '2.8rem' }, lineHeight: 1, letterSpacing: -1 }}>
                       R{annualIncome.toLocaleString()}
                     </Typography>
-                    <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem', mt: 0.75 }}>
-                      per year — {leasePackage === 'annual' ? '12%' : leasePackage === 'semester' ? '5%' : '0%'} lease package premium applied
+                    <Typography sx={{ color: 'text.disabled', fontSize: '0.78rem', mt: 0.5 }}>
+                      {leasePackage === 'annual' ? '+12%' : leasePackage === 'semester' ? '+5%' : 'No'} lease premium applied
                     </Typography>
                   </Paper>
 
                   {/* NSFAS estimate */}
-                  <Paper sx={{ bgcolor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3, p: { xs: 2.5, md: 3 } }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75 }}>
-                      <SchoolRoundedIcon sx={{ color: '#90caf9', fontSize: 18 }} />
-                      <Typography sx={{ color: '#90caf9', fontWeight: 600, fontSize: '0.85rem', letterSpacing: 0.5 }}>
-                        NSFAS-ACCREDITED POTENTIAL
+                  <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: { xs: 2, md: 2.5 }, bgcolor: 'white' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      <SchoolRoundedIcon sx={{ color: 'primary.main', fontSize: 16 }} />
+                      <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.75rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                        NSFAS-Accredited Potential
                       </Typography>
                     </Box>
-                    <Typography sx={{ color: 'white', fontWeight: 800, fontSize: '1.6rem', lineHeight: 1 }}>
-                      ~R{nsfasEstimate.toLocaleString()}<Typography component="span" sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', fontWeight: 400 }}>/mo</Typography>
+                    <Typography sx={{ color: 'text.primary', fontWeight: 800, fontSize: '1.4rem', lineHeight: 1 }}>
+                      ~R{nsfasEstimate.toLocaleString()}<Typography component="span" sx={{ color: 'text.disabled', fontSize: '0.9rem', fontWeight: 400 }}>/mo</Typography>
                     </Typography>
-                    <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', mt: 0.5 }}>
-                      Estimated at R4,500 average NSFAS rate. Actual allowances vary.
+                    <Typography sx={{ color: 'text.disabled', fontSize: '0.75rem', mt: 0.4 }}>
+                      At avg R4,500 NSFAS rate. Actual allowances vary.
                     </Typography>
                   </Paper>
 
@@ -536,9 +527,8 @@ export default function LandlordPage() {
                     variant="contained" size="large" fullWidth
                     endIcon={<ArrowForwardRoundedIcon />}
                     sx={{
-                      py: 1.8, fontWeight: 800, fontSize: '1rem', borderRadius: 2,
+                      py: 1.5, fontWeight: 700, fontSize: '0.95rem', borderRadius: 2,
                       background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
-                      boxShadow: '0 4px 20px rgba(25,118,210,0.4)',
                       '&:hover': { background: 'linear-gradient(135deg, #0d47a1 0%, #1565c0 100%)' },
                     }}
                   >
