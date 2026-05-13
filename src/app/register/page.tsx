@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/services/api';
 
@@ -122,7 +122,10 @@ const theme = createTheme({
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setUser, setToken } = useAuthStore();
+
+  const isLandlord = searchParams.get('role') === 'landlord';
 
   const [nameError, setNameError] = useState(false);
   const [nameErrorMessage, setNameErrorMessage] = useState('');
@@ -164,8 +167,11 @@ export default function RegisterPage() {
       setConfirmPasswordError(true); setConfirmPasswordErrorMessage('Passwords do not match.'); valid = false;
     } else { setConfirmPasswordError(false); setConfirmPasswordErrorMessage(''); }
 
-    if (!uniEl?.value) { setUniversityError(true); valid = false; } else { setUniversityError(false); }
-    if (!fundingEl?.value) { setFundingError(true); valid = false; } else { setFundingError(false); }
+    // Only validate university/funding for student accounts
+    if (!isLandlord) {
+      if (!uniEl?.value) { setUniversityError(true); valid = false; } else { setUniversityError(false); }
+      if (!fundingEl?.value) { setFundingError(true); valid = false; } else { setFundingError(false); }
+    }
 
     return valid;
   };
@@ -178,13 +184,20 @@ export default function RegisterPage() {
     const name = data.get('name') as string;
     const email = data.get('email') as string;
     const password = data.get('password') as string;
-    const university = data.get('university') as string;
-    const fundingType = data.get('fundingType') as string;
+
+    const payload: Record<string, string> = { name, email, password };
+
+    if (isLandlord) {
+      payload.role = 'admin';
+    } else {
+      payload.university = data.get('university') as string;
+      payload.fundingType = data.get('fundingType') as string;
+    }
 
     try {
       setLoading(true);
       setServerError('');
-      const response = await api.post('/auth/register', { name, email, password, university, fundingType });
+      const response = await api.post('/auth/register', payload);
       const res = response.data;
 
       const token = res.token;
@@ -203,7 +216,8 @@ export default function RegisterPage() {
       localStorage.setItem('token', token);
       setToken(token);
       setUser(user);
-      router.push('/dashboard');
+      // Landlords → admin dashboard, students → student dashboard
+      router.push(isLandlord ? '/admin/dashboard' : '/dashboard');
     } catch (err: any) {
       setServerError(err?.response?.data?.message || err.message || 'Registration failed');
     } finally {
@@ -219,8 +233,13 @@ export default function RegisterPage() {
           <CosyIcon />
 
           <Typography component="h1" variant="h4" sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)', fontWeight: 700 }}>
-            Sign up
+            {isLandlord ? 'Create Landlord Account' : 'Sign up'}
           </Typography>
+          {isLandlord && (
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: -1 }}>
+              You'll be set up as a landlord and taken straight to your dashboard.
+            </Typography>
+          )}
 
           {serverError && <Alert severity="error" sx={{ width: '100%' }}>{serverError}</Alert>}
 
@@ -323,13 +342,13 @@ export default function RegisterPage() {
               />
             </FormControl>
 
-            <FormControl error={universityError}>
+            <FormControl error={universityError} sx={{ display: isLandlord ? 'none' : undefined }}>
               <FormLabel htmlFor="university">University</FormLabel>
               <TextField
                 select
                 id="university"
                 name="university"
-                required
+                required={!isLandlord}
                 fullWidth
                 defaultValue=""
                 variant="outlined"
@@ -343,13 +362,13 @@ export default function RegisterPage() {
               </TextField>
             </FormControl>
 
-            <FormControl error={fundingError}>
+            <FormControl error={fundingError} sx={{ display: isLandlord ? 'none' : undefined }}>
               <FormLabel htmlFor="fundingType">Funding type</FormLabel>
               <TextField
                 select
                 id="fundingType"
                 name="fundingType"
-                required
+                required={!isLandlord}
                 fullWidth
                 defaultValue=""
                 variant="outlined"
@@ -371,7 +390,7 @@ export default function RegisterPage() {
             <Button type="submit" fullWidth variant="contained" disabled={loading}
               onClick={validateInputs}
               sx={{ py: 1.2, fontWeight: 600, textTransform: 'none' }}>
-              {loading ? <CircularProgress size={22} color="inherit" /> : 'Sign up'}
+              {loading ? <CircularProgress size={22} color="inherit" /> : (isLandlord ? 'Create Landlord Account' : 'Sign up')}
             </Button>
 
             <Typography sx={{ textAlign: 'center' }}>

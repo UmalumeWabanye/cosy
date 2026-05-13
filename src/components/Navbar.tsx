@@ -141,7 +141,7 @@ export default function Navbar() {
             {/* Become a Landlord — plain text, blue */}
             <Button
               component={Link}
-              href="/register?role=landlord"
+              href="/landlord"
               size="small"
               sx={{
                 textTransform: 'none',
