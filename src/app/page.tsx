@@ -770,8 +770,8 @@ export default function HomePage() {
               <Grid size={{ xs: 12, sm: 4 }}>
                 {[
                   { label: 'Get Cosy', href: '/browse', primary: true },
-                  { label: 'About Us', href: '/' },
-                  { label: 'Landlord Resources', href: '/register?role=landlord' },
+                  { label: 'About Us', href: '/about' },
+                  { label: 'Landlord Resources', href: '/landlord' },
                   { label: 'Safety on Cosy', href: '/' },
                 ].map((l) => (
                   <Typography key={l.label} component={Link} href={l.href} variant="body2"
