@@ -1,4 +1,5 @@
 const Request = require('../models/Request');
+const Notification = require('../models/Notification');
 
 // @desc   Create accommodation request
 // @route  POST /api/requests
@@ -18,6 +19,17 @@ const createRequest = async (req, res, next) => {
     });
 
     await request.populate('property', 'propertyName city');
+
+    // Notify all admins of new request
+    await Notification.create({
+      type: 'new_request',
+      title: 'New Accommodation Request',
+      message: `A student submitted a new request for ${request.property?.propertyName ?? 'a property'}.`,
+      link: `/admin/requests`,
+      refModel: 'Request',
+      refId: request._id,
+    });
+
     res.status(201).json(request);
   } catch (error) {
     next(error);
@@ -68,6 +80,17 @@ const updateRequestStatus = async (req, res, next) => {
       res.statusCode = 404;
       throw new Error('Request not found');
     }
+
+    // Notify admin of status change
+    await Notification.create({
+      type: 'request_updated',
+      title: 'Request Status Updated',
+      message: `An accommodation request has been marked as "${status}".`,
+      link: `/admin/requests`,
+      refModel: 'Request',
+      refId: request._id,
+    });
+
     res.json(request);
   } catch (error) {
     next(error);

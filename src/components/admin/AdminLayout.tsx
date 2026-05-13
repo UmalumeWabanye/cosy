@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 
@@ -23,6 +23,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Avatar from '@mui/material/Avatar';
 import Badge from '@mui/material/Badge';
 import Tooltip from '@mui/material/Tooltip';
+import Popover from '@mui/material/Popover';
 import { drawerClasses } from '@mui/material/Drawer';
 
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
@@ -42,7 +43,7 @@ import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
 import Collapse from '@mui/material/Collapse';
 
-
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
 const DRAWER_WIDTH = 240;
 
 export const adminTheme = createTheme({
@@ -66,19 +67,61 @@ function getBreadcrumb(pathname: string): string[] {
   if (pathname.startsWith('/admin/properties')) return ['Admin', 'Properties'];
   if (pathname.startsWith('/admin/requests')) return ['Admin', 'Applications'];
   if (pathname.startsWith('/admin/users')) return ['Admin', 'Users'];
+  if (pathname.startsWith('/admin/notifications')) return ['Admin', 'Notifications'];
   if (pathname.startsWith('/admin/reports/analytics')) return ['Admin', 'Reports', 'Analytics'];
   if (pathname.startsWith('/admin/reports/collection')) return ['Admin', 'Reports', 'Monthly Collection'];
   if (pathname.startsWith('/admin/reports')) return ['Admin', 'Reports'];
   return ['Admin'];
 }
 
-function ContentHeader({ pathname, pendingCount, onNavigate }: {
+function ContentHeader({ pathname, onNavigate }: {
   pathname: string;
-  pendingCount: number;
   onNavigate: (path: string) => void;
 }) {
   const breadcrumb = getBreadcrumb(pathname);
-  const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [calAnchor, setCalAnchor] = useState<HTMLElement | null>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const todayStr = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+
+  const displayDate = new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+  });
+
+  // Poll unread notifications count every 30 s
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await fetch(`${API}/admin/notifications?limit=1`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) setUnreadCount(data.unreadCount ?? 0);
+      } catch { /* silent */ }
+    };
+    load();
+    const id = setInterval(load, 30_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [pathname]);
+
+  const handleCalClick = (e: React.MouseEvent<HTMLElement>) => {
+    setCalAnchor(e.currentTarget);
+    // Open native date picker after popover renders
+    setTimeout(() => dateInputRef.current?.showPicker?.(), 50);
+  };
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (!val) return;
+    setSelectedDate(val);
+    setCalAnchor(null);
+    onNavigate(`/admin/dashboard?date=${val}`);
+  };
 
   return (
     <Stack
@@ -87,10 +130,8 @@ function ContentHeader({ pathname, pendingCount, onNavigate }: {
         display: { xs: 'none', md: 'flex' },
         alignItems: 'center',
         justifyContent: 'space-between',
-        pb: 2,
-        mb: 1,
-        borderBottom: '1px solid',
-        borderColor: 'divider',
+        pb: 1.5,
+        mb: 0,
       }}
     >
       <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
@@ -113,6 +154,7 @@ function ContentHeader({ pathname, pendingCount, onNavigate }: {
       </Stack>
 
       <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5 }}>
+        {/* Search */}
         <Stack
           direction="row"
           sx={{
@@ -126,27 +168,56 @@ function ContentHeader({ pathname, pendingCount, onNavigate }: {
           <InputBase placeholder="Search…" sx={{ fontSize: 13, flex: 1 }} inputProps={{ 'aria-label': 'search' }} />
         </Stack>
 
-        <Stack
-          direction="row"
-          sx={{
-            alignItems: 'center', gap: 0.75, px: 1.5, py: 0.5,
-            border: '1px solid', borderColor: 'divider', borderRadius: 2,
-            bgcolor: 'background.paper',
-          }}
-        >
-          <CalendarTodayRoundedIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
-          <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.secondary', whiteSpace: 'nowrap' }}>
-            {today}
-          </Typography>
-        </Stack>
+        {/* Clickable calendar chip */}
+        <Tooltip title="Filter by date">
+          <Stack
+            direction="row"
+            onClick={handleCalClick}
+            sx={{
+              alignItems: 'center', gap: 0.75, px: 1.5, py: 0.5,
+              border: '1px solid', borderColor: 'divider', borderRadius: 2,
+              bgcolor: 'background.paper', cursor: 'pointer',
+              transition: 'border-color 0.2s, box-shadow 0.2s',
+              '&:hover': { borderColor: 'primary.main', boxShadow: '0 0 0 2px rgba(25,118,210,0.12)' },
+            }}
+          >
+            <CalendarTodayRoundedIcon sx={{ fontSize: 14, color: selectedDate !== todayStr ? 'primary.main' : 'text.secondary' }} />
+            <Typography variant="caption" sx={{ fontWeight: 500, color: selectedDate !== todayStr ? 'primary.main' : 'text.secondary', whiteSpace: 'nowrap' }}>
+              {displayDate}
+            </Typography>
+          </Stack>
+        </Tooltip>
 
-        <Tooltip title={`${pendingCount} pending requests`}>
+        {/* Hidden native date input — opened programmatically */}
+        <Popover
+          open={Boolean(calAnchor)}
+          anchorEl={calAnchor}
+          onClose={() => setCalAnchor(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          slotProps={{ paper: { sx: { p: 1.5, borderRadius: 2, overflow: 'visible' } } }}
+        >
+          <input
+            ref={dateInputRef}
+            type="date"
+            value={selectedDate}
+            onChange={handleDateChange}
+            style={{ fontSize: 14, border: 'none', outline: 'none', background: 'transparent', cursor: 'pointer' }}
+          />
+        </Popover>
+
+        {/* Notifications bell */}
+        <Tooltip title={unreadCount > 0 ? `${unreadCount} unread notifications` : 'Notifications'}>
           <IconButton
             size="small"
-            onClick={() => onNavigate('/admin/requests')}
-            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}
+            onClick={() => onNavigate('/admin/notifications')}
+            sx={{
+              border: '1px solid', borderColor: 'divider', borderRadius: 1.5,
+              transition: 'border-color 0.2s, box-shadow 0.2s',
+              '&:hover': { borderColor: 'primary.main', boxShadow: '0 0 0 2px rgba(25,118,210,0.12)' },
+            }}
           >
-            <Badge badgeContent={pendingCount > 0 ? ' ' : undefined} color="error" variant="dot">
+            <Badge badgeContent={unreadCount > 0 ? unreadCount : undefined} color="error" max={99}>
               <NotificationsRoundedIcon fontSize="small" />
             </Badge>
           </IconButton>
@@ -484,11 +555,27 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
           mt: { xs: '64px', md: 0 },
           minHeight: '100vh',
           bgcolor: 'background.default',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        {/* Breadcrumb / top bar — visible on all admin screens */}
-        <Box sx={{ px: { xs: 2, md: 3 }, pt: { xs: 1.5, md: 2.5 } }}>
-          <ContentHeader pathname={pathname} pendingCount={pendingCount} onNavigate={handleNavigate} />
+        {/* Sticky top bar */}
+        <Box
+          sx={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 100,
+            bgcolor: 'background.default',
+            px: { xs: 2, md: 3 },
+            pt: { xs: 1.5, md: 2 },
+            pb: 0,
+            backdropFilter: 'blur(8px)',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
+          }}
+        >
+          <ContentHeader pathname={pathname} onNavigate={handleNavigate} />
         </Box>
         {children}
       </Box>

@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
 const sendInviteEmail = require('../utils/sendInviteEmail');
+const Notification = require('../models/Notification');
 const crypto = require('crypto');
 
 // @desc   Register a new user
@@ -23,6 +24,16 @@ const register = async (req, res, next) => {
       university,
       fundingType,
       role: role === 'admin' ? 'admin' : 'student',
+    });
+
+    // Notify admins of new self-registration
+    await Notification.create({
+      type: 'new_user',
+      title: 'New User Registered',
+      message: `${name} (${email}) registered as a student.`,
+      link: '/admin/users',
+      refModel: 'User',
+      refId: user._id,
     });
 
     res.status(201).json({
@@ -114,6 +125,16 @@ const inviteUser = async (req, res, next) => {
     const setupUrl = `${frontendUrl}/setup-password?token=${rawToken}`;
 
     await sendInviteEmail({ name, email, role, setupUrl });
+
+    // Notify admins
+    await Notification.create({
+      type: 'user_invited',
+      title: 'New User Invited',
+      message: `${name} (${email}) was invited as a ${role}.`,
+      link: '/admin/users',
+      refModel: 'User',
+      refId: user._id,
+    });
 
     res.status(201).json({
       message: `Invite sent to ${email}`,
