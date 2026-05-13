@@ -37,7 +37,6 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
 import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
-import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
@@ -190,6 +189,12 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
             width: 30, height: 30, borderRadius: 1.5,
             background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            boxShadow: '0 2px 8px rgba(25,118,210,0.35)',
+            transition: 'box-shadow 0.3s, transform 0.2s',
+            '&:hover': {
+              boxShadow: '0 4px 16px rgba(25,118,210,0.55)',
+              transform: 'scale(1.08)',
+            },
           }}
         >
           <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 17 }} />
@@ -215,11 +220,21 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
                   onClick={() => onNavigate(path)}
                   sx={{
                     borderRadius: 1.5,
+                    transition: 'background 0.2s, box-shadow 0.2s, transform 0.15s',
+                    '&:hover': {
+                      transform: 'translateX(2px)',
+                      bgcolor: 'rgba(25,118,210,0.08)',
+                      boxShadow: '0 2px 8px rgba(25,118,210,0.10)',
+                    },
                     '&.Mui-selected': {
-                      bgcolor: 'primary.main',
-                      color: 'primary.contrastText',
-                      '& .MuiListItemIcon-root': { color: 'primary.contrastText' },
-                      '&:hover': { bgcolor: 'primary.dark' },
+                      background: 'linear-gradient(90deg, #1976d2 0%, #1565c0 100%)',
+                      color: '#fff',
+                      boxShadow: '0 2px 12px rgba(25,118,210,0.30)',
+                      '& .MuiListItemIcon-root': { color: '#fff' },
+                      '&:hover': {
+                        background: 'linear-gradient(90deg, #1565c0 0%, #0d47a1 100%)',
+                        transform: 'translateX(2px)',
+                      },
                     },
                   }}
                 >
@@ -239,30 +254,41 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
             );
           })}
 
-          {/* Reports — collapsible */}
+          {/* Reports — collapsible, no navigation on parent */}
           <ListItem disablePadding sx={{ px: 1, mb: 0.25 }}>
             <ListItemButton
               onClick={() => setReportsExpanded(v => !v)}
-              selected={pathname.startsWith('/admin/reports') && !reportsExpanded}
               sx={{
                 borderRadius: 1.5,
-                '&.Mui-selected': {
-                  bgcolor: 'action.selected',
+                transition: 'background 0.2s, box-shadow 0.2s',
+                ...(pathname.startsWith('/admin/reports') && {
+                  bgcolor: 'rgba(25,118,210,0.08)',
+                }),
+                '&:hover': {
+                  bgcolor: 'rgba(25,118,210,0.10)',
+                  boxShadow: '0 2px 8px rgba(25,118,210,0.10)',
                 },
               }}
             >
-              <ListItemIcon sx={{ minWidth: 36 }}>
+              <ListItemIcon sx={{ minWidth: 36, color: pathname.startsWith('/admin/reports') ? 'primary.main' : 'inherit', transition: 'color 0.2s' }}>
                 <BarChartRoundedIcon />
               </ListItemIcon>
               <ListItemText
                 primary="Reports"
-                slotProps={{ primary: { sx: { fontSize: 14, fontWeight: pathname.startsWith('/admin/reports') ? 600 : 400 } } }}
+                slotProps={{ primary: { sx: { fontSize: 14, fontWeight: pathname.startsWith('/admin/reports') ? 600 : 400, color: pathname.startsWith('/admin/reports') ? 'primary.main' : 'inherit', transition: 'color 0.2s' } } }}
               />
-              {reportsExpanded ? <ExpandLessRoundedIcon fontSize="small" /> : <ExpandMoreRoundedIcon fontSize="small" />}
+              <ExpandMoreRoundedIcon
+                fontSize="small"
+                sx={{
+                  color: pathname.startsWith('/admin/reports') ? 'primary.main' : 'text.secondary',
+                  transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1), color 0.2s',
+                  transform: reportsExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              />
             </ListItemButton>
           </ListItem>
 
-          <Collapse in={reportsExpanded} timeout="auto" unmountOnExit>
+          <Collapse in={reportsExpanded} timeout={300} unmountOnExit>
             <List dense disablePadding>
               {REPORT_SUB_ITEMS.map(({ label, icon, path }) => {
                 const selected = pathname === path || pathname.startsWith(path);
@@ -273,11 +299,20 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
                       onClick={() => onNavigate(path)}
                       sx={{
                         borderRadius: 1.5,
+                        transition: 'background 0.2s, box-shadow 0.2s, transform 0.15s',
+                        '&:hover': {
+                          transform: 'translateX(2px)',
+                          boxShadow: '0 2px 8px rgba(25,118,210,0.12)',
+                        },
                         '&.Mui-selected': {
-                          bgcolor: 'primary.main',
-                          color: 'primary.contrastText',
-                          '& .MuiListItemIcon-root': { color: 'primary.contrastText' },
-                          '&:hover': { bgcolor: 'primary.dark' },
+                          background: 'linear-gradient(90deg, #1976d2 0%, #1565c0 100%)',
+                          color: '#fff',
+                          boxShadow: '0 2px 12px rgba(25,118,210,0.30)',
+                          '& .MuiListItemIcon-root': { color: '#fff' },
+                          '&:hover': {
+                            background: 'linear-gradient(90deg, #1565c0 0%, #0d47a1 100%)',
+                            transform: 'translateX(2px)',
+                          },
                         },
                       }}
                     >
@@ -303,7 +338,11 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
 
       {/* User footer — matches dashboard exactly */}
       <Stack direction="row" sx={{ p: 1.5, gap: 1, alignItems: 'center' }}>
-        <Avatar sx={{ width: 34, height: 34, bgcolor: 'primary.main', fontSize: 13, flexShrink: 0 }}>
+        <Avatar sx={{
+          width: 34, height: 34, bgcolor: 'primary.main', fontSize: 13, flexShrink: 0,
+          transition: 'box-shadow 0.2s, transform 0.2s',
+          '&:hover': { boxShadow: '0 0 0 3px rgba(25,118,210,0.25)', transform: 'scale(1.08)' },
+        }}>
           {(user?.name ?? user?.email ?? 'A')[0].toUpperCase()}
         </Avatar>
         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
