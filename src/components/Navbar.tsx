@@ -195,20 +195,6 @@ export default function Navbar() {
                     '&:hover': { bgcolor: 'transparent', color: '#0d47a1' },
                   }}
                 >
-                  Landlord Resources
-                </Button>
-                <Button
-                  component={Link}
-                  href="/register?role=landlord"
-                  size="small"
-                  variant="outlined"
-                  sx={{
-                    textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
-                    color: '#1565c0', borderColor: '#1565c0',
-                    display: { xs: 'none', sm: 'inline-flex' }, px: 1.5,
-                    '&:hover': { bgcolor: '#e3f2fd', borderColor: '#0d47a1' },
-                  }}
-                >
                   Become a Landlord
                 </Button>
               </>
