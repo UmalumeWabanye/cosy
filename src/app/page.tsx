@@ -766,46 +766,49 @@ export default function HomePage() {
               <Grid size={{ xs: 12, md: 8 }}>
             <Grid container spacing={4} sx={{ mb: 0 }}>
 
-              {/* Section 1: Get Cosy */}
+              {/* Column 1: Get Cosy (link) + sub-links */}
               <Grid size={{ xs: 12, sm: 4 }}>
-                <Typography sx={{ fontWeight: 700, color: 'white', mb: 2.5, fontSize: '0.85rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                  Get Cosy
-                </Typography>
                 {[
+                  { label: 'Get Cosy', href: '/browse', primary: true },
                   { label: 'About Us', href: '/' },
                   { label: 'Landlord Resources', href: '/register?role=landlord' },
                   { label: 'Safety on Cosy', href: '/' },
                 ].map((l) => (
                   <Typography key={l.label} component={Link} href={l.href} variant="body2"
-                    sx={{ display: 'block', mb: 1.75, color: '#8b9ab0', textDecoration: 'none', '&:hover': { color: 'white' }, transition: 'color 0.15s' }}
+                    sx={{
+                      display: 'block', mb: 1.75, textDecoration: 'none', transition: 'color 0.15s',
+                      color: l.primary ? 'white' : '#8b9ab0',
+                      fontWeight: l.primary ? 700 : 400,
+                      '&:hover': { color: 'white' },
+                    }}
                   >
                     {l.label}
                   </Typography>
                 ))}
               </Grid>
 
-              {/* Section 2: Create a Listing */}
+              {/* Column 2: Create a Listing (link) + sub-links */}
               <Grid size={{ xs: 12, sm: 4 }}>
-                <Typography sx={{ fontWeight: 700, color: 'white', mb: 2.5, fontSize: '0.85rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                  Create a Listing
-                </Typography>
                 {[
+                  { label: 'Create a Listing', href: '/register?role=landlord', primary: true },
                   { label: 'Pricing', href: '/' },
                   { label: 'FAQs', href: '/' },
                 ].map((l) => (
                   <Typography key={l.label} component={Link} href={l.href} variant="body2"
-                    sx={{ display: 'block', mb: 1.75, color: '#8b9ab0', textDecoration: 'none', '&:hover': { color: 'white' }, transition: 'color 0.15s' }}
+                    sx={{
+                      display: 'block', mb: 1.75, textDecoration: 'none', transition: 'color 0.15s',
+                      color: l.primary ? 'white' : '#8b9ab0',
+                      fontWeight: l.primary ? 700 : 400,
+                      '&:hover': { color: 'white' },
+                    }}
                   >
                     {l.label}
                   </Typography>
                 ))}
               </Grid>
 
-              {/* Section 3: Contact */}
+              {/* Column 3: Contact details (no heading) */}
               <Grid size={{ xs: 12, sm: 4 }}>
-                <Typography sx={{ fontWeight: 700, color: 'white', mb: 2.5, fontSize: '0.85rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                  Contact Us
-                </Typography>
                 {[
                   { icon: <EmailRoundedIcon sx={{ fontSize: 16, flexShrink: 0 }} />, text: 'support@cosy.co.za' },
                   { icon: <PhoneRoundedIcon sx={{ fontSize: 16, flexShrink: 0 }} />, text: '+27 21 000 0000' },
