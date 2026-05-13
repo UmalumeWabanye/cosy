@@ -7,7 +7,7 @@
       "DOM",
       "DOM.Iterable"
     ],
-    "module": "NodeNext",
+    "module": "ESNext",
     "skipLibCheck": true,
     "paths": {
       "@/*": [
@@ -19,7 +19,7 @@
   "noEmit": true,
     "incremental": true,
     "esModuleInterop": true,
-    "moduleResolution": "nodenext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",

@@ -3,8 +3,9 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -31,7 +32,7 @@ import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
 import ViewListRoundedIcon from '@mui/icons-material/ViewListRounded';
 import api from '@/services/api';
 
-const PropertyMap = dynamic(() => import('@/components/PropertyMap'), { ssr: false });
+const PropertyMap = nextDynamic(() => import('@/components/PropertyMap'), { ssr: false });
 
 const UNIVERSITIES = [
   'University of Cape Town', 'Stellenbosch University', 'University of Pretoria',
@@ -65,6 +66,13 @@ interface Property {
   images?: string[]; fundingType?: string; nsfasAccreditation?: boolean;
   roomType?: string; university?: string; status?: string; lat?: number; lng?: number;
 }
+
+interface PropertyMapProps {
+  properties: Property[];
+  hoveredId?: string | null;
+}
+
+const TypedPropertyMap = PropertyMap as React.ComponentType<PropertyMapProps>;
 
 const NAVBAR_H = 64;
 const FILTERBAR_H = 60;
@@ -349,7 +357,7 @@ export default function BrowsePage() {
           {/* RIGHT: Map */}
           {showMap && (
             <Box sx={{ display: { xs: 'none', md: 'block' }, flex: 1, overflow: 'hidden' }}>
-              <PropertyMap properties={properties} hoveredId={hoveredId} />
+              <TypedPropertyMap properties={properties} hoveredId={hoveredId} />
             </Box>
           )}
         </Box>
