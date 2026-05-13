@@ -156,7 +156,7 @@ export default function Navbar() {
                 </Button>
                 <Button
                   component={Link}
-                  href="/admin/dashboard"
+                  href="/register?role=landlord"
                   size="small"
                   sx={{
                     textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
@@ -165,7 +165,7 @@ export default function Navbar() {
                     '&:hover': { bgcolor: 'transparent', color: '#0d47a1' },
                   }}
                 >
-                  Landlord Dashboard
+                  Create a Listing
                 </Button>
               </>
             ) : (

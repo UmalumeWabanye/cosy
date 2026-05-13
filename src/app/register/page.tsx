@@ -7,9 +7,7 @@ import api from '@/services/api';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 import CssBaseline from '@mui/material/CssBaseline';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import Link from '@mui/material/Link';
@@ -17,7 +15,6 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
-import MenuItem from '@mui/material/MenuItem';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -26,26 +23,6 @@ import SvgIcon from '@mui/material/SvgIcon';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
-
-// ── Data ───────────────────────────────────────────────────────────────────────
-const UNIVERSITIES = [
-  'University of Cape Town',
-  'Stellenbosch University',
-  'University of the Western Cape',
-  'University of Johannesburg',
-  'University of Pretoria',
-  'Wits University',
-  'University of KwaZulu-Natal',
-  'North West University',
-  'University of Free State',
-  'Rhodes University',
-];
-
-const FUNDING_TYPES = [
-  { value: 'NSFAS', label: 'NSFAS' },
-  { value: 'private', label: 'Private' },
-  { value: 'self-funded', label: 'Self-funded' },
-];
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
 function CosyIcon() {
@@ -116,8 +93,6 @@ function RegisterForm() {
   const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [universityError, setUniversityError] = useState(false);
-  const [fundingError, setFundingError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
 
@@ -126,8 +101,6 @@ function RegisterForm() {
     const emailEl = document.getElementById('email') as HTMLInputElement;
     const passwordEl = document.getElementById('password') as HTMLInputElement;
     const confirmEl = document.getElementById('confirmPassword') as HTMLInputElement;
-    const uniEl = document.getElementById('university') as HTMLInputElement;
-    const fundingEl = document.getElementById('fundingType') as HTMLInputElement;
     let valid = true;
 
     if (!nameEl?.value || nameEl.value.trim().length < 2) {
@@ -145,12 +118,6 @@ function RegisterForm() {
     if (!confirmEl?.value || confirmEl.value !== passwordEl?.value) {
       setConfirmPasswordError(true); setConfirmPasswordErrorMessage('Passwords do not match.'); valid = false;
     } else { setConfirmPasswordError(false); setConfirmPasswordErrorMessage(''); }
-
-    // Only validate university/funding for student accounts
-    if (!isLandlord) {
-      if (!uniEl?.value) { setUniversityError(true); valid = false; } else { setUniversityError(false); }
-      if (!fundingEl?.value) { setFundingError(true); valid = false; } else { setFundingError(false); }
-    }
 
     return valid;
   };
@@ -325,52 +292,6 @@ function RegisterForm() {
                 }}
               />
             </FormControl>
-
-            <FormControl error={universityError} sx={{ display: isLandlord ? 'none' : undefined }}>
-              <FormLabel htmlFor="university">University</FormLabel>
-              <TextField
-                select
-                id="university"
-                name="university"
-                required={!isLandlord}
-                fullWidth
-                defaultValue=""
-                variant="outlined"
-                error={universityError}
-                helperText={universityError ? 'Please select your university.' : ''}
-              >
-                <MenuItem value="" disabled>Select your university</MenuItem>
-                {UNIVERSITIES.map(uni => (
-                  <MenuItem key={uni} value={uni}>{uni}</MenuItem>
-                ))}
-              </TextField>
-            </FormControl>
-
-            <FormControl error={fundingError} sx={{ display: isLandlord ? 'none' : undefined }}>
-              <FormLabel htmlFor="fundingType">Funding type</FormLabel>
-              <TextField
-                select
-                id="fundingType"
-                name="fundingType"
-                required={!isLandlord}
-                fullWidth
-                defaultValue=""
-                variant="outlined"
-                error={fundingError}
-                helperText={fundingError ? 'Please select your funding type.' : ''}
-              >
-                <MenuItem value="" disabled>Select funding type</MenuItem>
-                {FUNDING_TYPES.map(({ value, label }) => (
-                  <MenuItem key={value} value={value}>{label}</MenuItem>
-                ))}
-              </TextField>
-            </FormControl>
-
-            <FormControlLabel
-              sx={{ display: isLandlord ? 'none' : undefined }}
-              control={<Checkbox value="updates" color="primary" />}
-              label="I want to receive updates via email."
-            />
 
             <Button type="submit" fullWidth variant="contained" disabled={loading}
               onClick={validateInputs}
