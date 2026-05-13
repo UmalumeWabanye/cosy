@@ -1,7 +1,5 @@
 const { Resend } = require('resend');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const roleLabels = {
   student: 'Student',
   landlord: 'Landlord',
@@ -13,6 +11,7 @@ const roleLabels = {
  * @param {{ name: string, email: string, role: string, setupUrl: string }} opts
  */
 async function sendInviteEmail({ name, email, role, setupUrl }) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   const roleLabel = roleLabels[role] || 'User';
   const firstName = name.split(' ')[0];
 
