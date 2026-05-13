@@ -138,7 +138,7 @@ export default function Navbar() {
           {/* Right nav */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 }, flexShrink: 0 }}>
 
-            {/* Become a Landlord — plain text, no fill */}
+            {/* Become a Landlord — plain text, blue */}
             <Button
               component={Link}
               href="/register?role=landlord"
@@ -147,7 +147,7 @@ export default function Navbar() {
                 textTransform: 'none',
                 fontFamily: 'inherit',
                 fontWeight: 600,
-                color: 'text.secondary',
+                color: '#1565c0',
                 bgcolor: 'transparent',
                 display: { xs: 'none', sm: 'inline-flex' },
                 px: 1,

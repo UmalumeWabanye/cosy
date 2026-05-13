@@ -715,7 +715,7 @@ export default function HomePage() {
         <Box sx={{ bgcolor: '#0a1929', color: '#8b9ab0', pt: { xs: 8, md: 10 }, pb: 0, px: 2 }}>
           <Container maxWidth="lg">
 
-            {/* Top row: brand + social */}
+            {/* Brand + social + app badges row */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 3, mb: 7 }}>
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
@@ -733,7 +733,6 @@ export default function HomePage() {
                 <Typography variant="body2" sx={{ maxWidth: 280, lineHeight: 1.85, mb: 3 }}>
                   South Africa's leading student accommodation platform — connecting students with verified, affordable housing near their universities.
                 </Typography>
-                {/* Social icons */}
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   {[
                     { icon: <FacebookRoundedIcon fontSize="small" />, label: 'Facebook', href: 'https://facebook.com' },
@@ -742,12 +741,8 @@ export default function HomePage() {
                     { icon: <LinkedInIcon fontSize="small" />, label: 'LinkedIn', href: 'https://linkedin.com' },
                   ].map((s) => (
                     <Box
-                      key={s.label}
-                      component="a"
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={s.label}
+                      key={s.label} component="a" href={s.href}
+                      target="_blank" rel="noopener noreferrer" aria-label={s.label}
                       sx={{
                         width: 36, height: 36, borderRadius: '50%',
                         border: '1px solid rgba(255,255,255,0.12)',
@@ -794,112 +789,70 @@ export default function HomePage() {
               </Box>
             </Box>
 
-            {/* Link columns */}
-            <Grid container spacing={4} sx={{ mb: 6 }}>
-              <Grid size={{ xs: 6, sm: 3 }}>
+            {/* ── 3 link sections ────────────────────────────────── */}
+            <Grid container spacing={4} sx={{ mb: 0 }}>
+
+              {/* Section 1: Get Cosy */}
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <Typography sx={{ fontWeight: 700, color: 'white', mb: 2.5, fontSize: '0.85rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                  For Students
+                  Get Cosy
                 </Typography>
                 {[
-                  { label: 'Browse Listings', href: '/browse' },
-                  { label: 'How It Works', href: '/' },
-                  { label: 'Register', href: '/register' },
-                  { label: 'Login', href: '/login' },
-                  { label: 'My Dashboard', href: '/dashboard' },
-                  { label: 'Saved Listings', href: '/saved-listings' },
-                  { label: 'My Applications', href: '/requests' },
+                  { label: 'About Us', href: '/' },
+                  { label: 'Landlord Resources', href: '/register?role=landlord' },
+                  { label: 'Safety on Cosy', href: '/' },
                 ].map((l) => (
                   <Typography key={l.label} component={Link} href={l.href} variant="body2"
-                    sx={{ display: 'block', mb: 1.5, color: '#8b9ab0', textDecoration: 'none', lineHeight: 1.4, '&:hover': { color: 'white' }, transition: 'color 0.15s' }}
+                    sx={{ display: 'block', mb: 1.75, color: '#8b9ab0', textDecoration: 'none', '&:hover': { color: 'white' }, transition: 'color 0.15s' }}
                   >
                     {l.label}
                   </Typography>
                 ))}
               </Grid>
 
-              <Grid size={{ xs: 6, sm: 3 }}>
+              {/* Section 2: Create a Listing */}
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <Typography sx={{ fontWeight: 700, color: 'white', mb: 2.5, fontSize: '0.85rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                  For Landlords
+                  Create a Listing
                 </Typography>
                 {[
-                  { label: 'Become a Landlord', href: '/register?role=landlord' },
-                  { label: 'List a Property', href: '/register?role=landlord' },
-                  { label: 'Landlord Guide', href: '/' },
-                  { label: 'NSFAS Accreditation', href: '/' },
                   { label: 'Pricing', href: '/' },
+                  { label: 'FAQs', href: '/' },
                 ].map((l) => (
                   <Typography key={l.label} component={Link} href={l.href} variant="body2"
-                    sx={{ display: 'block', mb: 1.5, color: '#8b9ab0', textDecoration: 'none', lineHeight: 1.4, '&:hover': { color: 'white' }, transition: 'color 0.15s' }}
+                    sx={{ display: 'block', mb: 1.75, color: '#8b9ab0', textDecoration: 'none', '&:hover': { color: 'white' }, transition: 'color 0.15s' }}
                   >
                     {l.label}
                   </Typography>
                 ))}
               </Grid>
 
-              <Grid size={{ xs: 6, sm: 3 }}>
+              {/* Section 3: Contact */}
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <Typography sx={{ fontWeight: 700, color: 'white', mb: 2.5, fontSize: '0.85rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                  Company
+                  Contact Us
                 </Typography>
                 {[
-                  { label: 'About Cosy', href: '/' },
-                  { label: 'Blog', href: '/' },
-                  { label: 'Careers', href: '/' },
-                  { label: 'Press', href: '/' },
-                  { label: 'Contact Us', href: '/' },
-                  { label: 'Help & FAQ', href: '/' },
-                ].map((l) => (
-                  <Typography key={l.label} component={Link} href={l.href} variant="body2"
-                    sx={{ display: 'block', mb: 1.5, color: '#8b9ab0', textDecoration: 'none', lineHeight: 1.4, '&:hover': { color: 'white' }, transition: 'color 0.15s' }}
-                  >
-                    {l.label}
-                  </Typography>
+                  { icon: <EmailRoundedIcon sx={{ fontSize: 16, flexShrink: 0 }} />, text: 'support@cosy.co.za' },
+                  { icon: <PhoneRoundedIcon sx={{ fontSize: 16, flexShrink: 0 }} />, text: '+27 21 000 0000' },
+                  { icon: <LocationOnRoundedIcon sx={{ fontSize: 16, flexShrink: 0 }} />, text: 'Cape Town, South Africa' },
+                ].map((c) => (
+                  <Box key={c.text} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1.75 }}>
+                    <Box sx={{ color: '#1976d2' }}>{c.icon}</Box>
+                    <Typography variant="body2">{c.text}</Typography>
+                  </Box>
                 ))}
               </Grid>
 
-              <Grid size={{ xs: 6, sm: 3 }}>
-                <Typography sx={{ fontWeight: 700, color: 'white', mb: 2.5, fontSize: '0.85rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                  Top Cities
-                </Typography>
-                {['Cape Town', 'Johannesburg', 'Pretoria', 'Durban', 'Stellenbosch', 'Port Elizabeth', 'Bloemfontein'].map((city) => (
-                  <Typography key={city} component={Link} href={`/browse?city=${encodeURIComponent(city)}`} variant="body2"
-                    sx={{ display: 'block', mb: 1.5, color: '#8b9ab0', textDecoration: 'none', lineHeight: 1.4, '&:hover': { color: 'white' }, transition: 'color 0.15s' }}
-                  >
-                    {city}
-                  </Typography>
-                ))}
-              </Grid>
             </Grid>
-
-            {/* Contact strip */}
-            <Box
-              sx={{
-                borderTop: '1px solid rgba(255,255,255,0.07)',
-                borderBottom: '1px solid rgba(255,255,255,0.07)',
-                py: 3, mb: 0,
-                display: 'flex', flexWrap: 'wrap', gap: 3,
-              }}
-            >
-              {[
-                { icon: <EmailRoundedIcon sx={{ fontSize: 16 }} />, text: 'support@cosy.co.za' },
-                { icon: <PhoneRoundedIcon sx={{ fontSize: 16 }} />, text: '+27 21 000 0000' },
-                { icon: <LocationOnRoundedIcon sx={{ fontSize: 16 }} />, text: 'Cape Town, South Africa' },
-              ].map((c) => (
-                <Box key={c.text} sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#8b9ab0' }}>
-                  {c.icon}
-                  <Typography variant="body2">{c.text}</Typography>
-                </Box>
-              ))}
-            </Box>
 
             {/* Bottom bar */}
             <Box
               sx={{
-                py: 3,
-                display: 'flex',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: 2,
-                alignItems: 'center',
+                borderTop: '1px solid rgba(255,255,255,0.07)',
+                mt: 6, py: 3,
+                display: 'flex', justifyContent: 'space-between',
+                flexWrap: 'wrap', gap: 2, alignItems: 'center',
               }}
             >
               <Typography variant="caption" sx={{ color: '#4a5568' }}>
