@@ -120,6 +120,7 @@ const TESTIMONIALS = [
     quote: 'Cosy made finding my first student apartment so easy. I was approved within a week and the NSFAS process was seamless.',
     initials: 'AD',
     color: '#1976d2',
+    photo: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&fit=crop&auto=format',
   },
   {
     name: 'Ruan van der Berg',
@@ -127,6 +128,7 @@ const TESTIMONIALS = [
     quote: 'I love that I could filter by NSFAS and find accredited places near campus. Saved me so much stress during registration.',
     initials: 'RB',
     color: '#0288d1',
+    photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=80&h=80&fit=crop&auto=format',
   },
   {
     name: 'Nokuthula Sibiya',
@@ -134,6 +136,7 @@ const TESTIMONIALS = [
     quote: 'The application process is straightforward and the support team responded within hours. Highly recommend Cosy!',
     initials: 'NS',
     color: '#0097a7',
+    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&auto=format',
   },
 ];
 
@@ -322,7 +325,12 @@ export default function HomePage() {
                       border: '1px solid rgba(255,255,255,0.2)', p: 2.5,
                     }}
                   >
-                    <Box sx={{ height: 120, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.1)', mb: 2 }} />
+                    <Box
+                      component="img"
+                      src="https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&h=120&fit=crop&auto=format"
+                      alt="Student accommodation"
+                      sx={{ width: '100%', height: 120, objectFit: 'cover', display: 'block', borderRadius: 2, opacity: 0.6, mb: 2 }}
+                    />
                     <Box sx={{ height: 10, borderRadius: 1, bgcolor: 'rgba(255,255,255,0.3)', mb: 1, width: '70%' }} />
                     <Box sx={{ height: 8, borderRadius: 1, bgcolor: 'rgba(255,255,255,0.2)', width: '50%' }} />
                   </Paper>
@@ -334,14 +342,11 @@ export default function HomePage() {
                     }}
                   >
                     <Box
-                      sx={{
-                        height: 150,
-                        background: 'linear-gradient(135deg, #42a5f5 0%, #1565c0 100%)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}
-                    >
-                      <ApartmentRoundedIcon sx={{ fontSize: 64, color: 'rgba(255,255,255,0.6)' }} />
-                    </Box>
+                      component="img"
+                      src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=580&h=300&fit=crop&auto=format"
+                      alt="Modern student apartment"
+                      sx={{ width: '100%', height: 150, objectFit: 'cover', display: 'block' }}
+                    />
                     <Box sx={{ p: 2.5 }}>
                       <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', mb: 0.5 }}>Modern Student Flat</Typography>
                       <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>Cape Town · Near UCT</Typography>
@@ -537,14 +542,11 @@ export default function HomePage() {
                             <CardMedia component="img" height={180} image={prop.images[0]} alt={prop.title} sx={{ objectFit: 'cover' }} />
                           ) : (
                             <Box
-                              sx={{
-                                height: 180,
-                                background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              }}
-                            >
-                              <ApartmentRoundedIcon sx={{ fontSize: 56, color: '#90caf9' }} />
-                            </Box>
+                              component="img"
+                              src={`https://images.unsplash.com/photo-${['1522708323590-d24dbb6b0267','1560448204-e02f11c3d0e2','1484154218962-a197022b5858','1512918728675-ed5a585ecca5','1493809842364-78817add7ffb','1555854877-bab0e564b8d5'][featured.indexOf(prop) % 6]}?w=600&h=360&fit=crop&auto=format`}
+                              alt={prop.title}
+                              sx={{ width: '100%', height: 180, objectFit: 'cover', display: 'block' }}
+                            />
                           )}
                           <CardContent>
                             <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', mb: 0.5 }} noWrap>
@@ -653,7 +655,7 @@ export default function HomePage() {
                       "{t.quote}"
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Avatar sx={{ bgcolor: t.color, width: 40, height: 40, fontWeight: 700, fontSize: '0.85rem' }}>
+                      <Avatar src={t.photo} alt={t.name} sx={{ bgcolor: t.color, width: 40, height: 40, fontWeight: 700, fontSize: '0.85rem' }}>
                         {t.initials}
                       </Avatar>
                       <Box>
@@ -715,9 +717,11 @@ export default function HomePage() {
         <Box sx={{ bgcolor: '#0a1929', color: '#8b9ab0', pt: { xs: 8, md: 10 }, pb: 0, px: 2 }}>
           <Container maxWidth="lg">
 
-            {/* Brand + social + app badges row */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 3, mb: 7 }}>
-              <Box>
+            {/* Brand + 3 sections in one row */}
+            <Grid container spacing={6} sx={{ mb: 0 }}>
+
+              {/* Brand column */}
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
                   <Box
                     sx={{
@@ -756,40 +760,10 @@ export default function HomePage() {
                     </Box>
                   ))}
                 </Box>
-              </Box>
+              </Grid>
 
-              {/* App store badges */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, justifyContent: 'flex-start', pt: 0.5 }}>
-                <Typography variant="caption" sx={{ color: '#8b9ab0', fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>
-                  Get the App
-                </Typography>
-                {['App Store', 'Google Play'].map((store) => (
-                  <Box
-                    key={store}
-                    sx={{
-                      display: 'flex', alignItems: 'center', gap: 1.5,
-                      border: '1px solid rgba(255,255,255,0.15)', borderRadius: 2,
-                      px: 2, py: 1.2, cursor: 'pointer',
-                      transition: 'border-color 0.2s, background 0.2s',
-                      '&:hover': { borderColor: '#1976d2', bgcolor: 'rgba(25,118,210,0.1)' },
-                    }}
-                  >
-                    <Typography sx={{ fontSize: 22 }}>{store === 'App Store' ? '🍎' : '▶'}</Typography>
-                    <Box>
-                      <Typography sx={{ fontSize: '0.6rem', color: '#8b9ab0', lineHeight: 1, mb: 0.3 }}>
-                        {store === 'App Store' ? 'Download on the' : 'Get it on'}
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.85rem', color: 'white', fontWeight: 700, lineHeight: 1 }}>
-                        {store}
-                      </Typography>
-                    </Box>
-                  </Box>
-                ))}
-                <Typography variant="caption" sx={{ color: '#4a5568', mt: 0.5 }}>Coming soon</Typography>
-              </Box>
-            </Box>
-
-            {/* ── 3 link sections ────────────────────────────────── */}
+              {/* ── 3 link sections ──────────────────────────────── */}
+              <Grid size={{ xs: 12, md: 8 }}>
             <Grid container spacing={4} sx={{ mb: 0 }}>
 
               {/* Section 1: Get Cosy */}
@@ -845,6 +819,8 @@ export default function HomePage() {
               </Grid>
 
             </Grid>
+              </Grid>
+            </Grid>
 
             {/* Bottom bar */}
             <Box
@@ -856,7 +832,7 @@ export default function HomePage() {
               }}
             >
               <Typography variant="caption" sx={{ color: '#4a5568' }}>
-                © {new Date().getFullYear()} Cosy (Pty) Ltd. All rights reserved. Built for South African students 🇿🇦
+                © {new Date().getFullYear()} Cosy (Pty) Ltd. All rights reserved. Built for South African students 
               </Typography>
               <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
                 {['Privacy Policy', 'Terms of Use', 'Cookie Policy', 'Sitemap'].map((l) => (
