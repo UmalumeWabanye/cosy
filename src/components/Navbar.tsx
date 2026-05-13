@@ -143,7 +143,7 @@ export default function Navbar() {
               <>
                 <Button
                   component={Link}
-                  href="/browse"
+                  href="/"
                   size="small"
                   sx={{
                     textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
