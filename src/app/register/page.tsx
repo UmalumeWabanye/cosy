@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/services/api';
@@ -120,7 +120,7 @@ const theme = createTheme({
 });
 
 // ── Main page ──────────────────────────────────────────────────────────────────
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setUser, setToken } = useAuthStore();
@@ -412,5 +412,13 @@ export default function RegisterPage() {
         </Card>
       </SignUpContainer>
     </ThemeProvider>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }
