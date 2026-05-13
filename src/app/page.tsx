@@ -22,16 +22,22 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import FacebookRoundedIcon from '@mui/icons-material/FacebookRounded';
 import FormatQuoteRoundedIcon from '@mui/icons-material/FormatQuoteRounded';
 import HomeWorkRoundedIcon from '@mui/icons-material/HomeWorkRounded';
+import InstagramIcon from '@mui/icons-material/Instagram';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
+import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
+import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
 import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
 import SearchIcon from '@mui/icons-material/Search';
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
 import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
 import SupportAgentOutlinedIcon from '@mui/icons-material/SupportAgentOutlined';
 import VerifiedOutlinedIcon from '@mui/icons-material/VerifiedOutlined';
+import XIcon from '@mui/icons-material/X';
 import api from '@/services/api';
 
 const theme = createTheme({
@@ -706,70 +712,208 @@ export default function HomePage() {
         </Box>
 
         {/* ─── FOOTER ───────────────────────────────────────────── */}
-        <Box sx={{ bgcolor: '#0a1929', color: 'grey.400', py: 7, px: 2 }}>
+        <Box sx={{ bgcolor: '#0a1929', color: '#8b9ab0', pt: { xs: 8, md: 10 }, pb: 0, px: 2 }}>
           <Container maxWidth="lg">
-            <Grid container spacing={4}>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+
+            {/* Top row: brand + social */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 3, mb: 7 }}>
+              <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
                   <Box
                     sx={{
-                      width: 32, height: 32, borderRadius: 1.5,
+                      width: 36, height: 36, borderRadius: 1.5,
                       background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}
                   >
-                    <ApartmentRoundedIcon sx={{ color: 'white', fontSize: 18 }} />
+                    <ApartmentRoundedIcon sx={{ color: 'white', fontSize: 20 }} />
                   </Box>
-                  <Typography sx={{ fontWeight: 800, color: 'white', fontSize: 20 }}>Cosy</Typography>
+                  <Typography sx={{ fontWeight: 900, color: 'white', fontSize: 22, letterSpacing: '-0.02em' }}>Cosy</Typography>
                 </Box>
-                <Typography variant="body2" sx={{ lineHeight: 1.8, maxWidth: 260 }}>
-                  South Africa's leading student accommodation platform. Find verified, affordable housing near your university.
+                <Typography variant="body2" sx={{ maxWidth: 280, lineHeight: 1.85, mb: 3 }}>
+                  South Africa's leading student accommodation platform — connecting students with verified, affordable housing near their universities.
                 </Typography>
-              </Grid>
-              <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-                <Typography sx={{ fontWeight: 700, color: 'white', mb: 2.5, fontSize: '0.9rem' }}>Platform</Typography>
-                {[
-                  { label: 'Browse Properties', href: '/browse' },
-                  { label: 'How It Works', href: '/#how-it-works' },
-                  { label: 'About Cosy', href: '/' },
-                ].map((l) => (
-                  <Typography key={l.label} component={Link} href={l.href} variant="body2"
-                    sx={{ display: 'block', mb: 1.5, color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}
+                {/* Social icons */}
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  {[
+                    { icon: <FacebookRoundedIcon fontSize="small" />, label: 'Facebook', href: 'https://facebook.com' },
+                    { icon: <InstagramIcon fontSize="small" />, label: 'Instagram', href: 'https://instagram.com' },
+                    { icon: <XIcon fontSize="small" />, label: 'X / Twitter', href: 'https://x.com' },
+                    { icon: <LinkedInIcon fontSize="small" />, label: 'LinkedIn', href: 'https://linkedin.com' },
+                  ].map((s) => (
+                    <Box
+                      key={s.label}
+                      component="a"
+                      href={s.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={s.label}
+                      sx={{
+                        width: 36, height: 36, borderRadius: '50%',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#8b9ab0', textDecoration: 'none',
+                        transition: 'border-color 0.2s, color 0.2s, background 0.2s',
+                        '&:hover': { color: 'white', borderColor: '#1976d2', bgcolor: 'rgba(25,118,210,0.15)' },
+                      }}
+                    >
+                      {s.icon}
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+
+              {/* App store badges */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, justifyContent: 'flex-start', pt: 0.5 }}>
+                <Typography variant="caption" sx={{ color: '#8b9ab0', fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>
+                  Get the App
+                </Typography>
+                {['App Store', 'Google Play'].map((store) => (
+                  <Box
+                    key={store}
+                    sx={{
+                      display: 'flex', alignItems: 'center', gap: 1.5,
+                      border: '1px solid rgba(255,255,255,0.15)', borderRadius: 2,
+                      px: 2, py: 1.2, cursor: 'pointer',
+                      transition: 'border-color 0.2s, background 0.2s',
+                      '&:hover': { borderColor: '#1976d2', bgcolor: 'rgba(25,118,210,0.1)' },
+                    }}
                   >
-                    {l.label}
-                  </Typography>
+                    <Typography sx={{ fontSize: 22 }}>{store === 'App Store' ? '🍎' : '▶'}</Typography>
+                    <Box>
+                      <Typography sx={{ fontSize: '0.6rem', color: '#8b9ab0', lineHeight: 1, mb: 0.3 }}>
+                        {store === 'App Store' ? 'Download on the' : 'Get it on'}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.85rem', color: 'white', fontWeight: 700, lineHeight: 1 }}>
+                        {store}
+                      </Typography>
+                    </Box>
+                  </Box>
                 ))}
-              </Grid>
-              <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-                <Typography sx={{ fontWeight: 700, color: 'white', mb: 2.5, fontSize: '0.9rem' }}>For Students</Typography>
+                <Typography variant="caption" sx={{ color: '#4a5568', mt: 0.5 }}>Coming soon</Typography>
+              </Box>
+            </Box>
+
+            {/* Link columns */}
+            <Grid container spacing={4} sx={{ mb: 6 }}>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Typography sx={{ fontWeight: 700, color: 'white', mb: 2.5, fontSize: '0.85rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                  For Students
+                </Typography>
                 {[
+                  { label: 'Browse Listings', href: '/browse' },
+                  { label: 'How It Works', href: '/' },
                   { label: 'Register', href: '/register' },
                   { label: 'Login', href: '/login' },
-                  { label: 'Dashboard', href: '/dashboard' },
+                  { label: 'My Dashboard', href: '/dashboard' },
                   { label: 'Saved Listings', href: '/saved-listings' },
+                  { label: 'My Applications', href: '/requests' },
                 ].map((l) => (
                   <Typography key={l.label} component={Link} href={l.href} variant="body2"
-                    sx={{ display: 'block', mb: 1.5, color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}
+                    sx={{ display: 'block', mb: 1.5, color: '#8b9ab0', textDecoration: 'none', lineHeight: 1.4, '&:hover': { color: 'white' }, transition: 'color 0.15s' }}
                   >
                     {l.label}
                   </Typography>
                 ))}
               </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <Typography sx={{ fontWeight: 700, color: 'white', mb: 2.5, fontSize: '0.9rem' }}>Contact Us</Typography>
-                <Typography variant="body2" sx={{ mb: 1 }}>📧 support@cosy.co.za</Typography>
-                <Typography variant="body2" sx={{ mb: 1 }}>📞 +27 21 000 0000</Typography>
-                <Typography variant="body2">🕐 Mon – Fri, 8am – 5pm SAST</Typography>
+
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Typography sx={{ fontWeight: 700, color: 'white', mb: 2.5, fontSize: '0.85rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                  For Landlords
+                </Typography>
+                {[
+                  { label: 'Become a Landlord', href: '/register?role=landlord' },
+                  { label: 'List a Property', href: '/register?role=landlord' },
+                  { label: 'Landlord Guide', href: '/' },
+                  { label: 'NSFAS Accreditation', href: '/' },
+                  { label: 'Pricing', href: '/' },
+                ].map((l) => (
+                  <Typography key={l.label} component={Link} href={l.href} variant="body2"
+                    sx={{ display: 'block', mb: 1.5, color: '#8b9ab0', textDecoration: 'none', lineHeight: 1.4, '&:hover': { color: 'white' }, transition: 'color 0.15s' }}
+                  >
+                    {l.label}
+                  </Typography>
+                ))}
+              </Grid>
+
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Typography sx={{ fontWeight: 700, color: 'white', mb: 2.5, fontSize: '0.85rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                  Company
+                </Typography>
+                {[
+                  { label: 'About Cosy', href: '/' },
+                  { label: 'Blog', href: '/' },
+                  { label: 'Careers', href: '/' },
+                  { label: 'Press', href: '/' },
+                  { label: 'Contact Us', href: '/' },
+                  { label: 'Help & FAQ', href: '/' },
+                ].map((l) => (
+                  <Typography key={l.label} component={Link} href={l.href} variant="body2"
+                    sx={{ display: 'block', mb: 1.5, color: '#8b9ab0', textDecoration: 'none', lineHeight: 1.4, '&:hover': { color: 'white' }, transition: 'color 0.15s' }}
+                  >
+                    {l.label}
+                  </Typography>
+                ))}
+              </Grid>
+
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Typography sx={{ fontWeight: 700, color: 'white', mb: 2.5, fontSize: '0.85rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                  Top Cities
+                </Typography>
+                {['Cape Town', 'Johannesburg', 'Pretoria', 'Durban', 'Stellenbosch', 'Port Elizabeth', 'Bloemfontein'].map((city) => (
+                  <Typography key={city} component={Link} href={`/browse?city=${encodeURIComponent(city)}`} variant="body2"
+                    sx={{ display: 'block', mb: 1.5, color: '#8b9ab0', textDecoration: 'none', lineHeight: 1.4, '&:hover': { color: 'white' }, transition: 'color 0.15s' }}
+                  >
+                    {city}
+                  </Typography>
+                ))}
               </Grid>
             </Grid>
-            <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)', my: 5 }} />
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-              <Typography variant="body2">
-                © {new Date().getFullYear()} Cosy. All rights reserved.
+
+            {/* Contact strip */}
+            <Box
+              sx={{
+                borderTop: '1px solid rgba(255,255,255,0.07)',
+                borderBottom: '1px solid rgba(255,255,255,0.07)',
+                py: 3, mb: 0,
+                display: 'flex', flexWrap: 'wrap', gap: 3,
+              }}
+            >
+              {[
+                { icon: <EmailRoundedIcon sx={{ fontSize: 16 }} />, text: 'support@cosy.co.za' },
+                { icon: <PhoneRoundedIcon sx={{ fontSize: 16 }} />, text: '+27 21 000 0000' },
+                { icon: <LocationOnRoundedIcon sx={{ fontSize: 16 }} />, text: 'Cape Town, South Africa' },
+              ].map((c) => (
+                <Box key={c.text} sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#8b9ab0' }}>
+                  {c.icon}
+                  <Typography variant="body2">{c.text}</Typography>
+                </Box>
+              ))}
+            </Box>
+
+            {/* Bottom bar */}
+            <Box
+              sx={{
+                py: 3,
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 2,
+                alignItems: 'center',
+              }}
+            >
+              <Typography variant="caption" sx={{ color: '#4a5568' }}>
+                © {new Date().getFullYear()} Cosy (Pty) Ltd. All rights reserved. Built for South African students 🇿🇦
               </Typography>
-              <Typography variant="body2">
-                Built for South African students 🇿🇦
-              </Typography>
+              <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                {['Privacy Policy', 'Terms of Use', 'Cookie Policy', 'Sitemap'].map((l) => (
+                  <Typography key={l} component={Link} href="/" variant="caption"
+                    sx={{ color: '#4a5568', textDecoration: 'none', '&:hover': { color: '#8b9ab0' }, transition: 'color 0.15s' }}
+                  >
+                    {l}
+                  </Typography>
+                ))}
+              </Box>
             </Box>
           </Container>
         </Box>

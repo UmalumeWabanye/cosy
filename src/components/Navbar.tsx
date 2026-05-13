@@ -16,7 +16,6 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
-import BusinessCenterRoundedIcon from '@mui/icons-material/BusinessCenterRounded';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
@@ -139,31 +138,24 @@ export default function Navbar() {
           {/* Right nav */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 }, flexShrink: 0 }}>
 
-            {/* Become a Landlord — always visible */}
+            {/* Become a Landlord — plain text, no fill */}
             <Button
               component={Link}
               href="/register?role=landlord"
-              startIcon={<BusinessCenterRoundedIcon sx={{ fontSize: '1rem !important' }} />}
               size="small"
               sx={{
-                textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
-                color: '#1565c0', bgcolor: '#e3f2fd', borderRadius: 2,
-                px: { xs: 1, sm: 1.5 },
+                textTransform: 'none',
+                fontFamily: 'inherit',
+                fontWeight: 600,
+                color: 'text.secondary',
+                bgcolor: 'transparent',
                 display: { xs: 'none', sm: 'inline-flex' },
-                '&:hover': { bgcolor: '#bbdefb' },
+                px: 1,
+                '&:hover': { bgcolor: 'transparent', color: '#0d47a1' },
               }}
             >
               Become a Landlord
             </Button>
-            <Tooltip title="Become a Landlord">
-              <IconButton
-                component={Link} href="/register?role=landlord"
-                size="small"
-                sx={{ color: '#1565c0', display: { xs: 'inline-flex', sm: 'none' } }}
-              >
-                <BusinessCenterRoundedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
 
             {isAuthenticated && user ? (
               <>
