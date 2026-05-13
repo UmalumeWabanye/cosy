@@ -147,9 +147,9 @@ export default function Navbar() {
                   size="small"
                   sx={{
                     textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
-                    color: 'text.secondary', bgcolor: 'transparent',
-                    display: { xs: 'none', sm: 'inline-flex' }, px: 1.5,
-                    '&:hover': { bgcolor: 'transparent', color: 'text.primary' },
+                    color: '#1565c0', bgcolor: 'transparent',
+                    display: { xs: 'none', sm: 'inline-flex' }, px: 1,
+                    '&:hover': { bgcolor: 'transparent', color: '#0d47a1' },
                   }}
                 >
                   For Tenants
@@ -157,15 +157,12 @@ export default function Navbar() {
                 <Button
                   component={Link}
                   href="/register?role=landlord"
-                  variant="contained"
                   size="small"
                   sx={{
-                    textTransform: 'none', fontFamily: 'inherit', fontWeight: 700,
-                    borderRadius: 2, px: 2,
-                    background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
-                    boxShadow: '0 2px 10px rgba(25,118,210,0.3)',
-                    display: { xs: 'none', sm: 'inline-flex' },
-                    '&:hover': { background: 'linear-gradient(135deg, #0d47a1 0%, #1565c0 100%)' },
+                    textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
+                    color: '#1565c0', bgcolor: 'transparent',
+                    display: { xs: 'none', sm: 'inline-flex' }, px: 1,
+                    '&:hover': { bgcolor: 'transparent', color: '#0d47a1' },
                   }}
                 >
                   Create a Listing

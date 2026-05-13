@@ -381,10 +381,10 @@ export default function LandlordPage() {
               </Typography>
             </Box>
 
-            <Grid container spacing={{ xs: 3, md: 4 }} sx={{ alignItems: 'flex-start' }}>
+            <Grid container spacing={{ xs: 3, md: 4 }} sx={{ alignItems: 'stretch' }}>
               {/* Controls */}
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: { xs: 2.5, md: 3 } }}>
+              <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex' }}>
+                <Paper elevation={0} sx={{ width: '100%', border: '1px solid', borderColor: 'divider', borderRadius: 3, p: { xs: 2.5, md: 3 } }}>
 
                   {/* Rooms */}
                   <Box sx={{ mb: 3 }}>
@@ -476,11 +476,11 @@ export default function LandlordPage() {
               </Grid>
 
               {/* Results */}
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
 
                   {/* Monthly income */}
-                  <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: { xs: 2.5, md: 3 } }}>
+                  <Paper elevation={0} sx={{ flex: 1, border: '1px solid', borderColor: 'divider', borderRadius: 3, p: { xs: 2.5, md: 3 } }}>
                     <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.75rem', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>
                       Monthly Income
                     </Typography>
@@ -493,7 +493,7 @@ export default function LandlordPage() {
                   </Paper>
 
                   {/* Annual income */}
-                  <Paper elevation={0} sx={{ border: '2px solid', borderColor: 'primary.main', borderRadius: 3, p: { xs: 2.5, md: 3 }, bgcolor: 'rgba(25,118,210,0.04)', position: 'relative' }}>
+                  <Paper elevation={0} sx={{ flex: 1, border: '2px solid', borderColor: 'primary.main', borderRadius: 3, p: { xs: 2.5, md: 3 }, bgcolor: 'rgba(25,118,210,0.04)', position: 'relative' }}>
                     <Chip label="Best value" size="small" sx={{ position: 'absolute', top: 12, right: 12, bgcolor: 'primary.main', color: 'white', fontWeight: 700, fontSize: '0.68rem', height: 20 }} />
                     <Typography sx={{ color: 'primary.main', fontWeight: 600, fontSize: '0.75rem', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>
                       Annual Income
