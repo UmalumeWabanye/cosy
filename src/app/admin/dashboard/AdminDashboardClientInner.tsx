@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/services/api';
+import LandlordProfileWizard from '@/components/LandlordProfileWizard';
 
 import { alpha, createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -259,6 +260,15 @@ export default function AdminDashboardClientInner() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [requests, setRequests] = useState<RequestItem[]>([]);
   const [loadingData, setLoadingData] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
+
+  // Show onboarding wizard for newly registered landlords
+  useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('showLandlordWizard') === 'true') {
+      localStorage.removeItem('showLandlordWizard');
+      setShowWizard(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || user?.role !== 'admin')) {
@@ -305,6 +315,9 @@ export default function AdminDashboardClientInner() {
     <ThemeProvider theme={theme}>
       <Box sx={{ display: 'flex', minHeight: '100vh' }}>
         <CssBaseline enableColorScheme />
+
+        {/* Landlord onboarding wizard */}
+        <LandlordProfileWizard open={showWizard} onClose={() => setShowWizard(false)} />
 
         <SideMenu user={user} pendingCount={pendingReqs} pathname={pathname ?? ''} onNavigate={router.push} onLogout={() => { logout(); router.push('/login'); }} />
         <AppNavbar pendingCount={pendingReqs} onToggleMobile={() => setMobileOpen(true)} />

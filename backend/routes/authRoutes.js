@@ -96,3 +96,17 @@ router.get('/me', protect, async (req, res) => {
   res.json({ success: true, user: req.user });
 });
 
+// PUT /api/auth/profile — update landlord onboarding profile
+router.put('/profile', protect, async (req, res) => {
+  try {
+    const allowed = ['phone', 'whatsapp', 'avatar', 'city', 'province', 'propertyType', 'numberOfProperties', 'idNumber', 'profileComplete'];
+    const updates = {};
+    allowed.forEach(field => { if (req.body[field] !== undefined) updates[field] = req.body[field]; });
+    const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { new: true, runValidators: true });
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error('Profile update error:', err);
+    res.status(500).json({ message: 'Could not update profile' });
+  }
+});
+

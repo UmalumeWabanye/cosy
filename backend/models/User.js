@@ -38,6 +38,16 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Landlord profile fields (captured via onboarding wizard)
+    phone: { type: String, trim: true },
+    whatsapp: { type: String, trim: true },
+    avatar: { type: String }, // URL (Cloudinary or data URL)
+    city: { type: String, trim: true },
+    province: { type: String, trim: true },
+    propertyType: { type: String, trim: true },
+    numberOfProperties: { type: String, trim: true },
+    idNumber: { type: String, trim: true },
+    profileComplete: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

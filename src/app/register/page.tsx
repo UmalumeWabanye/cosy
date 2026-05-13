@@ -216,8 +216,13 @@ function RegisterForm() {
       localStorage.setItem('token', token);
       setToken(token);
       setUser(user);
-      // Landlords → admin dashboard, students → student dashboard
-      router.push(isLandlord ? '/admin/dashboard' : '/dashboard');
+      // Landlords → admin dashboard with onboarding wizard, students → student dashboard
+      if (isLandlord) {
+        localStorage.setItem('showLandlordWizard', 'true');
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err: any) {
       setServerError(err?.response?.data?.message || err.message || 'Registration failed');
     } finally {
@@ -383,6 +388,7 @@ function RegisterForm() {
             </FormControl>
 
             <FormControlLabel
+              sx={{ display: isLandlord ? 'none' : undefined }}
               control={<Checkbox value="updates" color="primary" />}
               label="I want to receive updates via email."
             />
@@ -399,9 +405,9 @@ function RegisterForm() {
             </Typography>
           </Box>
 
-          <Divider>or</Divider>
+          <Divider sx={{ display: isLandlord ? 'none' : undefined }}>or</Divider>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: isLandlord ? 'none' : 'flex', flexDirection: 'column', gap: 2 }}>
             <Button fullWidth variant="outlined" startIcon={<GoogleIcon />} onClick={() => alert('Google sign-up not yet configured')}>
               Sign up with Google
             </Button>
