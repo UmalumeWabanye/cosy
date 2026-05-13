@@ -36,15 +36,16 @@ export default function Navbar() {
   const { logout } = useAuthStore();
 
   const isHomepage = pathname === '/';
+  const isLandlordPage = pathname === '/landlord';
   const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    if (!isHomepage) return;
+    if (!isHomepage && !isLandlordPage) return;
     const onScroll = () => setScrolled(window.scrollY > 480);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [isHomepage]);
+  }, [isHomepage, isLandlordPage]);
 
   const hiddenPaths = ['/login', '/register', '/signup'];
   const shouldHide = hiddenPaths.includes(pathname) || pathname.startsWith('/admin');
@@ -64,6 +65,7 @@ export default function Navbar() {
   };
 
   const showSearch = isHomepage && scrolled;
+  const showLandlordCta = isLandlordPage && scrolled;
 
   return (
     <ThemeProvider theme={theme}>
@@ -97,14 +99,16 @@ export default function Navbar() {
             </Typography>
           </Link>
 
-          {/* Animated search bar — slides in when user scrolls past hero */}
+          {/* Animated center slot */}
           <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', mx: { xs: 1, sm: 2 }, overflow: 'hidden' }}>
+
+            {/* Homepage: animated search bar */}
             <Paper
               component="form"
               onSubmit={handleSearchSubmit}
               elevation={0}
               sx={{
-                display: 'flex',
+                display: showSearch ? 'flex' : 'none',
                 alignItems: 'center',
                 width: showSearch ? { xs: '100%', sm: 360, md: 440 } : 0,
                 opacity: showSearch ? 1 : 0,
@@ -132,7 +136,42 @@ export default function Navbar() {
                 </IconButton>
               </Tooltip>
             </Paper>
-            {!showSearch && <Box sx={{ flexGrow: 1 }} />}
+
+            {/* Landlord page: animated Create a Listing CTA */}
+            <Box
+              sx={{
+                display: isLandlordPage ? 'flex' : 'none',
+                alignItems: 'center',
+                gap: 1.5,
+                width: showLandlordCta ? 'auto' : 0,
+                opacity: showLandlordCta ? 1 : 0,
+                overflow: 'hidden',
+                transition: 'opacity 0.35s cubic-bezier(0.4,0,0.2,1), width 0.4s cubic-bezier(0.4,0,0.2,1)',
+                pointerEvents: showLandlordCta ? 'auto' : 'none',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, display: { xs: 'none', md: 'block' } }}>
+                Ready to start earning?
+              </Typography>
+              <Button
+                component={Link}
+                href="/register?role=landlord"
+                variant="contained"
+                size="small"
+                sx={{
+                  fontWeight: 700, borderRadius: 2, px: 2.5, py: 0.8,
+                  background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
+                  boxShadow: '0 2px 10px rgba(25,118,210,0.35)',
+                  fontSize: '0.85rem',
+                  '&:hover': { background: 'linear-gradient(135deg, #0d47a1 0%, #1565c0 100%)' },
+                }}
+              >
+                Create a Listing
+              </Button>
+            </Box>
+
+            {!showSearch && !showLandlordCta && <Box sx={{ flexGrow: 1 }} />}
           </Box>
 
           {/* Right nav */}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -8,12 +9,16 @@ import Container from '@mui/material/Container';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
+import Slider from '@mui/material/Slider';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import AddHomeWorkRoundedIcon from '@mui/icons-material/AddHomeWorkRounded';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
+import CalculateRoundedIcon from '@mui/icons-material/CalculateRounded';
 import CampaignRoundedIcon from '@mui/icons-material/CampaignRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import FormatQuoteRoundedIcon from '@mui/icons-material/FormatQuoteRounded';
@@ -154,6 +159,16 @@ const FAQS = [
 ];
 
 export default function LandlordPage() {
+  const [rooms, setRooms] = useState(8);
+  const [pricePerRoom, setPricePerRoom] = useState(4200);
+  const [occupancy, setOccupancy] = useState(90);
+  const [leasePackage, setLeasePackage] = useState<'monthly' | 'semester' | 'annual'>('annual');
+
+  const leaseMultiplier = leasePackage === 'annual' ? 1.12 : leasePackage === 'semester' ? 1.05 : 1.0;
+  const monthlyIncome = Math.round(rooms * pricePerRoom * (occupancy / 100) * leaseMultiplier);
+  const annualIncome = monthlyIncome * 12;
+  const nsfasEstimate = Math.round(rooms * 4500 * (occupancy / 100));
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh' }}>
@@ -343,6 +358,194 @@ export default function LandlordPage() {
                   </Box>
                 </Grid>
               ))}
+            </Grid>
+          </Container>
+        </Box>
+
+        {/* ─── RENTAL INCOME CALCULATOR ─────────────────────────── */}
+        <Box sx={{ bgcolor: '#0a1929', py: { xs: 8, md: 12 }, px: 2 }}>
+          <Container maxWidth="lg">
+            {/* Header */}
+            <Box sx={{ textAlign: 'center', mb: { xs: 6, md: 8 } }}>
+              <Chip
+                icon={<CalculateRoundedIcon sx={{ fontSize: 16 }} />}
+                label="Income Calculator"
+                size="small"
+                sx={{ bgcolor: 'rgba(25,118,210,0.25)', color: '#90caf9', fontWeight: 600, mb: 2 }}
+              />
+              <Typography variant="h3" sx={{ fontWeight: 800, color: 'white', mb: 1.5, fontSize: { xs: '1.75rem', md: '2.4rem' } }}>
+                How much can you earn?
+              </Typography>
+              <Typography variant="body1" sx={{ color: '#90caf9', maxWidth: 520, mx: 'auto', lineHeight: 1.7 }}>
+                Adjust the sliders to estimate your monthly and annual rental income across our lease packages.
+              </Typography>
+            </Box>
+
+            <Grid container spacing={{ xs: 4, md: 6 }} sx={{ alignItems: 'flex-start' }}>
+              {/* Controls */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Paper sx={{ bgcolor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3, p: { xs: 3, md: 4 }, backdropFilter: 'blur(8px)' }}>
+
+                  {/* Rooms */}
+                  <Box sx={{ mb: 4 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Typography sx={{ color: '#90caf9', fontWeight: 600, fontSize: '0.9rem', letterSpacing: 0.5 }}>
+                        NUMBER OF ROOMS
+                      </Typography>
+                      <Typography sx={{ color: 'white', fontWeight: 800, fontSize: '1.4rem' }}>{rooms}</Typography>
+                    </Box>
+                    <Slider
+                      min={1} max={30} step={1} value={rooms}
+                      onChange={(_, v) => setRooms(v as number)}
+                      sx={{ color: '#1976d2', '& .MuiSlider-thumb': { bgcolor: 'white', border: '2px solid #1976d2' }, '& .MuiSlider-track': { background: 'linear-gradient(90deg,#1565c0,#42a5f5)' } }}
+                    />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>1 room</Typography>
+                      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>30 rooms</Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Price per room */}
+                  <Box sx={{ mb: 4 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Typography sx={{ color: '#90caf9', fontWeight: 600, fontSize: '0.9rem', letterSpacing: 0.5 }}>
+                        PRICE PER ROOM / MONTH
+                      </Typography>
+                      <Typography sx={{ color: 'white', fontWeight: 800, fontSize: '1.4rem' }}>
+                        R{pricePerRoom.toLocaleString()}
+                      </Typography>
+                    </Box>
+                    <Slider
+                      min={2000} max={15000} step={100} value={pricePerRoom}
+                      onChange={(_, v) => setPricePerRoom(v as number)}
+                      sx={{ color: '#1976d2', '& .MuiSlider-thumb': { bgcolor: 'white', border: '2px solid #1976d2' }, '& .MuiSlider-track': { background: 'linear-gradient(90deg,#1565c0,#42a5f5)' } }}
+                    />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>R2,000</Typography>
+                      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>R15,000</Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Occupancy */}
+                  <Box sx={{ mb: 4 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Typography sx={{ color: '#90caf9', fontWeight: 600, fontSize: '0.9rem', letterSpacing: 0.5 }}>
+                        OCCUPANCY RATE
+                      </Typography>
+                      <Typography sx={{ color: 'white', fontWeight: 800, fontSize: '1.4rem' }}>{occupancy}%</Typography>
+                    </Box>
+                    <Slider
+                      min={50} max={100} step={5} value={occupancy}
+                      onChange={(_, v) => setOccupancy(v as number)}
+                      sx={{ color: '#1976d2', '& .MuiSlider-thumb': { bgcolor: 'white', border: '2px solid #1976d2' }, '& .MuiSlider-track': { background: 'linear-gradient(90deg,#1565c0,#42a5f5)' } }}
+                    />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>50%</Typography>
+                      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>100%</Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Lease package */}
+                  <Box>
+                    <Typography sx={{ color: '#90caf9', fontWeight: 600, fontSize: '0.9rem', letterSpacing: 0.5, mb: 1.5 }}>
+                      LEASE PACKAGE
+                    </Typography>
+                    <ToggleButtonGroup
+                      exclusive value={leasePackage}
+                      onChange={(_, v) => v && setLeasePackage(v)}
+                      fullWidth
+                      sx={{
+                        gap: 1,
+                        '& .MuiToggleButton-root': {
+                          color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.15)',
+                          borderRadius: '8px !important', fontWeight: 600, fontSize: '0.82rem', py: 1,
+                          textTransform: 'none',
+                          '&.Mui-selected': { bgcolor: '#1976d2', color: 'white', border: '1px solid #1976d2' },
+                        },
+                      }}
+                    >
+                      <ToggleButton value="monthly">Monthly</ToggleButton>
+                      <ToggleButton value="semester">
+                        <Box>
+                          <Box component="span" sx={{ display: 'block' }}>Semester</Box>
+                          <Box component="span" sx={{ display: 'block', fontSize: '0.7rem', color: '#90caf9' }}>+5%</Box>
+                        </Box>
+                      </ToggleButton>
+                      <ToggleButton value="annual">
+                        <Box>
+                          <Box component="span" sx={{ display: 'block' }}>Annual</Box>
+                          <Box component="span" sx={{ display: 'block', fontSize: '0.7rem', color: '#90caf9' }}>+12%</Box>
+                        </Box>
+                      </ToggleButton>
+                    </ToggleButtonGroup>
+                  </Box>
+                </Paper>
+              </Grid>
+
+              {/* Results */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+
+                  {/* Monthly income */}
+                  <Paper sx={{ bgcolor: 'rgba(25,118,210,0.15)', border: '1px solid rgba(25,118,210,0.4)', borderRadius: 3, p: { xs: 3, md: 4 } }}>
+                    <Typography sx={{ color: '#90caf9', fontWeight: 600, fontSize: '0.85rem', letterSpacing: 1, mb: 1 }}>
+                      MONTHLY INCOME
+                    </Typography>
+                    <Typography sx={{ color: 'white', fontWeight: 900, fontSize: { xs: '2.6rem', md: '3.2rem' }, lineHeight: 1, letterSpacing: -1 }}>
+                      R{monthlyIncome.toLocaleString()}
+                    </Typography>
+                    <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem', mt: 0.75 }}>
+                      per month across {rooms} rooms at {occupancy}% occupancy
+                    </Typography>
+                  </Paper>
+
+                  {/* Annual income */}
+                  <Paper sx={{ bgcolor: 'rgba(25,118,210,0.25)', border: '2px solid #1976d2', borderRadius: 3, p: { xs: 3, md: 4 }, position: 'relative', overflow: 'hidden' }}>
+                    <Box sx={{ position: 'absolute', top: 12, right: 14 }}>
+                      <Chip label="Best value" size="small" sx={{ bgcolor: '#1976d2', color: 'white', fontWeight: 700, fontSize: '0.7rem' }} />
+                    </Box>
+                    <Typography sx={{ color: '#90caf9', fontWeight: 600, fontSize: '0.85rem', letterSpacing: 1, mb: 1 }}>
+                      ANNUAL INCOME
+                    </Typography>
+                    <Typography sx={{ color: 'white', fontWeight: 900, fontSize: { xs: '2.8rem', md: '3.6rem' }, lineHeight: 1, letterSpacing: -1 }}>
+                      R{annualIncome.toLocaleString()}
+                    </Typography>
+                    <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem', mt: 0.75 }}>
+                      per year — {leasePackage === 'annual' ? '12%' : leasePackage === 'semester' ? '5%' : '0%'} lease package premium applied
+                    </Typography>
+                  </Paper>
+
+                  {/* NSFAS estimate */}
+                  <Paper sx={{ bgcolor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3, p: { xs: 2.5, md: 3 } }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75 }}>
+                      <SchoolRoundedIcon sx={{ color: '#90caf9', fontSize: 18 }} />
+                      <Typography sx={{ color: '#90caf9', fontWeight: 600, fontSize: '0.85rem', letterSpacing: 0.5 }}>
+                        NSFAS-ACCREDITED POTENTIAL
+                      </Typography>
+                    </Box>
+                    <Typography sx={{ color: 'white', fontWeight: 800, fontSize: '1.6rem', lineHeight: 1 }}>
+                      ~R{nsfasEstimate.toLocaleString()}<Typography component="span" sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', fontWeight: 400 }}>/mo</Typography>
+                    </Typography>
+                    <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', mt: 0.5 }}>
+                      Estimated at R4,500 average NSFAS rate. Actual allowances vary.
+                    </Typography>
+                  </Paper>
+
+                  <Button
+                    component={Link} href="/register?role=landlord"
+                    variant="contained" size="large" fullWidth
+                    endIcon={<ArrowForwardRoundedIcon />}
+                    sx={{
+                      py: 1.8, fontWeight: 800, fontSize: '1rem', borderRadius: 2,
+                      background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
+                      boxShadow: '0 4px 20px rgba(25,118,210,0.4)',
+                      '&:hover': { background: 'linear-gradient(135deg, #0d47a1 0%, #1565c0 100%)' },
+                    }}
+                  >
+                    Start Earning — List for Free
+                  </Button>
+                </Box>
+              </Grid>
             </Grid>
           </Container>
         </Box>
