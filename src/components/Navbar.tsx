@@ -250,14 +250,14 @@ export default function Navbar() {
                 <Button
                   component={Link} href="/login"
                   variant="outlined" size="small"
-                  sx={{ textTransform: 'none', fontFamily: 'inherit', borderRadius: 2 }}
+                  sx={{ textTransform: 'none', fontFamily: 'inherit', borderRadius: 2, display: { xs: 'none', sm: 'inline-flex' } }}
                 >
                   Login
                 </Button>
                 <Button
                   component={Link} href="/register"
                   variant="contained" size="small"
-                  sx={{ textTransform: 'none', fontFamily: 'inherit', borderRadius: 2 }}
+                  sx={{ textTransform: 'none', fontFamily: 'inherit', borderRadius: 2, display: { xs: 'none', sm: 'inline-flex' } }}
                 >
                   Sign Up
                 </Button>
