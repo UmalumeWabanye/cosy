@@ -1,5 +1,31 @@
 const Property = require('../models/Property');
 
+// @desc   Get properties owned by the logged-in landlord
+// @route  GET /api/properties/mine
+// @access Private/Admin
+const getMyProperties = async (req, res, next) => {
+  try {
+    const { search, page = 1, limit = 50 } = req.query;
+    const filter = { createdBy: req.user._id };
+    if (search) {
+      filter.$or = [
+        { propertyName: new RegExp(search, 'i') },
+        { city: new RegExp(search, 'i') },
+        { address: new RegExp(search, 'i') },
+      ];
+    }
+    const skip = (Number(page) - 1) * Number(limit);
+    const total = await Property.countDocuments(filter);
+    const properties = await Property.find(filter)
+      .skip(skip)
+      .limit(Number(limit))
+      .sort({ createdAt: -1 });
+    res.json({ data: properties, total, pages: Math.ceil(total / Number(limit)), currentPage: Number(page) });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc   Get all properties (with filtering & pagination)
 // @route  GET /api/properties
 // @access Public
@@ -128,6 +154,7 @@ const deleteProperty = async (req, res, next) => {
 };
 
 module.exports = {
+  getMyProperties,
   getProperties,
   getProperty,
   createProperty,

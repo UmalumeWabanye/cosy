@@ -36,13 +36,16 @@ import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 
 interface Property {
   _id: string;
-  name: string;
-  description: string;
-  location: { address: string; city: string; university: string };
-  pricing: { minRent: number; maxRent: number };
-  rooms: { total: number; available: number };
-  published: boolean;
-  isActive: boolean;
+  propertyName: string;
+  city: string;
+  address: string;
+  price: number;
+  roomType: string;
+  isAvailable: boolean;
+  nsfasAccredited: boolean;
+  images: { url: string }[];
+  description?: string;
+  universityNearby?: string;
   createdAt: string;
 }
 
@@ -66,7 +69,7 @@ export default function AdminPropertiesPage() {
         if (filters.search) params.append('search', filters.search);
         params.append('page', String(filters.page));
         params.append('limit', String(filters.limit));
-        const res = await api.get(`/properties/admin/list?${params}`);
+        const res = await api.get(`/properties/mine?${params}`);
         const raw = res.data.data;
         setProperties(Array.isArray(raw) ? raw : []);
         setPagination({ total: res.data.total ?? 0, pages: res.data.pages ?? 0, currentPage: res.data.currentPage ?? 1 });
@@ -95,8 +98,9 @@ export default function AdminPropertiesPage() {
   const handleTogglePublish = async (id: string) => {
     try {
       setTogglingId(id);
-      const res = await api.patch(`/properties/${id}/publish`);
-      setProperties(prev => prev.map(p => p._id === id ? { ...p, published: res.data.data.published } : p));
+      const current = properties.find(p => p._id === id);
+      const res = await api.patch(`/properties/${id}`, { isAvailable: !current?.isAvailable });
+      setProperties(prev => prev.map(p => p._id === id ? { ...p, isAvailable: res.data.data?.isAvailable ?? !current?.isAvailable } : p));
     } catch (e: any) {
       alert(e.response?.data?.message || 'Failed to update');
     } finally {
@@ -150,8 +154,8 @@ export default function AdminPropertiesPage() {
                   <TableRow sx={{ bgcolor: 'action.hover' }}>
                     <TableCell sx={{ fontWeight: 700 }}>Property</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Location</TableCell>
-                    <TableCell sx={{ fontWeight: 700 }}>Price Range</TableCell>
-                    <TableCell sx={{ fontWeight: 700 }}>Rooms</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Price</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Room Type</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
                     <TableCell sx={{ fontWeight: 700 }} align="right">Actions</TableCell>
                   </TableRow>
@@ -160,24 +164,24 @@ export default function AdminPropertiesPage() {
                   {properties.map(p => (
                     <TableRow key={p._id} hover>
                       <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }} >{p.name}</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }} >{p.propertyName}</Typography>
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.description}</Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }} >{p.location.city}</Typography>
-                        <Typography variant="caption" color="text.secondary">{p.location.university}</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }} >{p.city}</Typography>
+                        <Typography variant="caption" color="text.secondary">{p.universityNearby}</Typography>
                       </TableCell>
-                      <TableCell><Typography variant="body2">R{p.pricing.minRent} – R{p.pricing.maxRent}</Typography></TableCell>
-                      <TableCell><Typography variant="body2">{p.rooms.available} / {p.rooms.total}</Typography></TableCell>
+                      <TableCell><Typography variant="body2">R{p.price?.toLocaleString()}</Typography></TableCell>
+                      <TableCell><Typography variant="body2">{p.roomType}</Typography></TableCell>
                       <TableCell>
-                        <Chip size="small" label={p.published ? 'Published' : 'Draft'} color={p.published ? 'success' : 'default'} variant={p.published ? 'filled' : 'outlined'} />
+                        <Chip size="small" label={p.isAvailable ? 'Available' : 'Unavailable'} color={p.isAvailable ? 'success' : 'default'} variant={p.isAvailable ? 'filled' : 'outlined'} />
                       </TableCell>
                       <TableCell align="right">
                         <Stack direction="row" sx={{  justifyContent: 'flex-end', gap: 0.5 }}>
-                          <Tooltip title={p.published ? 'Unpublish' : 'Publish'}>
+                          <Tooltip title={p.isAvailable ? 'Mark Unavailable' : 'Mark Available'}>
                             <span>
-                              <IconButton size="small" disabled={togglingId === p._id} onClick={() => handleTogglePublish(p._id)} color={p.published ? 'default' : 'success'}>
-                                {togglingId === p._id ? <CircularProgress size={16} /> : p.published ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
+                              <IconButton size="small" disabled={togglingId === p._id} onClick={() => handleTogglePublish(p._id)} color={p.isAvailable ? 'default' : 'success'}>
+                                {togglingId === p._id ? <CircularProgress size={16} /> : p.isAvailable ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
                               </IconButton>
                             </span>
                           </Tooltip>

@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const cloudinary = require('../config/cloudinary');
 const {
+  getMyProperties,
   getProperties,
   getProperty,
   createProperty,
@@ -15,6 +16,7 @@ const { protect, adminOnly } = require('../middleware/auth');
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 // Only admins should be able to list properties under the admin-prefixed mount
+router.get('/mine', protect, adminOnly, getMyProperties);
 router.get('/', protect, adminOnly, getProperties);
 router.get('/:id', getProperty);
 router.post('/', protect, adminOnly, createProperty);

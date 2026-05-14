@@ -297,7 +297,7 @@ export default function AdminDashboardClientInner() {
     const fetchData = async () => {
       try {
         setLoadingData(true);
-        const [propRes, reqRes] = await Promise.all([api.get('/admin/properties'), api.get('/requests')]);
+        const [propRes, reqRes] = await Promise.all([api.get('/properties/mine'), api.get('/requests')]);
         const rp = propRes.data?.data ?? propRes.data;
         const rr = reqRes.data?.data ?? reqRes.data;
         setProperties(Array.isArray(rp) ? rp : []);
