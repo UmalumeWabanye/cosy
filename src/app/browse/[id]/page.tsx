@@ -12,11 +12,9 @@ import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
-import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
-import StarIcon from '@mui/icons-material/Star';
 import WifiIcon from '@mui/icons-material/Wifi';
 import LocalParkingIcon from '@mui/icons-material/LocalParking';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
@@ -37,13 +35,21 @@ const amenityIcons: Record<string, React.ReactNode> = {
 };
 
 interface Property {
-  _id: string; name: string; description: string;
-  location: { address: string; city: string; university: string; postalCode: string };
-  pricing: { minRent: number; maxRent: number; deposit: number };
-  images: string[]; amenities: string[]; nsfasAccreditation: boolean;
-  rooms: { total: number; available: number };
-  rating: number; reviewCount: number; reviews: any[];
-  owner: { name: string; email: string }; createdAt: string;
+  _id: string;
+  propertyName: string;
+  description: string;
+  city: string;
+  address: string;
+  universityNearby: string;
+  price: number;
+  roomType: string;
+  nsfasAccredited: boolean;
+  images: { url: string; publicId?: string }[];
+  amenities: string[];
+  distanceFromCampus?: number;
+  isAvailable: boolean;
+  createdBy: { name: string; email: string };
+  createdAt: string;
 }
 
 export default function PropertyDetailsPage() {
@@ -62,7 +68,7 @@ export default function PropertyDetailsPage() {
       try {
         setLoading(true);
         const response = await api.get(`/properties/${propertyId}`);
-        setProperty(response.data.data);
+        setProperty(response.data);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to load property');
       } finally {
@@ -130,8 +136,8 @@ export default function PropertyDetailsPage() {
                   <>
                     <Box sx={{ height: 400, overflow: 'hidden' }}>
                       <img
-                        src={property.images[activeImageIndex]}
-                        alt={property.name}
+                        src={property.images[activeImageIndex]?.url}
+                        alt={property.propertyName}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                     </Box>
@@ -149,7 +155,7 @@ export default function PropertyDetailsPage() {
                               '&:hover': { opacity: 1 },
                             }}
                           >
-                            <img src={img} alt={`${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={img.url} alt={`${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </Box>
                         ))}
                       </Box>
@@ -193,44 +199,13 @@ export default function PropertyDetailsPage() {
                 </Card>
               )}
 
-              {/* Reviews */}
+                  {/* Reviews */}
               <Card variant="outlined">
                 <CardContent>
                   <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Reviews</Typography>
-                  {property.reviewCount > 0 ? (
-                    <>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                        <Typography variant="h3" sx={{ fontWeight: 800 }}>{property.rating.toFixed(1)}</Typography>
-                        <Box>
-                          <Box sx={{ display: 'flex', color: 'warning.main' }}>
-                            {[1,2,3,4,5].map((s) => (
-                              <StarIcon key={s} sx={{ fontSize: 18, opacity: s <= Math.round(property.rating) ? 1 : 0.3 }} />
-                            ))}
-                          </Box>
-                          <Typography variant="caption" color="text.secondary">
-                            {property.reviewCount} {property.reviewCount === 1 ? 'review' : 'reviews'}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      {property.reviews.map((review: any) => (
-                        <Box key={review._id} sx={{ mb: 2 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>{review.student?.name || 'Anonymous'}</Typography>
-                            <Typography variant="caption" color="text.secondary">{new Date(review.createdAt).toLocaleDateString()}</Typography>
-                          </Box>
-                          <Box sx={{ display: 'flex', color: 'warning.main', mb: 0.5 }}>
-                            {[1,2,3,4,5].map((s) => <StarIcon key={s} sx={{ fontSize: 14, opacity: s <= review.rating ? 1 : 0.3 }} />)}
-                          </Box>
-                          {review.comment && <Typography variant="body2" color="text.secondary">{review.comment}</Typography>}
-                          <Divider sx={{ mt: 2 }} />
-                        </Box>
-                      ))}
-                    </>
-                  ) : (
-                    <Box sx={{ textAlign: 'center', py: 4 }}>
-                      <Typography color="text.secondary">No reviews yet</Typography>
-                    </Box>
-                  )}
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography color="text.secondary">No reviews yet</Typography>
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
@@ -239,53 +214,35 @@ export default function PropertyDetailsPage() {
             <Grid size={{ xs: 12, md: 4 }}>
               <Card variant="outlined" sx={{ position: { md: 'sticky' }, top: { md: 80 } }}>
                 <CardContent>
-                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>{property.name}</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>{property.propertyName}</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, mb: 2 }}>
                     <LocationOnOutlinedIcon sx={{ fontSize: 16, color: 'primary.main', mt: 0.3 }} />
                     <Box>
-                      <Typography variant="body2">{property.location.address}</Typography>
-                      <Typography variant="body2" color="text.secondary">{property.location.city}</Typography>
+                      <Typography variant="body2">{property.address}</Typography>
+                      <Typography variant="body2" color="text.secondary">{property.city}</Typography>
                     </Box>
                   </Box>
 
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-                    <Box sx={{ display: 'flex', color: 'warning.main' }}>
-                      {[1,2,3,4,5].map((s) => <StarIcon key={s} sx={{ fontSize: 16, opacity: s <= Math.round(property.rating) ? 1 : 0.3 }} />)}
-                    </Box>
-                    <Typography variant="body2">{property.rating.toFixed(1)} ({property.reviewCount})</Typography>
+                  {/* University */}
+                  <Box sx={{ mb: 2, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                    <Typography variant="caption" color="text.secondary">Near</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{property.universityNearby}</Typography>
+                    {property.distanceFromCampus != null && (
+                      <Typography variant="caption" color="text.secondary">{property.distanceFromCampus} km from campus</Typography>
+                    )}
                   </Box>
 
                   {/* Pricing */}
                   <Box sx={{ bgcolor: 'primary.50', border: '1px solid', borderColor: 'primary.100', borderRadius: 1, p: 2, mb: 2 }}>
-                    <Typography variant="caption" color="text.secondary">Monthly Rent Range</Typography>
+                    <Typography variant="caption" color="text.secondary">Monthly Rent</Typography>
                     <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main', my: 0.5 }}>
-                      R{property.pricing.minRent.toLocaleString()} – R{property.pricing.maxRent.toLocaleString()}
+                      R{property.price.toLocaleString()}
                     </Typography>
-                    <Divider sx={{ my: 1 }} />
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" color="text.secondary">Deposit</Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>R{property.pricing.deposit.toLocaleString()}</Typography>
-                    </Box>
+                    <Typography variant="caption" color="text.secondary">{property.roomType} room</Typography>
                   </Box>
 
-                  {/* Rooms */}
-                  <Grid container spacing={1.5} sx={{ mb: 2, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-                    <Grid size={{ xs: 6 }}>
-                      <Box sx={{ bgcolor: 'grey.50', p: 1.5, borderRadius: 1, textAlign: 'center' }}>
-                        <Typography variant="caption" color="text.secondary">Available</Typography>
-                        <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>{property.rooms.available}</Typography>
-                      </Box>
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                      <Box sx={{ bgcolor: 'grey.50', p: 1.5, borderRadius: 1, textAlign: 'center' }}>
-                        <Typography variant="caption" color="text.secondary">Total</Typography>
-                        <Typography variant="h5" sx={{ fontWeight: 800 }}>{property.rooms.total}</Typography>
-                      </Box>
-                    </Grid>
-                  </Grid>
-
                   {/* NSFAS */}
-                  {property.nsfasAccreditation && (
+                  {property.nsfasAccredited && (
                     <Box sx={{ bgcolor: 'success.50', border: '1px solid', borderColor: 'success.200', borderRadius: 1, p: 1.5, mb: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <VerifiedIcon sx={{ fontSize: 16, color: 'success.main' }} />
@@ -297,9 +254,8 @@ export default function PropertyDetailsPage() {
 
                   {/* Owner */}
                   <Box sx={{ bgcolor: 'grey.50', p: 2, borderRadius: 1, mb: 2 }}>
-                    <Typography variant="caption" color="text.secondary">Property Owner</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{property.owner.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">{property.owner.email}</Typography>
+                    <Typography variant="caption" color="text.secondary">Listed by</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{property.createdBy?.name ?? '—'}</Typography>
                   </Box>
 
                   <Button onClick={handleApplyClick} variant="contained" fullWidth sx={{ mb: 1, textTransform: 'none', fontWeight: 700, py: 1.5 }}>
