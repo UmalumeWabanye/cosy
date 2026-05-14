@@ -14,6 +14,8 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import InputBase from '@mui/material/InputBase';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -444,6 +446,8 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const menuOpen = Boolean(menuAnchor);
 
   const handleNavigate = (path: string) => {
     setMobileOpen(false);
@@ -539,9 +543,17 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
                 <NotificationsRoundedIcon />
               </Badge>
             </IconButton>
+            {/* Avatar + profile/logout menu */}
+            <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)} aria-controls={menuOpen ? 'layout-menu' : undefined} aria-haspopup="true" aria-expanded={menuOpen ? 'true' : undefined}>
+              <Avatar sx={{ width: 30, height: 30, bgcolor: 'primary.main', fontSize: 13 }}>{(user?.name ?? user?.email ?? 'A')[0].toUpperCase()}</Avatar>
+            </IconButton>
             <IconButton onClick={() => setMobileOpen(true)}>
               <MenuRoundedIcon />
             </IconButton>
+            <Menu id="layout-menu" anchorEl={menuAnchor} open={menuOpen} onClose={() => setMenuAnchor(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }}>
+              <MenuItem onClick={() => { setMenuAnchor(null); router.push('/profile'); }}>Profile</MenuItem>
+              <MenuItem onClick={() => { setMenuAnchor(null); handleLogout(); }}>Logout</MenuItem>
+            </Menu>
           </Stack>
         </Toolbar>
       </AppBar>

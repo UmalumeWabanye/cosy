@@ -25,6 +25,8 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Avatar from '@mui/material/Avatar';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import Badge from '@mui/material/Badge';
 import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
@@ -117,9 +119,7 @@ const PRIMARY_NAV = [
   { label: 'Users', icon: <PeopleRoundedIcon />, path: '/admin/users' },
   { label: 'Reports', icon: <BarChartRoundedIcon />, path: '/admin/reports' },
 ];
-const SECONDARY_NAV = [
-  { label: 'Back to site', icon: <HomeRoundedIcon />, path: '/' },
-];
+const SECONDARY_NAV: { label: string; icon: React.ReactNode; path: string }[] = [];
 
 function NavList({ items, pathname, pendingCount = 0, onNavigate }: {
   items: { label: string; icon: React.ReactNode; path: string }[];
@@ -198,6 +198,15 @@ function SideMenu({ user, pendingCount, pathname, onNavigate, onLogout }: {
 }
 
 function AppNavbar({ pendingCount, onToggleMobile }: { pendingCount: number; onToggleMobile: () => void }) {
+  const { user } = useAuth();
+  const { logout } = useAuthStore();
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+  const open = Boolean(anchorEl);
+  const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
+  const handleClose = () => setAnchorEl(null);
+  const handleProfile = () => { handleClose(); window.location.href = '/profile'; };
+  const handleSignOut = () => { handleClose(); logout(); window.location.href = '/login'; };
+
   return (
     <AppBar position="fixed" elevation={0} sx={{ display: { xs: 'flex', md: 'none' }, bgcolor: 'background.paper', color: 'text.primary', borderBottom: '1px solid', borderColor: 'divider', backgroundImage: 'none' }}>
       <Toolbar sx={{ justifyContent: 'space-between' }}>
@@ -209,7 +218,15 @@ function AppNavbar({ pendingCount, onToggleMobile }: { pendingCount: number; onT
         </Stack>
         <Stack direction="row" sx={{ gap: 0.5 }}>
           <IconButton><Badge badgeContent={pendingCount || undefined} color="error"><NotificationsRoundedIcon /></Badge></IconButton>
+          {/* Avatar + menu for mobile admin (Profile / Logout) */}
+          <IconButton onClick={handleOpen} aria-controls={open ? 'admin-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined}>
+            <Avatar sx={{ width: 30, height: 30, bgcolor: 'primary.main', fontSize: 13 }}>{(user?.name ?? user?.email ?? 'A')[0].toUpperCase()}</Avatar>
+          </IconButton>
           <IconButton onClick={onToggleMobile}><MenuRoundedIcon /></IconButton>
+          <Menu id="admin-menu" anchorEl={anchorEl} open={open} onClose={handleClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }}>
+            <MenuItem onClick={handleProfile}>Profile</MenuItem>
+            <MenuItem onClick={handleSignOut}>Logout</MenuItem>
+          </Menu>
         </Stack>
       </Toolbar>
     </AppBar>

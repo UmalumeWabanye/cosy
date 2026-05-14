@@ -60,6 +60,7 @@ export default function ApplicationsPage() {
   const [reqs, setReqs] = useState<Req[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>('all');
+  const [isSmUp, setIsSmUp] = useState(true);
   const [withdrawId, setWithdrawId] = useState<string | null>(null);
   const [withdrawing, setWithdrawing] = useState(false);
   const [error, setError] = useState('');
@@ -74,6 +75,14 @@ export default function ApplicationsPage() {
   }, []);
 
   useEffect(() => { fetchReqs(); }, [fetchReqs]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width:600px)');
+    const onChange = (e: MediaQueryListEvent) => setIsSmUp(e.matches);
+    setIsSmUp(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   const handleWithdraw = async () => {
     if (!withdrawId) return;
@@ -105,7 +114,7 @@ export default function ApplicationsPage() {
         {/* Filters */}
         <Box sx={{ overflowX: 'auto', pb: 0.5, mb: 2.5 }}>
         <ToggleButtonGroup value={filter} exclusive onChange={(_, v) => v && setFilter(v)} size="small" sx={{ flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
-          {(['all', 'pending', 'approved', 'rejected'] as Filter[]).map(f => (
+          {((isSmUp ? ['all', 'pending', 'approved', 'rejected'] : ['pending', 'approved', 'rejected']) as Filter[]).map(f => (
             <ToggleButton key={f} value={f} sx={{ textTransform: 'none', fontWeight: 600, px: 2 }}>
               {f === 'all' ? 'All' : STATUS_CONFIG[f].label}
               <Chip label={counts[f]} size="small" sx={{ ml: 0.75, height: 18, fontSize: 10, fontWeight: 700,
