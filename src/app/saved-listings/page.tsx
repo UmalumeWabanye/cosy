@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/services/api';
-import Navbar from '@/components/Navbar';
+import StudentLayout from '@/components/student/StudentLayout';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -16,7 +16,6 @@ import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import StarIcon from '@mui/icons-material/Star';
 import VerifiedIcon from '@mui/icons-material/Verified';
@@ -25,12 +24,6 @@ import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 
-const theme = createTheme({
-  typography: {
-    fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
-  },
-  shape: { borderRadius: 8 },
-});
 
 interface SavedListing {
   _id: string;
@@ -82,10 +75,8 @@ export default function SavedListingsPage() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh' }}>
-        <Navbar />
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+    <StudentLayout>
+      <Box sx={{ p: { xs: 2, md: 3 } }}>
           <Box sx={{ mb: 3 }}>
             <Typography variant="h5" sx={{ fontWeight: 700 }}>Saved Listings</Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -206,8 +197,7 @@ export default function SavedListingsPage() {
               ))}
             </Box>
           )}
-        </Container>
       </Box>
-    </ThemeProvider>
+    </StudentLayout>
   );
 }

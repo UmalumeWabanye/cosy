@@ -1,259 +1,290 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { useAuthStore } from '@/store/authStore';
+import StudentLayout from '@/components/student/StudentLayout';
 import api from '@/services/api';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
-import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
-import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
-import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
-import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
+import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import Avatar from '@mui/material/Avatar';
+import Skeleton from '@mui/material/Skeleton';
+import Divider from '@mui/material/Divider';
 
-const theme = createTheme({
-  typography: {
-    fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
-  },
-  shape: { borderRadius: 8 },
-});
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
+import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
+import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import WavingHandRoundedIcon from '@mui/icons-material/WavingHandRounded';
 
-interface PropertyData {
-  _id: string; name: string; city: string; images?: string[];
-  roomTypes: Array<{ type: string; pricePerMonth: number }>;
-}
-interface SavedListing { _id: string; propertyId: PropertyData; notes: string; createdAt: string; }
-interface Request {
-  _id: string; propertyId: PropertyData; moveInDate: string; leaseDuration: string;
-  fundingType: string; status: 'pending' | 'approved' | 'rejected'; createdAt: string;
-}
-
-const statusColor: Record<string, 'warning' | 'success' | 'error'> = {
-  pending: 'warning', approved: 'success', rejected: 'error',
+const STATUS_COLORS: Record<string, string> = {
+  pending: '#ed6c02', approved: '#2e7d32', rejected: '#d32f2f',
 };
+const STATUS_LABELS: Record<string, string> = {
+  pending: 'Pending', approved: 'Approved', rejected: 'Rejected',
+};
+
+interface Stats { totalApplications: number; pending: number; approved: number; saved: number; }
+interface RecentRequest {
+  _id: string; status: string; createdAt: string;
+  property?: { propertyName?: string; city?: string; images?: string[] };
+}
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { logout } = useAuthStore();
-  const [tab, setTab] = useState(0);
-  const [savedListings, setSavedListings] = useState<SavedListing[]>([]);
-  const [requests, setRequests] = useState<Request[]>([]);
-  const [loadingData, setLoadingData] = useState(false);
-  const [error, setError] = useState('');
-
-  const fetchSaved = async () => {
-    try { setLoadingData(true); const r = await api.get('/saved'); setSavedListings(r.data.data || []); }
-    catch (e: any) { setError(e.response?.data?.message || 'Failed to load saved listings'); }
-    finally { setLoadingData(false); }
-  };
-
-  const fetchRequests = async () => {
-    try { setLoadingData(true); const r = await api.get('/requests/my'); setRequests(r.data.data || []); }
-    catch (e: any) { setError(e.response?.data?.message || 'Failed to load requests'); }
-    finally { setLoadingData(false); }
-  };
+  const [stats, setStats] = useState<Stats>({ totalApplications: 0, pending: 0, approved: 0, saved: 0 });
+  const [recent, setRecent] = useState<RecentRequest[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (tab === 1) fetchSaved();
-    if (tab === 2) fetchRequests();
-  }, [tab]);
+    if (!isLoading && !isAuthenticated) router.push('/login');
+  }, [isAuthenticated, isLoading, router]);
 
-  if (isLoading) return (
-    <ThemeProvider theme={theme}>
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <CircularProgress />
-      </Box>
-    </ThemeProvider>
-  );
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const load = async () => {
+      try {
+        const [reqRes, savedRes] = await Promise.all([
+          api.get('/requests/my').catch(() => ({ data: [] })),
+          api.get('/saved').catch(() => ({ data: { data: [] } })),
+        ]);
+        const reqs: RecentRequest[] = Array.isArray(reqRes.data) ? reqRes.data : (reqRes.data.data ?? []);
+        const saved = Array.isArray(savedRes.data) ? savedRes.data : (savedRes.data.data ?? []);
+        setStats({
+          totalApplications: reqs.length,
+          pending: reqs.filter(r => r.status === 'pending').length,
+          approved: reqs.filter(r => r.status === 'approved').length,
+          saved: saved.length,
+        });
+        setRecent(reqs.slice(0, 5));
+      } catch { /* silent */ }
+      finally { setLoading(false); }
+    };
+    load();
+  }, [isAuthenticated]);
 
-  if (!isAuthenticated || !user) return null;
-
-  const getMinPrice = (property: PropertyData) => {
-    if (!property.roomTypes?.length) return 0;
-    return Math.min(...property.roomTypes.map((rt) => rt.pricePerMonth));
+  const greeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
   };
 
-  const handleLogout = () => { logout(); router.push('/'); };
-  const handleRemoveSaved = async (id: string) => {
-    await api.delete(`/saved/${id}`);
-    setSavedListings((prev) => prev.filter((i) => i._id !== id));
-  };
+  const STAT_CARDS = [
+    {
+      label: 'Total Applications', value: stats.totalApplications,
+      icon: <AssignmentRoundedIcon sx={{ fontSize: 22, color: '#1976d2' }} />,
+      bg: 'rgba(25,118,210,0.08)', color: '#1976d2',
+      action: () => router.push('/applications'),
+    },
+    {
+      label: 'Pending Review', value: stats.pending,
+      icon: <HourglassTopRoundedIcon sx={{ fontSize: 22, color: '#ed6c02' }} />,
+      bg: 'rgba(237,108,2,0.08)', color: '#ed6c02',
+      action: () => router.push('/applications'),
+    },
+    {
+      label: 'Approved', value: stats.approved,
+      icon: <CheckCircleRoundedIcon sx={{ fontSize: 22, color: '#2e7d32' }} />,
+      bg: 'rgba(46,125,50,0.08)', color: '#2e7d32',
+      action: () => router.push('/applications'),
+    },
+    {
+      label: 'Saved Properties', value: stats.saved,
+      icon: <BookmarkRoundedIcon sx={{ fontSize: 22, color: '#7b1fa2' }} />,
+      bg: 'rgba(123,31,162,0.08)', color: '#7b1fa2',
+      action: () => router.push('/saved-listings'),
+    },
+  ];
+
+  if (isLoading) return null;
 
   return (
-    <ThemeProvider theme={theme}>
-      <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh' }}>
-        {/* Header */}
-        <Box sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', py: 2, px: 2 }}>
-          <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Link href="/" style={{ textDecoration: 'none' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 28, height: 28, borderRadius: 1, background: 'linear-gradient(135deg, #1976d2, #1565c0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 14 }}>C</Typography>
-                </Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>Cosy</Typography>
-              </Box>
-            </Link>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>{user.name}</Typography>
-              <Button onClick={handleLogout} variant="outlined" size="small" sx={{ textTransform: 'none' }}>Logout</Button>
+    <StudentLayout>
+      <Box sx={{ p: { xs: 2, md: 3 } }}>
+
+        {/* Welcome banner */}
+        <Paper elevation={0} sx={{
+          p: 3, mb: 3, borderRadius: 3,
+          background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 60%, #0d47a1 100%)',
+          color: '#fff', position: 'relative', overflow: 'hidden',
+        }}>
+          <Box sx={{
+            position: 'absolute', top: -20, right: -20, width: 120, height: 120,
+            borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.08)',
+          }} />
+          <Box sx={{
+            position: 'absolute', bottom: -30, right: 60, width: 80, height: 80,
+            borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.06)',
+          }} />
+          <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 2, mb: 1 }}>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 48, height: 48, fontSize: 20, fontWeight: 700 }}>
+              {(user?.name ?? 'S')[0].toUpperCase()}
+            </Avatar>
+            <Box>
+              <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: '#fff' }}>
+                  {greeting()}, {user?.name?.split(' ')[0] ?? 'Student'}!
+                </Typography>
+                <WavingHandRoundedIcon sx={{ fontSize: 20, color: '#FFD54F' }} />
+              </Stack>
+              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)', mt: 0.25 }}>
+                {user?.university ?? 'Welcome to Cosy — your accommodation companion'}
+              </Typography>
             </Box>
-          </Container>
+          </Stack>
+          {user?.fundingType && (
+            <Chip
+              label={user.fundingType}
+              size="small"
+              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#fff', fontWeight: 600, fontSize: 11, mt: 0.5 }}
+            />
+          )}
+        </Paper>
+
+        {/* Stats grid */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2,1fr)', sm: 'repeat(4,1fr)' }, gap: 2, mb: 3 }}>
+          {loading
+            ? [...Array(4)].map((_, i) => <Skeleton key={i} variant="rounded" height={100} sx={{ borderRadius: 2 }} />)
+            : STAT_CARDS.map(card => (
+              <Paper key={card.label} elevation={0} onClick={card.action} sx={{
+                p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider',
+                cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.2s',
+                '&:hover': { transform: 'translateY(-2px)', boxShadow: `0 4px 16px ${card.color}30` },
+              }}>
+                <Box sx={{
+                  width: 40, height: 40, borderRadius: 1.5, bgcolor: card.bg,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1.5,
+                }}>
+                  {card.icon}
+                </Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: card.color, lineHeight: 1 }}>
+                  {card.value}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500, mt: 0.25, display: 'block' }}>
+                  {card.label}
+                </Typography>
+              </Paper>
+            ))
+          }
         </Box>
 
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 3 }}>My Dashboard</Typography>
+        {/* Quick actions + Recent activity */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2.5 }}>
 
-          <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Tab icon={<HomeOutlinedIcon />} iconPosition="start" label="Overview" sx={{ textTransform: 'none', fontFamily: 'inherit' }} />
-            <Tab icon={<BookmarkBorderIcon />} iconPosition="start" label="Saved" sx={{ textTransform: 'none', fontFamily: 'inherit' }} />
-            <Tab icon={<AssignmentOutlinedIcon />} iconPosition="start" label="Requests" sx={{ textTransform: 'none', fontFamily: 'inherit' }} />
-            <Tab icon={<PersonOutlinedIcon />} iconPosition="start" label="Profile" sx={{ textTransform: 'none', fontFamily: 'inherit' }} />
-          </Tabs>
-
-          {/* Overview */}
-          {tab === 0 && (
-            <Grid container spacing={3}>
+          {/* Quick Actions */}
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>Quick Actions</Typography>
+            <Stack sx={{ gap: 1.5 }}>
               {[
-                { label: 'Saved Listings', value: savedListings.length },
-                { label: 'Pending Requests', value: requests.filter((r) => r.status === 'pending').length },
-                { label: 'Approved Requests', value: requests.filter((r) => r.status === 'approved').length },
-              ].map((stat) => (
-                <Grid key={stat.label} size={{ xs: 12, sm: 4 }}>
-                  <Card variant="outlined" sx={{ boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px' }}>
-                    <CardContent>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', fontWeight: 600 }}>
-                        {stat.label}
-                      </Typography>
-                      <Typography variant="h3" sx={{ fontWeight: 800, color: 'primary.main', mt: 1 }}>{stat.value}</Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
+                { label: 'Browse Properties', sub: 'Find your next accommodation', icon: <SearchRoundedIcon />, path: '/browse', color: '#1976d2' },
+                { label: 'View Applications', sub: 'Track your application status', icon: <AssignmentRoundedIcon />, path: '/applications', color: '#ed6c02' },
+                { label: 'Saved Listings', sub: 'Properties you bookmarked', icon: <BookmarkRoundedIcon />, path: '/saved-listings', color: '#7b1fa2' },
+                { label: 'My Profile', sub: 'Update your details', icon: <HomeRoundedIcon />, path: '/profile', color: '#2e7d32' },
+              ].map(item => (
+                <Box
+                  key={item.label}
+                  onClick={() => router.push(item.path)}
+                  sx={{
+                    display: 'flex', alignItems: 'center', gap: 1.5, p: 1.5, borderRadius: 2,
+                    border: '1px solid', borderColor: 'divider', cursor: 'pointer',
+                    transition: 'background 0.15s, transform 0.15s',
+                    '&:hover': { bgcolor: `${item.color}10`, transform: 'translateX(3px)' },
+                  }}
+                >
+                  <Box sx={{
+                    width: 36, height: 36, borderRadius: 1.5,
+                    bgcolor: `${item.color}15`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    '& svg': { fontSize: 18, color: item.color },
+                  }}>
+                    {item.icon}
+                  </Box>
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }}>{item.label}</Typography>
+                    <Typography variant="caption" color="text.secondary">{item.sub}</Typography>
+                  </Box>
+                  <ArrowForwardRoundedIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
+                </Box>
               ))}
-            </Grid>
-          )}
+            </Stack>
+          </Paper>
 
-          {/* Saved */}
-          {tab === 1 && (
-            loadingData ? (
-              <Box sx={{ textAlign: 'center', py: 8 }}><CircularProgress /></Box>
-            ) : error ? (
-              <Typography color="error">{error}</Typography>
-            ) : savedListings.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 8 }}>
-                <Typography sx={{ mb: 2, color: 'text.secondary' }}>No saved listings yet.</Typography>
-                <Button variant="contained" component={Link} href="/browse" sx={{ textTransform: 'none' }}>Browse Properties</Button>
+          {/* Recent applications */}
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+            <Stack sx={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Recent Applications</Typography>
+              <Button size="small" endIcon={<ArrowForwardRoundedIcon />} onClick={() => router.push('/applications')}
+                sx={{ textTransform: 'none', fontSize: 12 }}>
+                View all
+              </Button>
+            </Stack>
+            {loading ? (
+              <Stack sx={{ gap: 1 }}>
+                {[...Array(3)].map((_, i) => <Skeleton key={i} height={60} sx={{ borderRadius: 1.5 }} />)}
+              </Stack>
+            ) : recent.length === 0 ? (
+              <Box sx={{ py: 4, textAlign: 'center' }}>
+                <AssignmentRoundedIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
+                <Typography variant="body2" color="text.secondary">No applications yet</Typography>
+                <Button size="small" sx={{ mt: 1, textTransform: 'none' }} onClick={() => router.push('/browse')}>
+                  Browse properties
+                </Button>
               </Box>
             ) : (
-              <Grid container spacing={3}>
-                {savedListings.map((listing) => (
-                  <Grid key={listing._id} size={{ xs: 12, sm: 6 }}>
-                    <Card variant="outlined" sx={{ display: 'flex', flexDirection: 'column' }}>
-                      {listing.propertyId.images?.[0] && (
-                        <CardMedia component="img" height={180} image={listing.propertyId.images[0]} alt={listing.propertyId.name} />
-                      )}
-                      <CardContent sx={{ flexGrow: 1 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{listing.propertyId.name}</Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>{listing.propertyId.city}</Typography>
-                        <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 600, mb: 1 }}>
-                          R{getMinPrice(listing.propertyId).toLocaleString()} / month
+              <Stack sx={{ gap: 0 }}>
+                {recent.map((r, i) => (
+                  <React.Fragment key={r._id}>
+                    {i > 0 && <Divider />}
+                    <Box
+                      onClick={() => router.push('/applications')}
+                      sx={{
+                        py: 1.5, px: 0.5, display: 'flex', alignItems: 'center', gap: 1.5,
+                        cursor: 'pointer', borderRadius: 1,
+                        '&:hover': { bgcolor: 'action.hover' },
+                      }}
+                    >
+                      <Box sx={{
+                        width: 40, height: 40, borderRadius: 1.5, overflow: 'hidden', flexShrink: 0,
+                        bgcolor: 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {r.property?.images?.[0]
+                          ? <img src={r.property.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          : <HomeRoundedIcon sx={{ color: 'text.disabled', fontSize: 20 }} />}
+                      </Box>
+                      <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
+                          {r.property?.propertyName ?? 'Property'}
                         </Typography>
-                        {listing.notes && <Typography variant="caption" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>"{listing.notes}"</Typography>}
-                      </CardContent>
-                      <Box sx={{ display: 'flex', gap: 1, p: 2, pt: 0 }}>
-                        <Button variant="contained" fullWidth size="small" component={Link} href={`/browse/${listing.propertyId._id}`} sx={{ textTransform: 'none' }}>View</Button>
-                        <Button variant="outlined" size="small" onClick={() => handleRemoveSaved(listing._id)} startIcon={<DeleteOutlinedIcon />} sx={{ textTransform: 'none', color: 'error.main', borderColor: 'error.light' }}>Remove</Button>
+                        <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+                          {r.property?.city} · {new Date(r.createdAt).toLocaleDateString('en-ZA')}
+                        </Typography>
                       </Box>
-                    </Card>
-                  </Grid>
+                      <Chip
+                        label={STATUS_LABELS[r.status] ?? r.status}
+                        size="small"
+                        sx={{
+                          height: 20, fontSize: 10, fontWeight: 700,
+                          bgcolor: `${STATUS_COLORS[r.status]}18`,
+                          color: STATUS_COLORS[r.status],
+                        }}
+                      />
+                    </Box>
+                  </React.Fragment>
                 ))}
-              </Grid>
-            )
-          )}
-
-          {/* Requests */}
-          {tab === 2 && (
-            loadingData ? (
-              <Box sx={{ textAlign: 'center', py: 8 }}><CircularProgress /></Box>
-            ) : error ? (
-              <Typography color="error">{error}</Typography>
-            ) : requests.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 8 }}>
-                <Typography sx={{ mb: 2, color: 'text.secondary' }}>No requests yet.</Typography>
-                <Button variant="contained" component={Link} href="/browse" sx={{ textTransform: 'none' }}>Browse Properties</Button>
-              </Box>
-            ) : (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {requests.map((request) => (
-                  <Card key={request._id} variant="outlined">
-                    <CardContent>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                        <Box>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{request.propertyId.name}</Typography>
-                          <Typography variant="body2" color="text.secondary">{request.propertyId.city}</Typography>
-                        </Box>
-                        <Chip label={request.status} color={statusColor[request.status]} size="small" variant="outlined" sx={{ textTransform: 'capitalize' }} />
-                      </Box>
-                      <Grid container spacing={2}>
-                        {[
-                          { label: 'Move-in', value: new Date(request.moveInDate).toLocaleDateString() },
-                          { label: 'Lease', value: request.leaseDuration },
-                          { label: 'Funding', value: request.fundingType },
-                          { label: 'Price', value: `R${getMinPrice(request.propertyId).toLocaleString()}` },
-                        ].map((item) => (
-                          <Grid key={item.label} size={{ xs: 6, sm: 3 }}>
-                            <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase' }}>{item.label}</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>{item.value}</Typography>
-                          </Grid>
-                        ))}
-                      </Grid>
-                      <Box sx={{ mt: 2 }}>
-                        <Button variant="outlined" size="small" component={Link} href={`/browse/${request.propertyId._id}`} sx={{ textTransform: 'none' }}>View Property</Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                ))}
-              </Box>
-            )
-          )}
-
-          {/* Profile */}
-          {tab === 3 && (
-            <Card variant="outlined">
-              <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>My Profile</Typography>
-                <Grid container spacing={3}>
-                  {[
-                    { label: 'Name', value: user.name },
-                    { label: 'Email', value: user.email },
-                    { label: 'Role', value: user.role },
-                    { label: 'University', value: user.university },
-                  ].map((item) => (
-                    <Grid key={item.label} size={{ xs: 12, sm: 6 }}>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', fontWeight: 600 }}>{item.label}</Typography>
-                      <Typography variant="body1" sx={{ mt: 0.5 }}>{item.value}</Typography>
-                    </Grid>
-                  ))}
-                </Grid>
-              </CardContent>
-            </Card>
-          )}
-        </Container>
+              </Stack>
+            )}
+          </Paper>
+        </Box>
       </Box>
-    </ThemeProvider>
+    </StudentLayout>
   );
 }
