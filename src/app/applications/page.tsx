@@ -151,16 +151,16 @@ export default function ApplicationsPage() {
                       {!img && <HomeRoundedIcon sx={{ fontSize: 40, color: 'text.disabled' }} />}
                     </Box>
 
-                    {/* Content */}
-                    <Box sx={{ flex: 1, p: 2 }}>
-                      <Stack sx={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1, mb: 1 }}>
-                        <Box>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                      {/* Content */}
+                    <Box sx={{ flex: 1, p: { xs: 1.5, sm: 2 } }}>
+                      <Stack sx={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2, wordBreak: 'break-word' }}>
                             {prop?.name ?? 'Property Unavailable'}
                           </Typography>
                           {prop?.location && (
-                            <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
-                              <LocationOnRoundedIcon sx={{ fontSize: 13, color: 'text.disabled' }} />
+                            <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 0.5, mt: 0.25, flexWrap: 'wrap' }}>
+                              <LocationOnRoundedIcon sx={{ fontSize: 13, color: 'text.disabled', flexShrink: 0 }} />
                               <Typography variant="caption" color="text.secondary">
                                 {prop.location.address}, {prop.location.city}
                               </Typography>
@@ -170,12 +170,12 @@ export default function ApplicationsPage() {
                         <Chip
                           icon={<cfg.Icon sx={{ fontSize: '14px !important' }} />}
                           label={cfg.label} size="small"
-                          sx={{ bgcolor: cfg.bg, color: cfg.color, fontWeight: 700, fontSize: 11, '& .MuiChip-icon': { color: cfg.color } }}
+                          sx={{ bgcolor: cfg.bg, color: cfg.color, fontWeight: 700, fontSize: 11, flexShrink: 0, '& .MuiChip-icon': { color: cfg.color } }}
                         />
                       </Stack>
 
                       {/* Meta row */}
-                      <Stack sx={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2, mb: 1.5 }}>
+                      <Stack sx={{ flexDirection: 'row', flexWrap: 'wrap', gap: { xs: 1, sm: 2 }, mb: 1.5 }}>
                         {prop?.pricing?.minRent && (
                           <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 0.5 }}>
                             <PaidRoundedIcon sx={{ fontSize: 14, color: 'text.disabled' }} />

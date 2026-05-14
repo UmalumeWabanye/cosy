@@ -101,7 +101,7 @@ export default function StudentNotificationsPage() {
   return (
     <StudentLayout>
       <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 700, mx: 'auto' }}>
-        <Stack sx={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+        <Stack sx={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 1.5 }}>
           <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1.5 }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>Notifications</Typography>
             {unreadCount > 0 && (
@@ -139,7 +139,9 @@ export default function StudentNotificationsPage() {
                     <Box
                       onClick={() => handleClick(n)}
                       sx={{
-                        p: 2, cursor: n.link ? 'pointer' : 'default', display: 'flex', gap: 1.5, alignItems: 'flex-start',
+                        p: { xs: 1.5, sm: 2 },
+                        cursor: n.link ? 'pointer' : 'default',
+                        display: 'flex', gap: 1.5, alignItems: 'flex-start',
                         bgcolor: n.isRead ? 'transparent' : `${typeColor(n.type)}08`,
                         transition: 'background 0.2s',
                         '&:hover': { bgcolor: 'action.hover' },
@@ -153,26 +155,27 @@ export default function StudentNotificationsPage() {
                         {typeIcon(n.type)}
                       </Box>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1, mb: 0.25 }}>
-                          <Typography variant="body2" sx={{ fontWeight: n.isRead ? 500 : 700, lineHeight: 1.3 }}>
+                        <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1, mb: 0.25, flexWrap: 'wrap' }}>
+                          <Typography variant="body2" sx={{ fontWeight: n.isRead ? 500 : 700, lineHeight: 1.3, wordBreak: 'break-word' }}>
                             {n.title}
                           </Typography>
                           {!n.isRead && (
                             <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: typeColor(n.type), flexShrink: 0 }} />
                           )}
                         </Stack>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4 }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4, wordBreak: 'break-word' }}>
                           {n.message}
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 10, mt: 0.5, display: 'block' }}>
                           {new Date(n.createdAt).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}
                         </Typography>
                       </Box>
-                      <Stack sx={{ flexDirection: 'row', gap: 0.5, flexShrink: 0 }}>
+                      <Stack sx={{ flexDirection: 'row', gap: 0.5, flexShrink: 0, alignSelf: 'flex-start' }}>
                         {!n.isRead && (
                           <Tooltip title="Mark as read">
-                            <IconButton size="small" onClick={e => { e.stopPropagation(); markRead(n._id); }}
-                              sx={{ color: typeColor(n.type) }}>
+                            <IconButton size="small"
+                              onClick={e => { e.stopPropagation(); markRead(n._id); }}
+                              sx={{ color: typeColor(n.type), display: { xs: 'none', sm: 'inline-flex' } }}>
                               <DoneAllRoundedIcon sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>

@@ -205,7 +205,8 @@ export default function AdminRequestsPage() {
       </Box>
 
       {/* Detail Dialog */}
-      <Dialog open={!!selectedRequest} onClose={() => setSelectedRequest(null)} maxWidth="sm" fullWidth>
+      <Dialog open={!!selectedRequest} onClose={() => setSelectedRequest(null)} maxWidth="sm" fullWidth
+        slotProps={{ paper: { sx: { borderRadius: { xs: 0, sm: 3 }, m: { xs: 0, sm: 2 }, maxHeight: { xs: '100%', sm: '90vh' } } } }}>
         {selectedRequest && (
           <>
             <DialogTitle sx={{ fontWeight: 700 }}>Request Details</DialogTitle>
