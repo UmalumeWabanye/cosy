@@ -64,7 +64,7 @@ export default function ProfilePage() {
   const [tab, setTab] = useState(0);
   const [avatarPreview, setAvatarPreview] = useState('');
 
-  const [form, setForm] = useState({ name: '', phone: '', university: '', fundingType: '' });
+  const [form, setForm] = useState({ name: '', phone: '', university: '', fundingType: '', idNumber: '' });
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -98,6 +98,7 @@ export default function ProfilePage() {
         phone: (user as any).phone ?? '',
         university: user.university ?? '',
         fundingType: user.fundingType ?? '',
+        idNumber: (user as any).idNumber ?? '',
       });
       setAvatarPreview((user as any).avatar ?? '');
     }
@@ -203,6 +204,16 @@ export default function ProfilePage() {
                   <MenuItem value=""><em>Select type</em></MenuItem>
                   {FUNDING_TYPES.map(f => <MenuItem key={f} value={f}>{f}</MenuItem>)}
                 </TextField>
+                <TextField
+                  label="SA ID / Passport Number"
+                  value={form.idNumber}
+                  size="small"
+                  fullWidth
+                  onChange={e => setForm(f => ({ ...f, idNumber: e.target.value }))}
+                  placeholder="e.g. 9901015800085"
+                  helperText="Used for identity verification only"
+                  sx={{ gridColumn: { sm: '1 / -1' } }}
+                />
               </Box>
               <TextField label="Email Address" value={user?.email ?? ''} size="small" fullWidth disabled helperText="Email cannot be changed" sx={{ mb: 2.5 }} />
               <Button variant="contained" startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveRoundedIcon />} onClick={handleSave} disabled={saving} sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}>
