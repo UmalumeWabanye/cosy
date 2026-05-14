@@ -240,7 +240,7 @@ export default function Navbar() {
                   onClick={handleLogout}
                   startIcon={<LogoutIcon />}
                   variant="outlined" size="small"
-                  sx={{ textTransform: 'none', fontFamily: 'inherit', borderRadius: 2 }}
+                  sx={{ textTransform: 'none', fontFamily: 'inherit', borderRadius: 2, display: { xs: 'none', sm: 'inline-flex' } }}
                 >
                   Logout
                 </Button>

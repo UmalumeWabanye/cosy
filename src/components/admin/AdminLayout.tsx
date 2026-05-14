@@ -557,6 +557,9 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
           bgcolor: 'background.default',
           display: 'flex',
           flexDirection: 'column',
+          overflowX: 'hidden',
+          width: { xs: '100%', md: `calc(100% - ${DRAWER_WIDTH}px)` },
+          maxWidth: '100vw',
         }}
       >
         {/* Sticky top bar */}

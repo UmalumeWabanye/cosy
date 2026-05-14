@@ -297,6 +297,9 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
         bgcolor: 'grey.50',
         display: 'flex',
         flexDirection: 'column',
+        overflowX: 'hidden',
+        width: { xs: '100%', md: `calc(100% - ${DRAWER_WIDTH}px)` },
+        maxWidth: '100vw',
       }}>
         {/* Sticky breadcrumb bar */}
         <Box sx={{

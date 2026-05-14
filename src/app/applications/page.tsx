@@ -219,7 +219,7 @@ export default function ApplicationsPage() {
                       </Stack>
 
                       {/* Actions */}
-                      <Stack sx={{ flexDirection: 'row', gap: 1 }}>
+                      <Stack sx={{ flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}>
                         {prop && (
                           <Button size="small" variant="outlined" startIcon={<OpenInNewRoundedIcon sx={{ fontSize: '14px !important' }} />}
                             onClick={() => router.push(`/browse/${prop._id}`)}
