@@ -6,8 +6,12 @@ import Link from 'next/link';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import InputBase from '@mui/material/InputBase';
+import List from '@mui/material/List';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
 import Paper from '@mui/material/Paper';
 import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
@@ -18,6 +22,7 @@ import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
@@ -38,6 +43,7 @@ export default function Navbar() {
   const isHomepage = pathname === '/';
   const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     if (!isHomepage) return;
@@ -47,7 +53,7 @@ export default function Navbar() {
   }, [isHomepage]);
 
   const hiddenPaths = ['/login', '/register', '/signup'];
-  const studentPortalPaths = ['/dashboard', '/profile', '/applications', '/saved-listings', '/notifications'];
+  const studentPortalPaths = ['/dashboard', '/profile', '/applications', '/saved-listings', '/notifications', '/browse'];
   const shouldHide =
     hiddenPaths.includes(pathname) ||
     pathname.startsWith('/admin') ||
@@ -258,8 +264,66 @@ export default function Navbar() {
               </>
             )}
           </Box>
+          {/* Hamburger for mobile */}
+          <IconButton
+            size="small"
+            onClick={() => setMobileNavOpen(true)}
+            sx={{ display: { xs: 'flex', sm: 'none' }, ml: 0.5, color: 'text.primary' }}
+            aria-label="Open menu"
+          >
+            <MenuRoundedIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
+
+      {/* Mobile Drawer */}
+      <Drawer
+        anchor="right"
+        open={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        slotProps={{ paper: { sx: { width: 260, pt: 1 } } }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1, mb: 1 }}>
+          <ApartmentRoundedIcon sx={{ color: 'primary.main', mr: 1 }} />
+          <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.01em' }}>Cosy</Typography>
+        </Box>
+        <List dense disablePadding>
+          <ListItemButton component={Link} href="/browse" onClick={() => setMobileNavOpen(false)}>
+            <ListItemText primary="Browse Properties" />
+          </ListItemButton>
+          <ListItemButton component={Link} href="/about" onClick={() => setMobileNavOpen(false)}>
+            <ListItemText primary="About Us" />
+          </ListItemButton>
+          <ListItemButton component={Link} href="/landlord" onClick={() => setMobileNavOpen(false)}>
+            <ListItemText primary="Become a Landlord" />
+          </ListItemButton>
+          {isAuthenticated && user ? (
+            <>
+              <ListItemButton component={Link} href="/dashboard" onClick={() => setMobileNavOpen(false)}>
+                <ListItemText primary="Dashboard" />
+              </ListItemButton>
+              <ListItemButton component={Link} href="/saved-listings" onClick={() => setMobileNavOpen(false)}>
+                <ListItemText primary="Saved Listings" />
+              </ListItemButton>
+              <ListItemButton component={Link} href="/requests" onClick={() => setMobileNavOpen(false)}>
+                <ListItemText primary="Requests" />
+              </ListItemButton>
+              <ListItemButton onClick={() => { setMobileNavOpen(false); handleLogout(); }}>
+                <ListItemText primary="Logout" slotProps={{ primary: { style: { color: 'red' } }} } />
+              </ListItemButton>
+            </>
+          ) : (
+            <>
+              <ListItemButton component={Link} href="/login" onClick={() => setMobileNavOpen(false)}>
+                <ListItemText primary="Login" />
+              </ListItemButton>
+              <ListItemButton component={Link} href="/register" onClick={() => setMobileNavOpen(false)}>
+                <ListItemText primary="Sign Up" slotProps={{ primary: { style: { color: '#1976d2', fontWeight: 600 } } }} />
+              </ListItemButton>
+            </>
+          )}
+        </List>
+      </Drawer>
     </ThemeProvider>
   );
 }

@@ -98,6 +98,38 @@ router.get('/me', protect, async (req, res) => {
   res.json({ success: true, user: req.user });
 });
 
+// PATCH /api/auth/me — update student profile (name, phone, university, fundingType, avatar)
+router.patch('/me', protect, async (req, res) => {
+  try {
+    const allowed = ['name', 'phone', 'university', 'fundingType', 'avatar'];
+    const updates = {};
+    allowed.forEach(field => { if (req.body[field] !== undefined) updates[field] = req.body[field]; });
+    const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { new: true, runValidators: true });
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(500).json({ message: err.message || 'Could not update profile' });
+  }
+});
+
+// PATCH /api/auth/change-password
+router.patch('/change-password', protect, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: 'Current password and a new password of at least 6 characters are required' });
+    }
+    const user = await User.findById(req.user._id).select('+password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    const match = await user.matchPassword(currentPassword);
+    if (!match) return res.status(401).json({ message: 'Current password is incorrect' });
+    user.password = newPassword;
+    await user.save();
+    res.json({ success: true, message: 'Password updated' });
+  } catch (err) {
+    res.status(500).json({ message: err.message || 'Could not change password' });
+  }
+});
+
 // PUT /api/auth/profile — update landlord onboarding profile
 router.put('/profile', protect, async (req, res) => {
   try {

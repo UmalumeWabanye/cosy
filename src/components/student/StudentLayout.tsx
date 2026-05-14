@@ -57,6 +57,7 @@ const NAV_ITEMS = [
 
 function getBreadcrumb(pathname: string): string[] {
   if (pathname === '/dashboard') return ['Home', 'Dashboard'];
+  if (pathname.startsWith('/browse') && pathname !== '/browse') return ['Home', 'Browse', 'Property Detail'];
   if (pathname.startsWith('/browse')) return ['Home', 'Browse Properties'];
   if (pathname.startsWith('/applications')) return ['Home', 'My Applications'];
   if (pathname.startsWith('/saved-listings')) return ['Home', 'Saved Listings'];
@@ -256,7 +257,7 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
         bgcolor: 'background.paper', color: 'text.primary',
         borderBottom: '1px solid', borderColor: 'divider', backgroundImage: 'none',
       }}>
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
+        <Toolbar sx={{ justifyContent: 'space-between', minHeight: 56 }}>
           <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
             <Box sx={{
               width: 28, height: 28, borderRadius: 1,
@@ -265,7 +266,9 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
             }}>
               <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 16 }} />
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>Cosy</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              {breadcrumb[breadcrumb.length - 1]}
+            </Typography>
           </Stack>
           <Stack sx={{ flexDirection: 'row', gap: 0.5 }}>
             <IconButton onClick={() => handleNavigate('/notifications')}>
@@ -289,7 +292,7 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
       <Box component="main" sx={{
         flexGrow: 1,
         ml: { md: `${DRAWER_WIDTH}px` },
-        mt: { xs: '64px', md: 0 },
+        mt: { xs: '56px', md: 0 },
         minHeight: '100vh',
         bgcolor: 'grey.50',
         display: 'flex',

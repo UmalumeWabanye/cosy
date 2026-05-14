@@ -20,7 +20,7 @@ import Skeleton from '@mui/material/Skeleton';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import StudentLayout from '@/components/student/StudentLayout';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -31,6 +31,7 @@ import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
 import ViewListRoundedIcon from '@mui/icons-material/ViewListRounded';
 import api from '@/services/api';
+
 
 const PropertyMap = nextDynamic(() => import('@/components/PropertyMap'), { ssr: false });
 
@@ -49,15 +50,6 @@ const UNSPLASH_FALLBACKS = [
   '1522708323590-d24dbb6b0267', '1560448204-e02f11c3d0e2', '1484154218962-a197022b5858',
   '1512918728675-ed5a585ecca5', '1493809842364-78817add7ffb', '1555854877-bab0e564b8d5',
 ];
-
-const theme = createTheme({
-  typography: { fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(',') },
-  palette: { primary: { main: '#1976d2', dark: '#1565c0' } },
-  shape: { borderRadius: 8 },
-  components: {
-    MuiButton: { defaultProps: { disableElevation: true }, styleOverrides: { root: { textTransform: 'none', fontWeight: 600 } } },
-  },
-});
 
 interface Property {
   _id: string; title?: string; name?: string; city?: string;
@@ -189,8 +181,8 @@ export default function BrowsePage() {
   );
 
   return (
-    <ThemeProvider theme={theme}>
-      <Box sx={{ bgcolor: '#f8fafc', display: 'flex', flexDirection: 'column', height: `calc(100vh - ${NAVBAR_H}px)` }}>
+    <StudentLayout>
+    <Box sx={{ bgcolor: '#f8fafc', display: 'flex', flexDirection: 'column', height: { xs: 'auto', md: 'calc(100vh - 48px)' }, minHeight: { xs: '100vh', md: 'unset' } }}>
 
         {/* ── FILTER BAR ──────────────────────────────────────── */}
         <Box sx={{ bgcolor: 'white', borderBottom: '1px solid', borderColor: 'divider', boxShadow: '0 1px 6px rgba(0,0,0,0.05)', flexShrink: 0, zIndex: 10 }}>
@@ -362,6 +354,6 @@ export default function BrowsePage() {
           )}
         </Box>
       </Box>
-    </ThemeProvider>
+    </StudentLayout>
   );
 }

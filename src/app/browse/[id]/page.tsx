@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
+import StudentLayout from '@/components/student/StudentLayout';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -14,7 +15,6 @@ import Container from '@mui/material/Container';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import StarIcon from '@mui/icons-material/Star';
 import WifiIcon from '@mui/icons-material/Wifi';
@@ -29,13 +29,6 @@ import ShowerIcon from '@mui/icons-material/Shower';
 import SatelliteIcon from '@mui/icons-material/Satellite';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import api from '@/services/api';
-
-const theme = createTheme({
-  typography: {
-    fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
-  },
-  shape: { borderRadius: 8 },
-});
 
 const amenityIcons: Record<string, React.ReactNode> = {
   WiFi: <WifiIcon />, Parking: <LocalParkingIcon />, Gym: <FitnessCenterIcon />,
@@ -81,21 +74,21 @@ export default function PropertyDetailsPage() {
 
   if (loading) {
     return (
-      <ThemeProvider theme={theme}>
-        <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <StudentLayout>
+        <Box sx={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Box sx={{ textAlign: 'center' }}>
             <CircularProgress sx={{ mb: 2 }} />
             <Typography color="text.secondary">Loading property details...</Typography>
           </Box>
         </Box>
-      </ThemeProvider>
+      </StudentLayout>
     );
   }
 
   if (error || !property) {
     return (
-      <ThemeProvider theme={theme}>
-        <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <StudentLayout>
+        <Box sx={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Box sx={{ textAlign: 'center' }}>
             <Typography sx={{ mb: 2, color: 'text.secondary' }}>{error || 'Property not found'}</Typography>
             <Button variant="contained" component={Link} href="/browse" sx={{ textTransform: 'none' }}>
@@ -103,7 +96,7 @@ export default function PropertyDetailsPage() {
             </Button>
           </Box>
         </Box>
-      </ThemeProvider>
+      </StudentLayout>
     );
   }
 
@@ -113,10 +106,10 @@ export default function PropertyDetailsPage() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <StudentLayout>
       <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh' }}>
         {/* Sub-header */}
-        <Box sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', py: 2, px: 2 }}>
+        <Box sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', py: 1.5, px: 2 }}>
           <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Button component={Link} href="/browse" variant="text" sx={{ textTransform: 'none' }}>
               ← Back to Browse
@@ -321,6 +314,6 @@ export default function PropertyDetailsPage() {
           </Grid>
         </Container>
       </Box>
-    </ThemeProvider>
+    </StudentLayout>
   );
 }
