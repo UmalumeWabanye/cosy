@@ -28,6 +28,7 @@ const corsOptions = {
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3001',
       'https://cosyliving.netlify.app',
+      'https://cosy-ten.vercel.app',
       /https:\/\/cosy.*\.netlify\.app$/,
       /https:\/\/cosy.*\.vercel\.app$/,
     ];
