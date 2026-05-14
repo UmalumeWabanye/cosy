@@ -117,12 +117,13 @@ export default function AdminRequestsPage() {
         </Stack>
 
         {/* Filter tabs */}
+        <Box sx={{ overflowX: 'auto', pb: 0.5, mb: 3, '&::-webkit-scrollbar': { height: 4 } }}>
         <ToggleButtonGroup
           exclusive
           value={statusFilter}
           onChange={(_, v) => { if (v) setStatusFilter(v); }}
           size="small"
-          sx={{ mb: 3 }}
+          sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
         >
           {(['all', 'pending', 'approved', 'rejected'] as const).map(f => (
             <ToggleButton key={f} value={f} sx={{ textTransform: 'capitalize', px: 2 }}>
@@ -137,6 +138,7 @@ export default function AdminRequestsPage() {
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
+        </Box>
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
@@ -147,8 +149,8 @@ export default function AdminRequestsPage() {
             <Typography color="text.secondary">No {statusFilter === 'all' ? '' : statusFilter} requests found.</Typography>
           </Paper>
         ) : (
-          <TableContainer component={Paper} variant="outlined">
-            <Table size="small">
+          <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
+            <Table size="small" sx={{ minWidth: 700 }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: 'action.hover' }}>
                   <TableCell sx={{ fontWeight: 700 }}>Student</TableCell>
@@ -203,7 +205,7 @@ export default function AdminRequestsPage() {
       </Box>
 
       {/* Detail Dialog */}
-      <Dialog open={!!selectedRequest} onClose={() => setSelectedRequest(null)}  fullWidth sx={{ maxWidth: "sm" }}>
+      <Dialog open={!!selectedRequest} onClose={() => setSelectedRequest(null)} maxWidth="sm" fullWidth>
         {selectedRequest && (
           <>
             <DialogTitle sx={{ fontWeight: 700 }}>Request Details</DialogTitle>

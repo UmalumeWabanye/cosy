@@ -534,7 +534,7 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
             <Typography variant="h6" sx={{ fontWeight: 700 }}>Cosy Admin</Typography>
           </Stack>
           <Stack direction="row" sx={{ gap: 0.5 }}>
-            <IconButton>
+            <IconButton onClick={() => handleNavigate('/admin/notifications')}>
               <Badge badgeContent={pendingCount || undefined} color="error">
                 <NotificationsRoundedIcon />
               </Badge>

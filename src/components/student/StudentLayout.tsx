@@ -53,7 +53,6 @@ const NAV_ITEMS = [
   { label: 'My Applications', icon: <AssignmentRoundedIcon />, path: '/applications' },
   { label: 'Saved Listings', icon: <BookmarkRoundedIcon />, path: '/saved-listings' },
   { label: 'Notifications', icon: <NotificationsRoundedIcon />, path: '/notifications', badge: true },
-  { label: 'Profile', icon: <PersonRoundedIcon />, path: '/profile' },
 ];
 
 function getBreadcrumb(pathname: string): string[] {
@@ -146,16 +145,24 @@ function SideMenu({ user, unreadCount, pathname, onNavigate, onLogout }: SideMen
 
       <Divider />
 
-      {/* User footer */}
+      {/* User footer — click avatar/name to go to profile */}
       <Stack sx={{ flexDirection: 'row', p: 1.5, gap: 1, alignItems: 'center' }}>
-        <Avatar sx={{
-          width: 34, height: 34, bgcolor: 'primary.main', fontSize: 13, flexShrink: 0,
-          transition: 'box-shadow 0.2s, transform 0.2s',
-          '&:hover': { boxShadow: '0 0 0 3px rgba(25,118,210,0.25)', transform: 'scale(1.08)' },
-        }}>
-          {(user?.name ?? user?.email ?? 'S')[0].toUpperCase()}
-        </Avatar>
-        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+        <Tooltip title="View Profile">
+          <Avatar
+            onClick={() => onNavigate('/profile')}
+            sx={{
+              width: 34, height: 34, bgcolor: 'primary.main', fontSize: 13, flexShrink: 0,
+              cursor: 'pointer',
+              transition: 'box-shadow 0.2s, transform 0.2s',
+              '&:hover': { boxShadow: '0 0 0 3px rgba(25,118,210,0.25)', transform: 'scale(1.08)' },
+            }}>
+            {(user?.name ?? user?.email ?? 'S')[0].toUpperCase()}
+          </Avatar>
+        </Tooltip>
+        <Box
+          sx={{ flexGrow: 1, minWidth: 0, cursor: 'pointer' }}
+          onClick={() => onNavigate('/profile')}
+        >
           <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }} noWrap>
             {user?.name ?? 'Student'}
           </Typography>
@@ -266,6 +273,11 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
                 <NotificationsRoundedIcon />
               </Badge>
             </IconButton>
+            <Tooltip title="Profile">
+              <IconButton onClick={() => handleNavigate('/profile')}>
+                <PersonRoundedIcon />
+              </IconButton>
+            </Tooltip>
             <IconButton onClick={() => setMobileOpen(true)}>
               <MenuRoundedIcon />
             </IconButton>

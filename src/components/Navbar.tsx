@@ -47,7 +47,11 @@ export default function Navbar() {
   }, [isHomepage]);
 
   const hiddenPaths = ['/login', '/register', '/signup'];
-  const shouldHide = hiddenPaths.includes(pathname) || pathname.startsWith('/admin');
+  const studentPortalPaths = ['/dashboard', '/profile', '/applications', '/saved-listings', '/notifications'];
+  const shouldHide =
+    hiddenPaths.includes(pathname) ||
+    pathname.startsWith('/admin') ||
+    studentPortalPaths.some(p => pathname === p || pathname.startsWith(p + '/'));
   if (shouldHide) return null;
 
   const handleLogout = () => {
