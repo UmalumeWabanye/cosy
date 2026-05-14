@@ -144,8 +144,8 @@ export default function AdminPropertiesPage() {
           </Paper>
         ) : (
           <>
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
+            <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
+              <Table size="small" sx={{ minWidth: 700 }}>
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'action.hover' }}>
                     <TableCell sx={{ fontWeight: 700 }}>Property</TableCell>

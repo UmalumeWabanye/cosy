@@ -103,7 +103,8 @@ export default function ApplicationsPage() {
         </Stack>
 
         {/* Filters */}
-        <ToggleButtonGroup value={filter} exclusive onChange={(_, v) => v && setFilter(v)} size="small" sx={{ mb: 2.5 }}>
+        <Box sx={{ overflowX: 'auto', pb: 0.5, mb: 2.5 }}>
+        <ToggleButtonGroup value={filter} exclusive onChange={(_, v) => v && setFilter(v)} size="small" sx={{ flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
           {(['all', 'pending', 'approved', 'rejected'] as Filter[]).map(f => (
             <ToggleButton key={f} value={f} sx={{ textTransform: 'none', fontWeight: 600, px: 2 }}>
               {f === 'all' ? 'All' : STATUS_CONFIG[f].label}
@@ -114,6 +115,7 @@ export default function ApplicationsPage() {
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
+        </Box>
 
         {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
 
