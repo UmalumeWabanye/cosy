@@ -104,6 +104,17 @@ router.patch('/me', protect, async (req, res) => {
     const allowed = ['name', 'phone', 'university', 'fundingType', 'avatar'];
     const updates = {};
     allowed.forEach(field => { if (req.body[field] !== undefined) updates[field] = req.body[field]; });
+
+    // If avatar is a base64 data URI, upload it to Cloudinary
+    if (updates.avatar && updates.avatar.startsWith('data:')) {
+      const cloudinary = require('../config/cloudinary');
+      const result = await cloudinary.uploader.upload(updates.avatar, {
+        folder: 'cosy/avatars',
+        transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }],
+      });
+      updates.avatar = result.secure_url;
+    }
+
     const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { new: true, runValidators: true });
     res.json({ success: true, user });
   } catch (err) {
@@ -136,6 +147,17 @@ router.put('/profile', protect, async (req, res) => {
     const allowed = ['phone', 'whatsapp', 'avatar', 'city', 'province', 'propertyType', 'numberOfProperties', 'idNumber', 'profileComplete'];
     const updates = {};
     allowed.forEach(field => { if (req.body[field] !== undefined) updates[field] = req.body[field]; });
+
+    // Upload base64 avatar to Cloudinary
+    if (updates.avatar && updates.avatar.startsWith('data:')) {
+      const cloudinary = require('../config/cloudinary');
+      const result = await cloudinary.uploader.upload(updates.avatar, {
+        folder: 'cosy/avatars',
+        transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }],
+      });
+      updates.avatar = result.secure_url;
+    }
+
     const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { new: true, runValidators: true });
     res.json({ success: true, user });
   } catch (err) {
