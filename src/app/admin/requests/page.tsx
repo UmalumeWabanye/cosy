@@ -58,6 +58,7 @@ export default function AdminRequestsPage() {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [requestIdFromQuery, setRequestIdFromQuery] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -66,7 +67,27 @@ export default function AdminRequestsPage() {
     if (!isLoading && (!isAuthenticated || user?.role !== 'admin')) router.push('/');
   }, [isAuthenticated, isLoading, user, router]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const queryRequestId = new URLSearchParams(window.location.search).get('requestId');
+    setRequestIdFromQuery(queryRequestId);
+  }, []);
+
+  useEffect(() => {
+    if (requestIdFromQuery && statusFilter !== 'all') {
+      setStatusFilter('all');
+    }
+  }, [requestIdFromQuery, statusFilter]);
+
   useEffect(() => { fetchRequests(); }, [statusFilter]);
+
+  useEffect(() => {
+    if (!requestIdFromQuery) return;
+    const matched = requests.find((requestItem) => requestItem._id === requestIdFromQuery);
+    if (!matched) return;
+    setSelectedRequest(matched);
+    router.replace('/admin/requests');
+  }, [requestIdFromQuery, requests, router]);
 
   const fetchRequests = async () => {
     try {
