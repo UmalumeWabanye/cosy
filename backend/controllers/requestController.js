@@ -9,12 +9,14 @@ const createRequest = async (req, res, next) => {
     const { property, moveInDate, leaseDuration, fundingType, message } =
       req.body;
 
+    const normalizedFundingType = fundingType === 'Private / Bursary' ? 'Private' : fundingType;
+
     const request = await Request.create({
       student: req.user._id,
       property,
       moveInDate,
       leaseDuration,
-      fundingType,
+      fundingType: normalizedFundingType,
       message,
     });
 
@@ -30,7 +32,7 @@ const createRequest = async (req, res, next) => {
       refId: request._id,
     });
 
-    res.status(201).json(request);
+    res.status(201).json({ data: request });
   } catch (error) {
     next(error);
   }
@@ -42,9 +44,9 @@ const createRequest = async (req, res, next) => {
 const getMyRequests = async (req, res, next) => {
   try {
     const requests = await Request.find({ student: req.user._id })
-      .populate('property', 'propertyName city address images')
+      .populate('property', 'propertyName city address images price roomType')
       .sort({ createdAt: -1 });
-    res.json(requests);
+    res.json({ data: requests });
   } catch (error) {
     next(error);
   }
@@ -57,9 +59,9 @@ const getAllRequests = async (req, res, next) => {
   try {
     const requests = await Request.find()
       .populate('student', 'name email university fundingType')
-      .populate('property', 'propertyName city address')
+      .populate('property', 'propertyName city address images price roomType')
       .sort({ createdAt: -1 });
-    res.json(requests);
+    res.json({ data: requests });
   } catch (error) {
     next(error);
   }

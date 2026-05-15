@@ -35,8 +35,8 @@ import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 
 interface Request {
   _id: string;
-  userId: { _id: string; name: string; email: string; university: string };
-  propertyId: { _id: string; name: string; images: string[]; location: { address: string; city: string }; pricing: { minRent: number; maxRent: number; deposit: number } };
+  student: { _id: string; name: string; email: string; university: string };
+  property: { _id: string; propertyName?: string; city?: string; address?: string; images?: Array<string | { url?: string }>; price?: number; roomType?: string } | null;
   moveInDate: string;
   leaseDuration: string;
   fundingType: string;
@@ -73,7 +73,8 @@ export default function AdminRequestsPage() {
       setLoading(true);
       const params = statusFilter !== 'all' ? { status: statusFilter } : {};
       const res = await api.get('/requests', { params });
-      setRequests(Array.isArray(res.data.data) ? res.data.data : []);
+      const data = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+      setRequests(Array.isArray(data) ? data : []);
     } catch (e: any) {
       setError(e.response?.data?.message || 'Failed to load requests');
     } finally {
@@ -84,7 +85,7 @@ export default function AdminRequestsPage() {
   const handleApprove = async (id: string) => {
     try {
       setActionLoading(true);
-      await api.patch(`/requests/${id}`, { status: 'approved' });
+      await api.patch(`/requests/${id}/status`, { status: 'approved' });
       setRequests(prev => prev.map(r => r._id === id ? { ...r, status: 'approved' } : r));
       setSelectedRequest(null);
     } catch (e: any) { alert(e.response?.data?.message || 'Failed'); }
@@ -94,7 +95,7 @@ export default function AdminRequestsPage() {
   const handleReject = async (id: string) => {
     try {
       setActionLoading(true);
-      await api.patch(`/requests/${id}`, { status: 'rejected' });
+      await api.patch(`/requests/${id}/status`, { status: 'rejected' });
       setRequests(prev => prev.map(r => r._id === id ? { ...r, status: 'rejected' } : r));
       setSelectedRequest(null);
     } catch (e: any) { alert(e.response?.data?.message || 'Failed'); }
@@ -166,12 +167,12 @@ export default function AdminRequestsPage() {
                 {filtered.map(r => (
                   <TableRow key={r._id} hover>
                     <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }} >{r.userId?.name}</Typography>
-                      <Typography variant="caption" color="text.secondary">{r.userId?.email}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }} >{r.student?.name}</Typography>
+                      <Typography variant="caption" color="text.secondary">{r.student?.email}</Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2">{r.propertyId?.name}</Typography>
-                      <Typography variant="caption" color="text.secondary">{r.propertyId?.location?.city}</Typography>
+                      <Typography variant="body2">{r.property?.propertyName || 'Property'}</Typography>
+                      <Typography variant="caption" color="text.secondary">{r.property?.city}</Typography>
                     </TableCell>
                     <TableCell><Typography variant="body2">{new Date(r.moveInDate).toLocaleDateString()}</Typography></TableCell>
                     <TableCell><Typography variant="body2" sx={{ textTransform: 'capitalize' }}>{r.leaseDuration}</Typography></TableCell>
@@ -212,16 +213,16 @@ export default function AdminRequestsPage() {
             <DialogTitle sx={{ fontWeight: 700 }}>Request Details</DialogTitle>
             <DialogContent dividers>
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>PROPERTY</Typography>
-              <Typography sx={{ fontWeight: 600 }} >{selectedRequest.propertyId?.name}</Typography>
-              <Typography variant="body2" color="text.secondary">{selectedRequest.propertyId?.location?.address}, {selectedRequest.propertyId?.location?.city}</Typography>
-              <Typography variant="body2">R{selectedRequest.propertyId?.pricing?.minRent?.toLocaleString()} – R{selectedRequest.propertyId?.pricing?.maxRent?.toLocaleString()}</Typography>
+              <Typography sx={{ fontWeight: 600 }} >{selectedRequest.property?.propertyName || 'Property'}</Typography>
+              <Typography variant="body2" color="text.secondary">{selectedRequest.property?.address}, {selectedRequest.property?.city}</Typography>
+              {selectedRequest.property?.price != null && <Typography variant="body2">R{selectedRequest.property.price.toLocaleString()}</Typography>}
 
               <Divider sx={{ my: 2 }} />
 
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>STUDENT</Typography>
-              <Typography sx={{ fontWeight: 600 }} >{selectedRequest.userId?.name}</Typography>
-              <Typography variant="body2" color="text.secondary">{selectedRequest.userId?.email}</Typography>
-              <Typography variant="body2" color="text.secondary">{selectedRequest.userId?.university}</Typography>
+              <Typography sx={{ fontWeight: 600 }} >{selectedRequest.student?.name}</Typography>
+              <Typography variant="body2" color="text.secondary">{selectedRequest.student?.email}</Typography>
+              <Typography variant="body2" color="text.secondary">{selectedRequest.student?.university}</Typography>
 
               <Divider sx={{ my: 2 }} />
 

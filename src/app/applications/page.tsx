@@ -38,11 +38,15 @@ interface Req {
   fundingType: string;
   message: string;
   createdAt: string;
-  propertyId: {
-    _id: string; name: string;
-    images: string[];
-    location: { city: string; address: string };
-    pricing: { minRent: number };
+  property?: {
+    _id: string;
+    propertyName?: string;
+    name?: string;
+    city?: string;
+    address?: string;
+    images?: Array<string | { url?: string }>;
+    price?: number;
+    roomType?: string;
   } | null;
 }
 
@@ -70,7 +74,8 @@ export default function ApplicationsPage() {
   const fetchReqs = useCallback(async () => {
     try {
       const res = await api.get('/requests/my');
-      setReqs(res.data.data ?? []);
+      const data = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+      setReqs(data);
     } catch { setError('Failed to load applications.'); } finally { setLoading(false); }
   }, []);
 
@@ -142,8 +147,9 @@ export default function ApplicationsPage() {
           <Stack sx={{ gap: 2 }}>
             {filtered.map(req => {
               const cfg = STATUS_CONFIG[req.status];
-              const prop = req.propertyId;
-              const img = prop?.images?.[0];
+              const prop = req.property;
+              const firstImage = prop?.images?.[0];
+              const img = typeof firstImage === 'string' ? firstImage : firstImage?.url;
               return (
                 <Paper key={req._id} elevation={0} sx={{
                   borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden',
@@ -165,13 +171,13 @@ export default function ApplicationsPage() {
                       <Stack sx={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1, mb: 1, flexWrap: 'wrap' }}>
                         <Box sx={{ minWidth: 0, flex: 1 }}>
                           <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2, wordBreak: 'break-word' }}>
-                            {prop?.name ?? 'Property Unavailable'}
+                            {prop?.propertyName || prop?.name || 'Property Unavailable'}
                           </Typography>
-                          {prop?.location && (
+                          {(prop?.address || prop?.city) && (
                             <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 0.5, mt: 0.25, flexWrap: 'wrap' }}>
                               <LocationOnRoundedIcon sx={{ fontSize: 13, color: 'text.disabled', flexShrink: 0 }} />
                               <Typography variant="caption" color="text.secondary">
-                                {prop.location.address}, {prop.location.city}
+                                {prop?.address}{prop?.address && prop?.city ? ', ' : ''}{prop?.city}
                               </Typography>
                             </Stack>
                           )}
@@ -185,10 +191,10 @@ export default function ApplicationsPage() {
 
                       {/* Meta row */}
                       <Stack sx={{ flexDirection: 'row', flexWrap: 'wrap', gap: { xs: 1, sm: 2 }, mb: 1.5 }}>
-                        {prop?.pricing?.minRent && (
+                        {prop?.price != null && (
                           <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 0.5 }}>
                             <PaidRoundedIcon sx={{ fontSize: 14, color: 'text.disabled' }} />
-                            <Typography variant="caption" color="text.secondary">R{prop.pricing.minRent.toLocaleString()}/mo</Typography>
+                            <Typography variant="caption" color="text.secondary">R{prop.price.toLocaleString()}/mo</Typography>
                           </Stack>
                         )}
                         <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 0.5 }}>

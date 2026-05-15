@@ -205,7 +205,7 @@ function AppNavbar({ pendingCount, onToggleMobile }: { pendingCount: number; onT
   const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
   const handleProfile = () => { handleClose(); window.location.href = '/profile'; };
-  const handleSignOut = () => { handleClose(); logout(); window.location.href = '/login'; };
+  const handleSignOut = () => { handleClose(); logout(); window.location.href = '/'; };
 
   return (
     <AppBar position="fixed" elevation={0} sx={{ display: { xs: 'flex', md: 'none' }, bgcolor: 'background.paper', color: 'text.primary', borderBottom: '1px solid', borderColor: 'divider', backgroundImage: 'none' }}>
@@ -336,7 +336,7 @@ export default function AdminDashboardClientInner() {
         {/* Landlord onboarding wizard */}
         <LandlordProfileWizard open={showWizard} onClose={() => setShowWizard(false)} />
 
-        <SideMenu user={user} pendingCount={pendingReqs} pathname={pathname ?? ''} onNavigate={router.push} onLogout={() => { logout(); router.push('/login'); }} />
+        <SideMenu user={user} pendingCount={pendingReqs} pathname={pathname ?? ''} onNavigate={router.push} onLogout={() => { logout(); router.push('/'); }} />
         <AppNavbar pendingCount={pendingReqs} onToggleMobile={() => setMobileOpen(true)} />
 
         <MuiDrawer variant="temporary" open={mobileOpen} onClose={() => setMobileOpen(false)}
