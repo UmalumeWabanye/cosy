@@ -19,9 +19,10 @@ router.post('/', protect, async (req, res) => {
       note,
     });
 
-    const populated = await viewing
-      .populate('student', 'name email university course avatar')
-      .populate('property', 'propertyName city address images price roomType createdBy');
+    const populated = await viewing.populate([
+      { path: 'student', select: 'name email university course avatar' },
+      { path: 'property', select: 'propertyName city address images price roomType createdBy' },
+    ]);
 
     res.status(201).json({ data: populated });
   } catch (err) {

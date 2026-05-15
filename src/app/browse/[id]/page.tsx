@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import StudentLayout from '@/components/student/StudentLayout';
+import SaveButton from '@/components/SaveButton';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -246,7 +247,10 @@ export default function PropertyDetailsPage() {
             <Grid size={{ xs: 12, md: 4 }}>
               <Card variant="outlined" sx={{ position: { md: 'sticky' }, top: { md: 80 } }}>
                 <CardContent>
-                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>{propertyName}</Typography>
+                  <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 800 }}>{propertyName}</Typography>
+                    <SaveButton propertyId={propertyId} size="small" />
+                  </Stack>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, mb: 2 }}>
                     <LocationOnOutlinedIcon sx={{ fontSize: 16, color: 'primary.main', mt: 0.3 }} />
                     <Box>

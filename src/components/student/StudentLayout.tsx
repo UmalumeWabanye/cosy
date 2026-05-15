@@ -8,9 +8,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import AppBar from '@mui/material/AppBar';
 import MuiDrawer from '@mui/material/Drawer';
-import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
@@ -268,48 +266,11 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
         <SideMenu user={user} unreadCount={unreadCount} pathname={pathname} onNavigate={handleNavigate} onLogout={handleLogout} />
       </MuiDrawer>
 
-      {/* Mobile AppBar */}
-      <AppBar position="fixed" elevation={0} sx={{
-        display: { xs: 'flex', md: 'none' },
-        bgcolor: 'background.paper', color: 'text.primary',
-        borderBottom: '1px solid', borderColor: 'divider', backgroundImage: 'none',
-      }}>
-        <Toolbar sx={{ justifyContent: 'space-between', minHeight: 56 }}>
-          <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
-            <Box sx={{
-              width: 28, height: 28, borderRadius: 1,
-              background: 'linear-gradient(135deg, #1976d2, #1565c0)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 16 }} />
-            </Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              {breadcrumb[breadcrumb.length - 1]}
-            </Typography>
-          </Stack>
-          <Stack sx={{ flexDirection: 'row', gap: 0.5 }}>
-            <IconButton onClick={() => handleNavigate('/notifications')}>
-              <Badge badgeContent={unreadCount || undefined} color="error">
-                <NotificationsRoundedIcon />
-              </Badge>
-            </IconButton>
-            <Tooltip title="Profile">
-              <IconButton onClick={() => handleNavigate('/profile')}>
-                <PersonRoundedIcon />
-              </IconButton>
-            </Tooltip>
-            <IconButton onClick={() => setMobileOpen(true)}>
-              <MenuRoundedIcon />
-            </IconButton>
-          </Stack>
-        </Toolbar>
-      </AppBar>
-
       {/* Main content */}
       <Box component="main" sx={{
         flexGrow: 1,
         ml: { md: `${DRAWER_WIDTH}px` },
-        mt: { xs: '56px', md: 0 },
+        mt: 0,
         minHeight: '100vh',
         bgcolor: 'grey.50',
         display: 'flex',
@@ -326,10 +287,13 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
           borderBottom: '1px solid', borderColor: 'divider',
           boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
           backdropFilter: 'blur(8px)',
-          display: { xs: 'none', md: 'flex' },
+          display: 'flex',
           alignItems: 'center',
           gap: 0.5,
         }}>
+          <IconButton size="small" onClick={() => setMobileOpen(true)} sx={{ display: { xs: 'inline-flex', md: 'none' }, mr: 0.5 }}>
+            <MenuRoundedIcon fontSize="small" />
+          </IconButton>
           {breadcrumb.map((crumb, i) => (
             <React.Fragment key={crumb}>
               {i > 0 && <ChevronRightRoundedIcon sx={{ fontSize: 16, color: 'text.disabled' }} />}
@@ -347,11 +311,30 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
             </React.Fragment>
           ))}
           <Box sx={{ flexGrow: 1 }} />
+          <Tooltip title="Notifications">
+            <IconButton size="small" onClick={() => handleNavigate('/notifications')} sx={{ display: { xs: 'inline-flex', md: 'none' } }}>
+              <Badge badgeContent={unreadCount || undefined} color="error" max={99}>
+                <NotificationsRoundedIcon fontSize="small" />
+              </Badge>
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Profile">
+            <IconButton size="small" onClick={() => handleNavigate('/profile')} sx={{ display: { xs: 'inline-flex', md: 'none' } }}>
+              <PersonRoundedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
           {user?.fundingType && (
             <Chip
               label={user.fundingType}
               size="small"
-              sx={{ fontSize: 11, height: 22, bgcolor: 'rgba(25,118,210,0.08)', color: 'primary.main', fontWeight: 600 }}
+              sx={{
+                display: { xs: 'none', md: 'inline-flex' },
+                fontSize: 11,
+                height: 22,
+                bgcolor: 'rgba(25,118,210,0.08)',
+                color: 'primary.main',
+                fontWeight: 600,
+              }}
             />
           )}
         </Box>

@@ -8,14 +8,10 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import AppBar from '@mui/material/AppBar';
 import MuiDrawer from '@mui/material/Drawer';
-import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
 import InputBase from '@mui/material/InputBase';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -76,9 +72,10 @@ function getBreadcrumb(pathname: string): string[] {
   return ['Admin'];
 }
 
-function ContentHeader({ pathname, onNavigate }: {
+function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
   pathname: string;
   onNavigate: (path: string) => void;
+  onOpenMenu?: () => void;
 }) {
   const breadcrumb = getBreadcrumb(pathname);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -129,14 +126,23 @@ function ContentHeader({ pathname, onNavigate }: {
     <Stack
       direction="row"
       sx={{
-        display: { xs: 'none', md: 'flex' },
+        display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        gap: 1,
+        flexWrap: { xs: 'wrap', md: 'nowrap' },
         pb: 1.5,
         mb: 0,
       }}
     >
       <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
+        <IconButton
+          size="small"
+          onClick={() => onOpenMenu?.()}
+          sx={{ display: { xs: 'inline-flex', md: 'none' } }}
+        >
+          <MenuRoundedIcon fontSize="small" />
+        </IconButton>
         {breadcrumb.map((crumb, i) => (
           <React.Fragment key={crumb}>
             {i > 0 && <ChevronRightRoundedIcon sx={{ fontSize: 16, color: 'text.disabled' }} />}
@@ -155,7 +161,7 @@ function ContentHeader({ pathname, onNavigate }: {
         ))}
       </Stack>
 
-      <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5 }}>
+      <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5, display: { xs: 'none', md: 'flex' } }}>
         {/* Search */}
         <Stack
           direction="row"
@@ -446,9 +452,6 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-  const menuOpen = Boolean(menuAnchor);
-
   const handleNavigate = (path: string) => {
     setMobileOpen(false);
     router.push(path);
@@ -511,60 +514,13 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
         />
       </MuiDrawer>
 
-      {/* Mobile AppBar */}
-      <AppBar
-        position="fixed"
-        elevation={0}
-        sx={{
-          display: { xs: 'flex', md: 'none' },
-          bgcolor: 'background.paper',
-          color: 'text.primary',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          backgroundImage: 'none',
-        }}
-      >
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
-          <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
-            <Box
-              sx={{
-                width: 28, height: 28, borderRadius: 1,
-                background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-            >
-              <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 16 }} />
-            </Box>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>Cosy Admin</Typography>
-          </Stack>
-          <Stack direction="row" sx={{ gap: 0.5 }}>
-            <IconButton onClick={() => handleNavigate('/admin/notifications')}>
-              <Badge badgeContent={pendingCount || undefined} color="error">
-                <NotificationsRoundedIcon />
-              </Badge>
-            </IconButton>
-            {/* Avatar + profile/logout menu */}
-            <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)} aria-controls={menuOpen ? 'layout-menu' : undefined} aria-haspopup="true" aria-expanded={menuOpen ? 'true' : undefined}>
-              <Avatar sx={{ width: 30, height: 30, bgcolor: 'primary.main', fontSize: 13 }}>{(user?.name ?? user?.email ?? 'A')[0].toUpperCase()}</Avatar>
-            </IconButton>
-            <IconButton onClick={() => setMobileOpen(true)}>
-              <MenuRoundedIcon />
-            </IconButton>
-            <Menu id="layout-menu" anchorEl={menuAnchor} open={menuOpen} onClose={() => setMenuAnchor(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }}>
-              <MenuItem onClick={() => { setMenuAnchor(null); router.push('/profile'); }}>Profile</MenuItem>
-              <MenuItem onClick={() => { setMenuAnchor(null); handleLogout(); }}>Logout</MenuItem>
-            </Menu>
-          </Stack>
-        </Toolbar>
-      </AppBar>
-
       {/* Main content */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           ml: { md: `${DRAWER_WIDTH}px` },
-          mt: { xs: '64px', md: 0 },
+          mt: 0,
           minHeight: '100vh',
           bgcolor: 'background.default',
           display: 'flex',
@@ -590,7 +546,7 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
             boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
           }}
         >
-          <ContentHeader pathname={pathname} onNavigate={handleNavigate} />
+          <ContentHeader pathname={pathname} onNavigate={handleNavigate} onOpenMenu={() => setMobileOpen(true)} />
         </Box>
         {children}
       </Box>

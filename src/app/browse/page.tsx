@@ -21,6 +21,7 @@ import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import StudentLayout from '@/components/student/StudentLayout';
+import SaveButton from '@/components/SaveButton';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -337,9 +338,12 @@ export default function BrowsePage() {
                           <Typography sx={{ fontWeight: 700, fontSize: '0.93rem', color: 'text.primary', lineHeight: 1.3 }} noWrap>
                             {getTitle(prop)}
                           </Typography>
-                          {prop.roomType && (
-                            <Chip label={prop.roomType} size="small" sx={{ flexShrink: 0, fontSize: '0.66rem', fontWeight: 600, textTransform: 'capitalize', bgcolor: '#f0f4f8', color: 'text.secondary', height: 20 }} />
-                          )}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, flexShrink: 0 }}>
+                            {prop.roomType && (
+                              <Chip label={prop.roomType} size="small" sx={{ fontSize: '0.66rem', fontWeight: 600, textTransform: 'capitalize', bgcolor: '#f0f4f8', color: 'text.secondary', height: 20 }} />
+                            )}
+                            <SaveButton propertyId={prop._id} size="small" />
+                          </Box>
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.2 }}>
                           <LocationOnRoundedIcon sx={{ fontSize: 13, color: 'text.disabled', flexShrink: 0 }} />
