@@ -68,8 +68,11 @@ export default function RequestsPage() {
         const res = await api.get('/requests/my');
         const data = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
         setRequests(data);
-      } catch (e: any) {
-        setError(e.response?.data?.message || 'Failed to load applications');
+      } catch (e: unknown) {
+        const message = typeof e === 'object' && e && 'response' in e
+          ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+        setError(message || 'Failed to load applications');
       } finally { setLoading(false); }
     };
     load();
@@ -136,7 +139,8 @@ export default function RequestsPage() {
             {filtered.map(req => {
               const prop = req.property;
               const status = STATUS_CONFIG[req.status] ?? STATUS_CONFIG.pending;
-              const imgUrl = prop?.images?.[0]?.url;
+              const firstImage = prop?.images?.[0];
+              const imgUrl = typeof firstImage === 'string' ? firstImage : firstImage?.url;
               return (
                 <Card key={req._id} variant="outlined" sx={{ borderRadius: 2.5, overflow: 'hidden', transition: 'box-shadow 0.2s', '&:hover': { boxShadow: '0 4px 20px rgba(0,0,0,0.09)' } }}>
                   <Stack direction={{ xs: 'column', sm: 'row' }}>

@@ -9,7 +9,6 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
@@ -56,7 +55,7 @@ interface Property {
 export default function PropertyDetailsPage() {
   const router = useRouter();
   const params = useParams();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const [property, setProperty] = useState<Property | null>(null);
   const [error, setError] = useState('');
@@ -70,8 +69,11 @@ export default function PropertyDetailsPage() {
         setLoading(true);
         const response = await api.get(`/properties/${propertyId}`);
         setProperty(response.data);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to load property');
+      } catch (err: unknown) {
+        const message = typeof err === 'object' && err && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+        setError(message || 'Failed to load property');
       } finally {
         setLoading(false);
       }

@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import React from 'react';
 import Link from 'next/link';
 import nextDynamic from 'next/dynamic';
@@ -66,8 +66,18 @@ interface PropertyMapProps {
 
 const TypedPropertyMap = PropertyMap as React.ComponentType<PropertyMapProps>;
 
-const NAVBAR_H = 64;
 const FILTERBAR_H = 60;
+
+type FilterState = {
+  search: string;
+  city: string;
+  university: string;
+  minPrice: string;
+  maxPrice: string;
+  roomType: string;
+  nsfas: boolean;
+  sortBy: string;
+};
 
 export default function BrowsePage() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -76,7 +86,7 @@ export default function BrowsePage() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [showMap, setShowMap] = useState(true);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<FilterState>({
     search: '', city: '', university: '', minPrice: '', maxPrice: '',
     roomType: '', nsfas: false, sortBy: 'newest',
   });
@@ -93,9 +103,7 @@ export default function BrowsePage() {
     }));
   }, []);
 
-  useEffect(() => { fetchProperties(); }, [filters]);
-
-  const fetchProperties = async () => {
+  const fetchProperties = useCallback(async () => {
     try {
       setLoading(true); setError('');
       const params = new URLSearchParams();
@@ -110,12 +118,17 @@ export default function BrowsePage() {
       const res = await api.get(`/properties?${params.toString()}`);
       const data = res.data;
       setProperties(Array.isArray(data) ? data : data.properties ?? data.data ?? []);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load properties');
+    } catch (err: unknown) {
+      const message = typeof err === 'object' && err && 'response' in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+        : undefined;
+      setError(message || 'Failed to load properties');
     } finally { setLoading(false); }
-  };
+  }, [filters]);
 
-  const set = (key: string, value: any) => setFilters((p) => ({ ...p, [key]: value }));
+  useEffect(() => { fetchProperties(); }, [fetchProperties]);
+
+  const set = (key: keyof FilterState, value: string | boolean) => setFilters((p) => ({ ...p, [key]: value }));
   const clearFilters = () => setFilters({ search: '', city: '', university: '', minPrice: '', maxPrice: '', roomType: '', nsfas: false, sortBy: 'newest' });
   const hasActiveFilters = !!(filters.city || filters.university || filters.minPrice || filters.maxPrice || filters.roomType || filters.nsfas);
 

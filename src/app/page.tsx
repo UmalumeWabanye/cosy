@@ -11,7 +11,6 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Chip from '@mui/material/Chip';
 import Container from '@mui/material/Container';
-import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
@@ -666,7 +665,7 @@ export default function HomePage() {
                   >
                     <FormatQuoteRoundedIcon sx={{ fontSize: 36, color: '#bbdefb', mb: 1 }} />
                     <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.75, mb: 3, fontStyle: 'italic' }}>
-                      "{t.quote}"
+                      &ldquo;{t.quote}&rdquo;
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <Avatar src={t.photo} alt={t.name} sx={{ bgcolor: t.color, width: 40, height: 40, fontWeight: 700, fontSize: '0.85rem' }}>
@@ -698,7 +697,7 @@ export default function HomePage() {
               Ready to Find Your Home?
             </Typography>
             <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.8)', mb: 5, lineHeight: 1.7 }}>
-              Join thousands of students who found their perfect accommodation with Cosy. It's free to register.
+              Join thousands of students who found their perfect accommodation with Cosy. It&apos;s free to register.
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Button
@@ -749,7 +748,7 @@ export default function HomePage() {
                   <Typography sx={{ fontWeight: 900, color: 'white', fontSize: 22, letterSpacing: '-0.02em' }}>Cosy</Typography>
                 </Box>
                 <Typography variant="body2" sx={{ maxWidth: 280, lineHeight: 1.85, mb: 3 }}>
-                  South Africa's leading student accommodation platform — connecting students with verified, affordable housing near their universities.
+                  South Africa&apos;s leading student accommodation platform — connecting students with verified, affordable housing near their universities.
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   {[
