@@ -1,6 +1,7 @@
 const express = require('express');
 const { protect } = require('../middleware/auth');
 const Notification = require('../models/Notification');
+const User = require('../models/User');
 
 const router = express.Router();
 
@@ -54,6 +55,50 @@ router.delete('/notifications/:id', protect, async (req, res) => {
   try {
     await Notification.findOneAndDelete({ _id: req.params.id, recipient: req.user._id });
     res.json({ message: 'Deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/student/roommates
+router.get('/roommates', protect, async (req, res) => {
+  try {
+    const { search = '', fundingType, yearOfStudy, limit = 24 } = req.query;
+
+    const baseFilter = {
+      role: 'student',
+      _id: { $ne: req.user._id },
+      profileComplete: true,
+    };
+
+    if (fundingType) baseFilter.fundingType = fundingType;
+    if (yearOfStudy) baseFilter.yearOfStudy = yearOfStudy;
+    if (search) {
+      baseFilter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { university: { $regex: search, $options: 'i' } },
+        { course: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const peers = await User.find(baseFilter)
+      .select('name email avatar university course yearOfStudy fundingType isVerified profileComplete')
+      .limit(Number(limit) * 2)
+      .lean();
+
+    const current = req.user;
+    const scored = peers.map((peer) => {
+      let score = 0;
+      if (current.university && peer.university && current.university === peer.university) score += 40;
+      if (current.course && peer.course && current.course === peer.course) score += 30;
+      if (current.fundingType && peer.fundingType && current.fundingType === peer.fundingType) score += 20;
+      if (current.yearOfStudy && peer.yearOfStudy && current.yearOfStudy === peer.yearOfStudy) score += 10;
+      return { ...peer, matchScore: score };
+    });
+
+    scored.sort((a, b) => b.matchScore - a.matchScore || a.name.localeCompare(b.name));
+
+    res.json({ data: scored.slice(0, Number(limit)) });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

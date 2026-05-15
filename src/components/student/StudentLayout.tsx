@@ -31,6 +31,9 @@ import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import ChatRoundedIcon from '@mui/icons-material/ChatRounded';
+import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded';
+import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
@@ -51,6 +54,9 @@ const NAV_ITEMS = [
   { label: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/dashboard' },
   { label: 'Browse Properties', icon: <SearchRoundedIcon />, path: '/browse' },
   { label: 'My Applications', icon: <AssignmentRoundedIcon />, path: '/applications' },
+  { label: 'Viewing Bookings', icon: <EventAvailableRoundedIcon />, path: '/viewings' },
+  { label: 'Messages', icon: <ChatRoundedIcon />, path: '/messages' },
+  { label: 'Roommates', icon: <GroupsRoundedIcon />, path: '/roommates' },
   { label: 'Saved Listings', icon: <BookmarkRoundedIcon />, path: '/saved-listings' },
   { label: 'Notifications', icon: <NotificationsRoundedIcon />, path: '/notifications', badge: true },
 ];
@@ -60,6 +66,9 @@ function getBreadcrumb(pathname: string): string[] {
   if (pathname.startsWith('/browse') && pathname !== '/browse') return ['Home', 'Browse', 'Property Detail'];
   if (pathname.startsWith('/browse')) return ['Home', 'Browse Properties'];
   if (pathname.startsWith('/applications')) return ['Home', 'My Applications'];
+  if (pathname.startsWith('/viewings')) return ['Home', 'Viewing Bookings'];
+  if (pathname.startsWith('/messages')) return ['Home', 'Messages'];
+  if (pathname.startsWith('/roommates')) return ['Home', 'Roommates'];
   if (pathname.startsWith('/saved-listings')) return ['Home', 'Saved Listings'];
   if (pathname.startsWith('/notifications')) return ['Home', 'Notifications'];
   if (pathname.startsWith('/profile')) return ['Home', 'Profile'];
@@ -67,7 +76,7 @@ function getBreadcrumb(pathname: string): string[] {
 }
 
 interface SideMenuProps {
-  user: { name?: string; email?: string; fundingType?: string } | null;
+  user: { name?: string; email?: string; fundingType?: string; isVerified?: boolean } | null;
   unreadCount: number;
   pathname: string;
   onNavigate: (path: string) => void;
@@ -170,6 +179,14 @@ function SideMenu({ user, unreadCount, pathname, onNavigate, onLogout }: SideMen
           <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
             {user?.email ?? ''}
           </Typography>
+          {user?.isVerified ? (
+            <Chip
+              size="small"
+              label="Verified"
+              color="success"
+              sx={{ mt: 0.4, height: 18, fontSize: 10, fontWeight: 700 }}
+            />
+          ) : null}
         </Box>
         <Tooltip title="Sign out">
           <IconButton size="small" onClick={onLogout}>

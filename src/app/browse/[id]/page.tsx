@@ -27,6 +27,8 @@ import LockIcon from '@mui/icons-material/Lock';
 import ShowerIcon from '@mui/icons-material/Shower';
 import SatelliteIcon from '@mui/icons-material/Satellite';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import ChatRoundedIcon from '@mui/icons-material/ChatRounded';
+import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded';
 import api from '@/services/api';
 
 const amenityIcons: Record<string, React.ReactNode> = {
@@ -50,7 +52,7 @@ interface Property {
   amenities: string[];
   distanceFromCampus?: number;
   isAvailable: boolean;
-  createdBy: { name?: string; email?: string; avatar?: string };
+  createdBy: { _id?: string; name?: string; email?: string; avatar?: string };
   createdAt: string;
 }
 
@@ -114,6 +116,24 @@ export default function PropertyDetailsPage() {
   const handleApplyClick = () => {
     if (!isAuthenticated) { router.push('/login'); return; }
     router.push(`/browse/${propertyId}/request`);
+  };
+
+  const handleMessageOwner = async () => {
+    if (!isAuthenticated) { router.push('/'); return; }
+    const recipientId = property?.createdBy?._id;
+    if (!recipientId) return;
+    try {
+      const created = await api.post('/messages', { recipientId, propertyId });
+      const conversationId = created?.data?.data?._id;
+      router.push(conversationId ? `/messages?conversationId=${conversationId}` : '/messages');
+    } catch {
+      router.push('/messages');
+    }
+  };
+
+  const handleBookViewing = () => {
+    if (!isAuthenticated) { router.push('/'); return; }
+    router.push(`/viewings?propertyId=${propertyId}`);
   };
 
   const getImageUrl = (image?: { url?: string } | string) => {
@@ -280,6 +300,12 @@ export default function PropertyDetailsPage() {
 
                   <Button onClick={handleApplyClick} variant="contained" fullWidth sx={{ mb: 1, textTransform: 'none', fontWeight: 700, py: 1.5 }}>
                     Apply Now
+                  </Button>
+                  <Button onClick={handleBookViewing} variant="outlined" startIcon={<EventAvailableRoundedIcon />} fullWidth sx={{ textTransform: 'none', mb: 1 }}>
+                    Book Viewing
+                  </Button>
+                  <Button onClick={handleMessageOwner} variant="outlined" startIcon={<ChatRoundedIcon />} fullWidth sx={{ textTransform: 'none', mb: 1 }}>
+                    Message Owner
                   </Button>
                   <Button onClick={() => router.push('/browse')} variant="outlined" fullWidth sx={{ textTransform: 'none' }}>
                     Back to Browse

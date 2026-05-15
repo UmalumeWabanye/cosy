@@ -11,6 +11,8 @@ export interface User {
   fundingType?: string;
   avatar?: string;
   idNumber?: string;
+  isVerified?: boolean;
+  profileComplete?: boolean;
 }
 
 interface AuthStore {

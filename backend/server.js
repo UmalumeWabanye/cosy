@@ -12,6 +12,9 @@ const propertyRoutes = require('./routes/propertyRoutes');
 const requestRoutes = require('./routes/requestRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const studentRoutes = require('./routes/studentRoutes');
+const savedRoutes = require('./routes/savedRoutes');
+const messageRoutes = require('./routes/messageRoutes');
+const viewingRoutes = require('./routes/viewingRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -95,6 +98,9 @@ app.use('/api/properties', propertyRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/student', studentRoutes);
+app.use('/api/saved', savedRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/viewings', viewingRoutes);
 
 // Backwards-compatible admin-prefixed routes (some frontends call /api/admin/...)
 app.use('/api/admin/properties', propertyRoutes);
