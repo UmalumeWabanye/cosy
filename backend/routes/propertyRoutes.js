@@ -15,9 +15,9 @@ const { protect, adminOnly } = require('../middleware/auth');
 // multer — memory storage so we can pass buffer to Cloudinary
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
-// Only admins should be able to list properties under the admin-prefixed mount
+// Student-facing property browsing must remain public.
 router.get('/mine', protect, adminOnly, getMyProperties);
-router.get('/', protect, adminOnly, getProperties);
+router.get('/', getProperties);
 router.get('/:id', getProperty);
 router.post('/', protect, adminOnly, createProperty);
 router.put('/:id', protect, adminOnly, updateProperty);

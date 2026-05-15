@@ -142,13 +142,17 @@ const TESTIMONIALS = [
 
 interface Property {
   _id: string;
-  title: string;
+  propertyName?: string;
+  title?: string;
+  name?: string;
   city: string;
   price: number;
   roomType: string;
-  fundingType: string;
-  images: string[];
-  university: string;
+  fundingType?: string;
+  nsfasAccredited?: boolean;
+  images?: Array<string | { url?: string }>;
+  universityNearby?: string;
+  university?: string;
 }
 
 export default function HomePage() {
@@ -180,6 +184,16 @@ export default function HomePage() {
     if (roomType) params.set('roomType', roomType);
     router.push(`/browse?${params.toString()}`);
   };
+
+  const getPropertyTitle = (property: Property) => property.propertyName || property.title || property.name || 'Student Accommodation';
+  const getPropertyCity = (property: Property) => property.city || '—';
+  const getPropertyImage = (property: Property, index: number) => {
+    const image = property.images?.[0];
+    if (typeof image === 'string') return image;
+    if (image && typeof image === 'object' && image.url) return image.url;
+    return `https://images.unsplash.com/photo-${['1522708323590-d24dbb6b0267','1560448204-e02f11c3d0e2','1484154218962-a197022b5858','1512918728675-ed5a585ecca5','1493809842364-78817add7ffb','1555854877-bab0e564b8d5'][index % 6]}?w=600&h=360&fit=crop&auto=format`;
+  };
+  const isNsfasProperty = (property: Property) => property.fundingType === 'nsfas' || property.nsfasAccredited;
 
   return (
     <ThemeProvider theme={theme}>
@@ -539,29 +553,29 @@ export default function HomePage() {
                           }}
                         >
                           {prop.images?.[0] ? (
-                            <CardMedia component="img" height={180} image={prop.images[0]} alt={prop.title} sx={{ objectFit: 'cover' }} />
+                            <CardMedia component="img" height={180} image={getPropertyImage(prop, featured.indexOf(prop))} alt={getPropertyTitle(prop)} sx={{ objectFit: 'cover' }} />
                           ) : (
                             <Box
                               component="img"
-                              src={`https://images.unsplash.com/photo-${['1522708323590-d24dbb6b0267','1560448204-e02f11c3d0e2','1484154218962-a197022b5858','1512918728675-ed5a585ecca5','1493809842364-78817add7ffb','1555854877-bab0e564b8d5'][featured.indexOf(prop) % 6]}?w=600&h=360&fit=crop&auto=format`}
-                              alt={prop.title}
+                              src={getPropertyImage(prop, featured.indexOf(prop))}
+                              alt={getPropertyTitle(prop)}
                               sx={{ width: '100%', height: 180, objectFit: 'cover', display: 'block' }}
                             />
                           )}
                           <CardContent>
                             <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', mb: 0.5 }} noWrap>
-                              {prop.title}
+                              {getPropertyTitle(prop)}
                             </Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary', mb: 1.5 }}>
                               <LocationOnRoundedIcon sx={{ fontSize: 14 }} />
-                              <Typography variant="caption">{prop.city}</Typography>
+                              <Typography variant="caption">{getPropertyCity(prop)}</Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
                               <Typography sx={{ fontWeight: 800, color: '#1976d2', fontSize: '1rem' }}>
                                 R {prop.price?.toLocaleString()}/mo
                               </Typography>
                               <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                                {prop.fundingType === 'nsfas' && (
+                                {isNsfasProperty(prop) && (
                                   <Chip label="NSFAS" size="small" sx={{ bgcolor: '#e3f2fd', color: '#1565c0', fontWeight: 600, fontSize: '0.65rem', height: 20 }} />
                                 )}
                                 {prop.roomType && (

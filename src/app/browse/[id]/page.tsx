@@ -37,6 +37,7 @@ const amenityIcons: Record<string, React.ReactNode> = {
 interface Property {
   _id: string;
   propertyName: string;
+  name?: string;
   description: string;
   city: string;
   address: string;
@@ -44,7 +45,7 @@ interface Property {
   price: number;
   roomType: string;
   nsfasAccredited: boolean;
-  images: { url: string; publicId?: string }[];
+  images: Array<{ url?: string; publicId?: string } | string>;
   amenities: string[];
   distanceFromCampus?: number;
   isAvailable: boolean;
@@ -111,6 +112,13 @@ export default function PropertyDetailsPage() {
     router.push(`/browse/${propertyId}/request`);
   };
 
+  const getImageUrl = (image?: { url?: string } | string) => {
+    if (!image) return '';
+    return typeof image === 'string' ? image : image.url || '';
+  };
+
+  const propertyName = property.propertyName || property.name || 'Accommodation';
+
   return (
     <StudentLayout>
       <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh' }}>
@@ -136,8 +144,8 @@ export default function PropertyDetailsPage() {
                   <>
                     <Box sx={{ height: 400, overflow: 'hidden' }}>
                       <img
-                        src={property.images[activeImageIndex]?.url}
-                        alt={property.propertyName}
+                        src={getImageUrl(property.images[activeImageIndex])}
+                        alt={propertyName}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                     </Box>
@@ -155,7 +163,7 @@ export default function PropertyDetailsPage() {
                               '&:hover': { opacity: 1 },
                             }}
                           >
-                            <img src={img.url} alt={`${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={getImageUrl(img)} alt={`${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </Box>
                         ))}
                       </Box>
@@ -214,7 +222,7 @@ export default function PropertyDetailsPage() {
             <Grid size={{ xs: 12, md: 4 }}>
               <Card variant="outlined" sx={{ position: { md: 'sticky' }, top: { md: 80 } }}>
                 <CardContent>
-                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>{property.propertyName}</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>{propertyName}</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, mb: 2 }}>
                     <LocationOnOutlinedIcon sx={{ fontSize: 16, color: 'primary.main', mt: 0.3 }} />
                     <Box>

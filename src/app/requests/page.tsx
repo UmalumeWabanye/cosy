@@ -23,11 +23,12 @@ import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined
 interface Property {
   _id: string;
   propertyName?: string;
+  name?: string;
   city?: string;
   address?: string;
   price?: number;
   roomType?: string;
-  images?: { url: string }[];
+  images?: Array<{ url?: string } | string>;
   nsfasAccredited?: boolean;
 }
 
@@ -86,6 +87,13 @@ export default function RequestsPage() {
 
   const filtered = filter === 'all' ? requests : requests.filter(r => r.status === filter);
 
+  const getPropertyTitle = (property?: Property) => property?.propertyName || property?.name || 'Property';
+  const getPropertyImage = (property?: Property) => {
+    const image = property?.images?.[0];
+    if (!image) return '';
+    return typeof image === 'string' ? image : image.url || '';
+  };
+
   return (
     <StudentLayout>
       <Box sx={{ p: { xs: 2, md: 3 } }}>
@@ -134,7 +142,7 @@ export default function RequestsPage() {
                   <Stack direction={{ xs: 'column', sm: 'row' }}>
                     <Box sx={{ width: { xs: '100%', sm: 150 }, height: { xs: 160, sm: 'auto' }, flexShrink: 0, minHeight: { sm: 120 } }}>
                       {imgUrl ? (
-                        <img src={imgUrl} alt={prop?.propertyName} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        <img src={getPropertyImage(prop) || imgUrl} alt={getPropertyTitle(prop)} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                       ) : (
                         <Box sx={{ width: '100%', height: '100%', minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100' }}>
                           <ApartmentRoundedIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
@@ -143,7 +151,7 @@ export default function RequestsPage() {
                     </Box>
                     <CardContent sx={{ flex: 1, p: { xs: 2, sm: 2.5 } }}>
                       <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: 0.5, gap: 1 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.3 }}>{prop?.propertyName ?? 'Property'}</Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.3 }}>{getPropertyTitle(prop)}</Typography>
                         <Chip label={status.label} size="small" sx={{ fontWeight: 700, bgcolor: status.bg, color: status.color, flexShrink: 0 }} />
                       </Stack>
                       {prop?.city && (

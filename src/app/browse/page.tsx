@@ -52,11 +52,11 @@ const UNSPLASH_FALLBACKS = [
 ];
 
 interface Property {
-  _id: string; title?: string; name?: string; city?: string;
+  _id: string; propertyName?: string; title?: string; name?: string; city?: string;
   location?: { city?: string; address?: string; university?: string; lat?: number; lng?: number };
   price?: number; pricing?: { minRent?: number; maxRent?: number };
-  images?: string[]; fundingType?: string; nsfasAccreditation?: boolean;
-  roomType?: string; university?: string; status?: string; lat?: number; lng?: number;
+  images?: Array<string | { url?: string }>; fundingType?: string; nsfasAccredited?: boolean; nsfasAccreditation?: boolean;
+  roomType?: string; university?: string; universityNearby?: string; status?: string; lat?: number; lng?: number;
 }
 
 interface PropertyMapProps {
@@ -119,17 +119,21 @@ export default function BrowsePage() {
   const clearFilters = () => setFilters({ search: '', city: '', university: '', minPrice: '', maxPrice: '', roomType: '', nsfas: false, sortBy: 'newest' });
   const hasActiveFilters = !!(filters.city || filters.university || filters.minPrice || filters.maxPrice || filters.roomType || filters.nsfas);
 
-  const getImage = (p: Property, i: number) =>
-    p.images?.[0] || `https://images.unsplash.com/photo-${UNSPLASH_FALLBACKS[i % UNSPLASH_FALLBACKS.length]}?w=480&h=320&fit=crop&auto=format`;
-  const getTitle = (p: Property) => p.title || p.name || 'Student Accommodation';
+  const getImage = (p: Property, i: number) => {
+    const image = p.images?.[0];
+    if (typeof image === 'string') return image;
+    if (image && typeof image === 'object' && image.url) return image.url;
+    return `https://images.unsplash.com/photo-${UNSPLASH_FALLBACKS[i % UNSPLASH_FALLBACKS.length]}?w=480&h=320&fit=crop&auto=format`;
+  };
+  const getTitle = (p: Property) => p.propertyName || p.title || p.name || 'Student Accommodation';
   const getCity = (p: Property) => p.city || p.location?.city || '—';
-  const getUniversity = (p: Property) => p.university || p.location?.university || '';
+  const getUniversity = (p: Property) => p.universityNearby || p.university || p.location?.university || '';
   const getPrice = (p: Property) => {
     if (p.price) return `R ${p.price.toLocaleString()}/mo`;
     if (p.pricing?.minRent) return `R ${p.pricing.minRent.toLocaleString()}+/mo`;
     return 'Price on request';
   };
-  const isNsfas = (p: Property) => p.fundingType === 'nsfas' || p.nsfasAccreditation;
+  const isNsfas = (p: Property) => p.fundingType === 'nsfas' || p.nsfasAccreditation || p.nsfasAccredited;
 
   const FilterPanel = () => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, p: { xs: 2, sm: 3 } }}>

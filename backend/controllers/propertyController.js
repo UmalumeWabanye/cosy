@@ -33,8 +33,11 @@ const getProperties = async (req, res, next) => {
   try {
     const {
       city,
+      university,
       universityNearby,
+      fundingType,
       nsfasAccredited,
+      status,
       roomType,
       minPrice,
       maxPrice,
@@ -44,10 +47,18 @@ const getProperties = async (req, res, next) => {
       search,
     } = req.query;
 
-    const filter = { isAvailable: true };
+    const filter = {};
+
+    if (status === 'published' || status === 'available') {
+      filter.isAvailable = true;
+    }
+    if (status === 'unpublished' || status === 'unavailable') {
+      filter.isAvailable = false;
+    }
 
     if (city) filter.city = new RegExp(city, 'i');
-    if (universityNearby) filter.universityNearby = new RegExp(universityNearby, 'i');
+    if (university || universityNearby) filter.universityNearby = new RegExp(university || universityNearby, 'i');
+    if (fundingType === 'nsfas') filter.nsfasAccredited = true;
     if (nsfasAccredited !== undefined) filter.nsfasAccredited = nsfasAccredited === 'true';
     if (roomType) filter.roomType = roomType;
     if (minPrice || maxPrice) {

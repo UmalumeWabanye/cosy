@@ -9,19 +9,24 @@ interface SavedListingCardProps {
     _id: string;
     propertyId: {
       _id: string;
-      name: string;
-      location: {
-        address: string;
-        city: string;
+      propertyName?: string;
+      name?: string;
+      location?: {
+        address?: string;
+        city?: string;
       };
-      pricing: {
-        minRent: number;
-        maxRent: number;
+      address?: string;
+      city?: string;
+      pricing?: {
+        minRent?: number;
+        maxRent?: number;
       };
-      images: string[];
+      price?: number;
+      images?: Array<string | { url?: string }>;
       rating: number;
       reviewCount: number;
-      nsfasAccreditation: boolean;
+      nsfasAccreditation?: boolean;
+      nsfasAccredited?: boolean;
     };
     notes: string;
     createdAt: string;
@@ -37,6 +42,20 @@ export default function SavedListingsCard({
 }: SavedListingCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editNotes, setEditNotes] = useState(listing.notes || '');
+
+  const property = listing.propertyId;
+  const propertyTitle = property.propertyName || property.name || 'Accommodation';
+  const propertyImage = property.images?.[0];
+  const imageUrl = typeof propertyImage === 'string'
+    ? propertyImage
+    : propertyImage && typeof propertyImage === 'object'
+      ? propertyImage.url
+      : '/placeholder.jpg';
+  const address = property.location?.address || property.address || '';
+  const city = property.location?.city || property.city || '';
+  const minRent = property.pricing?.minRent ?? property.price;
+  const maxRent = property.pricing?.maxRent ?? property.price;
+  const isNsfas = property.nsfasAccreditation || property.nsfasAccredited;
 
   const handleSaveNotes = async () => {
     try {
@@ -54,8 +73,8 @@ export default function SavedListingsCard({
         {/* Image */}
         <div className="md:col-span-1">
           <img
-            src={listing.propertyId.images?.[0] || '/placeholder.jpg'}
-            alt={listing.propertyId.name}
+            src={imageUrl}
+            alt={propertyTitle}
             className="w-full h-48 object-cover rounded"
           />
         </div>
@@ -63,25 +82,24 @@ export default function SavedListingsCard({
         {/* Details */}
         <div className="md:col-span-2 space-y-3">
           <Link
-            href={`/browse/${listing.propertyId._id}`}
+            href={`/browse/${property._id}`}
             className="text-lg font-bold text-blue-600 hover:text-blue-800"
           >
-            {listing.propertyId.name}
+            {propertyTitle}
           </Link>
 
           <p className="text-sm text-gray-600">
-            {listing.propertyId.location.address}, {listing.propertyId.location.city}
+            {address}{address && city ? ', ' : ''}{city}
           </p>
 
           <div className="flex gap-4 text-sm">
             <div>
               <span className="font-semibold">Rent:</span>
               <span className="ml-2">
-                R{listing.propertyId.pricing.minRent?.toLocaleString()} - R
-                {listing.propertyId.pricing.maxRent?.toLocaleString()}
+                R{minRent?.toLocaleString()} - R{maxRent?.toLocaleString()}
               </span>
             </div>
-            {listing.propertyId.nsfasAccreditation && (
+            {isNsfas && (
               <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">
                 NSFAS
               </span>
@@ -153,7 +171,7 @@ export default function SavedListingsCard({
           </button>
 
           <Link
-            href={`/browse/${listing.propertyId._id}`}
+            href={`/browse/${property._id}`}
             className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 rounded text-sm text-center"
           >
             View
