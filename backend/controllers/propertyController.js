@@ -133,11 +133,20 @@ const createProperty = async (req, res, next) => {
 // @access Private/Admin
 const updateProperty = async (req, res, next) => {
   try {
-    const property = await Property.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const existing = await Property.findById(req.params.id);
+    if (!existing) {
+      res.statusCode = 404;
+      throw new Error('Property not found');
+    }
+    if (req.user.role === 'landlord' && String(existing.createdBy) !== String(req.user._id)) {
+      res.statusCode = 403;
+      throw new Error('Not allowed to update this property');
+    }
+
+    const property = await Property.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
     if (!property) {
       res.statusCode = 404;
       throw new Error('Property not found');
@@ -153,6 +162,16 @@ const updateProperty = async (req, res, next) => {
 // @access Private/Admin
 const deleteProperty = async (req, res, next) => {
   try {
+    const existing = await Property.findById(req.params.id);
+    if (!existing) {
+      res.statusCode = 404;
+      throw new Error('Property not found');
+    }
+    if (req.user.role === 'landlord' && String(existing.createdBy) !== String(req.user._id)) {
+      res.statusCode = 403;
+      throw new Error('Not allowed to delete this property');
+    }
+
     const property = await Property.findByIdAndDelete(req.params.id);
     if (!property) {
       res.statusCode = 404;

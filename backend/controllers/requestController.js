@@ -1,5 +1,6 @@
 const Request = require('../models/Request');
 const Notification = require('../models/Notification');
+const Property = require('../models/Property');
 
 // @desc   Create accommodation request
 // @route  POST /api/requests
@@ -57,9 +58,16 @@ const getMyRequests = async (req, res, next) => {
 // @access Private/Admin
 const getAllRequests = async (req, res, next) => {
   try {
-    const requests = await Request.find()
+    let filter = {};
+    if (req.user.role === 'landlord') {
+      const myProperties = await Property.find({ createdBy: req.user._id }).select('_id');
+      const myPropertyIds = myProperties.map((property) => property._id);
+      filter = { property: { $in: myPropertyIds } };
+    }
+
+    const requests = await Request.find(filter)
       .populate('student', 'name email university course yearOfStudy idNumber avatar fundingType')
-      .populate('property', 'propertyName city address images price roomType')
+      .populate('property', 'propertyName city address images price roomType createdBy')
       .sort({ createdAt: -1 });
     res.json({ data: requests });
   } catch (error) {
@@ -73,6 +81,20 @@ const getAllRequests = async (req, res, next) => {
 const updateRequestStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
+    const currentRequest = await Request.findById(req.params.id).populate('property', 'createdBy');
+    if (!currentRequest) {
+      res.statusCode = 404;
+      throw new Error('Request not found');
+    }
+
+    if (
+      req.user.role === 'landlord' &&
+      String(currentRequest.property?.createdBy) !== String(req.user._id)
+    ) {
+      res.statusCode = 403;
+      throw new Error('Not allowed to update this request');
+    }
+
     const request = await Request.findByIdAndUpdate(
       req.params.id,
       { status },
@@ -88,7 +110,9 @@ const updateRequestStatus = async (req, res, next) => {
       type: 'request_updated',
       title: 'Request Status Updated',
       message: `An accommodation request has been marked as "${status}".`,
-      link: `/admin/requests?requestId=${request._id}`,
+      link: req.user.role === 'landlord'
+        ? `/landlord/dashboard?requestId=${request._id}`
+        : `/admin/requests?requestId=${request._id}`,
       refModel: 'Request',
       refId: request._id,
     });

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/services/api';
@@ -12,82 +12,82 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableHead from '@mui/material/TableHead';
+import TableBody from '@mui/material/TableBody';
+import TableRow from '@mui/material/TableRow';
+import TableCell from '@mui/material/TableCell';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
-import Avatar from '@mui/material/Avatar';
 
-import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
-import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import PendingActionsRoundedIcon from '@mui/icons-material/PendingActionsRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
+import PendingActionsRoundedIcon from '@mui/icons-material/PendingActionsRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import Diversity3RoundedIcon from '@mui/icons-material/Diversity3Rounded';
+import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
+import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
 
-interface Property {
+interface PropertyItem {
   _id: string;
-  title: string;
+  propertyName: string;
   city?: string;
+  address?: string;
   price?: number;
-  available?: boolean;
-  images?: string[];
+  roomType?: string;
+  isAvailable?: boolean;
   createdAt: string;
 }
 
-interface Request {
+interface RequestItem {
   _id: string;
-  property?: { _id: string; title: string };
-  user?: { name: string; email: string };
-  status: string;
+  status: 'pending' | 'approved' | 'rejected';
+  student?: { _id: string; name?: string; email?: string; university?: string; course?: string };
+  property?: { _id: string; propertyName?: string; city?: string };
+  moveInDate?: string;
   createdAt: string;
+}
+
+interface ViewingItem {
+  _id: string;
+  status: 'pending' | 'approved' | 'declined';
+  requestedDate: string;
+  student?: { name?: string; email?: string };
+  property?: { _id: string; propertyName?: string; city?: string };
+}
+
+function statusColor(status: string): 'success' | 'warning' | 'error' | 'default' {
+  if (status === 'approved') return 'success';
+  if (status === 'rejected' || status === 'declined') return 'error';
+  if (status === 'pending') return 'warning';
+  return 'default';
 }
 
 function StatCard({
-  icon,
-  label,
+  title,
   value,
+  helper,
+  icon,
   color,
 }: {
+  title: string;
+  value: string | number;
+  helper?: string;
   icon: React.ReactNode;
-  label: string;
-  value: number | string;
   color: string;
 }) {
   return (
-    <Card variant="outlined">
+    <Card variant="outlined" sx={{ height: '100%' }}>
       <CardContent>
-        <Stack direction="row" sx={{ alignItems: 'center', gap: 2 }}>
-          <Box
-            sx={{
-              width: 44,
-              height: 44,
-              borderRadius: 2,
-              bgcolor: `${color}.lighter` || `${color}.50`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: `${color}.main`,
-              flexShrink: 0,
-            }}
-          >
-            {icon}
-          </Box>
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
-              {value}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {label}
-            </Typography>
-          </Box>
+        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>{title}</Typography>
+          <Box sx={{ color }}>{icon}</Box>
         </Stack>
+        <Typography variant="h4" sx={{ fontWeight: 700, lineHeight: 1.1 }}>{value}</Typography>
+        {helper ? <Typography variant="caption" color="text.secondary">{helper}</Typography> : null}
       </CardContent>
     </Card>
   );
@@ -97,275 +97,249 @@ export default function LandlordDashboardPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
 
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [requests, setRequests] = useState<Request[]>([]);
+  const [properties, setProperties] = useState<PropertyItem[]>([]);
+  const [requests, setRequests] = useState<RequestItem[]>([]);
+  const [viewings, setViewings] = useState<ViewingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Guard: only landlords
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || (user?.role !== 'landlord' && user?.role !== 'admin'))) {
       router.push('/');
     }
   }, [isLoading, isAuthenticated, user, router]);
 
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const [propRes, reqRes] = await Promise.all([
-        api.get('/admin/properties?limit=50'),
-        api.get('/admin/requests?limit=50'),
-      ]);
-      setProperties(Array.isArray(propRes.data.data) ? propRes.data.data : propRes.data);
-      setRequests(Array.isArray(reqRes.data.data) ? reqRes.data.data : reqRes.data);
-    } catch (e: any) {
-      setError(e?.response?.data?.message || 'Failed to load dashboard data');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    if (isAuthenticated) fetchData();
-  }, [isAuthenticated, fetchData]);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const [propertyRes, requestRes, viewingRes] = await Promise.all([
+          api.get('/properties/mine?limit=200'),
+          api.get('/requests'),
+          api.get('/viewings'),
+        ]);
 
-  const activeListings = properties.filter((p) => p.available !== false).length;
-  const pendingRequests = requests.filter((r) => r.status === 'pending').length;
-  const approvedRequests = requests.filter((r) => r.status === 'approved').length;
+        const propertyData = propertyRes.data?.data ?? [];
+        const requestData = requestRes.data?.data ?? [];
+        const viewingData = viewingRes.data?.data ?? [];
 
-  const statusColor = (s: string) => {
-    if (s === 'approved') return 'success';
-    if (s === 'rejected') return 'error';
-    return 'warning';
-  };
+        setProperties(Array.isArray(propertyData) ? propertyData : []);
+        setRequests(Array.isArray(requestData) ? requestData : []);
+        setViewings(Array.isArray(viewingData) ? viewingData : []);
+      } catch (e: any) {
+        setError(e?.response?.data?.message || 'Failed to load landlord dashboard');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isAuthenticated && (user?.role === 'landlord' || user?.role === 'admin')) {
+      fetchData();
+    }
+  }, [isAuthenticated, user]);
+
+  const activeListings = useMemo(() => properties.filter((property) => property.isAvailable !== false).length, [properties]);
+  const pendingApplications = useMemo(() => requests.filter((request) => request.status === 'pending').length, [requests]);
+  const approvedApplications = useMemo(() => requests.filter((request) => request.status === 'approved').length, [requests]);
+  const pendingViewings = useMemo(() => viewings.filter((viewing) => viewing.status === 'pending').length, [viewings]);
+
+  const occupancyRate = useMemo(() => {
+    if (properties.length === 0) return 0;
+    const rate = Math.round((approvedApplications / properties.length) * 100);
+    return Math.max(0, Math.min(rate, 100));
+  }, [approvedApplications, properties.length]);
+
+  const profileVerified = Boolean(user?.profileComplete && user?.idNumber);
+
+  const recentRequests = useMemo(
+    () => [...requests].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).slice(0, 8),
+    [requests]
+  );
+
+  const recentViewings = useMemo(
+    () => [...viewings].sort((a, b) => +new Date(b.requestedDate) - +new Date(a.requestedDate)).slice(0, 8),
+    [viewings]
+  );
+
+  const recentlyAddedProperties = useMemo(
+    () => [...properties].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).slice(0, 6),
+    [properties]
+  );
+
+  if (isLoading) return null;
 
   return (
-    <AdminLayout>
+    <AdminLayout pendingCount={pendingApplications}>
       <Box sx={{ p: { xs: 2, md: 4 } }}>
-        {/* Header */}
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 3, gap: 2 }}
-        >
+        <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 3, gap: 1.5 }}>
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>
-              My Dashboard
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              Welcome back{user?.name ? `, ${user.name.split(' ')[0]}` : ''}! Here's an overview of your listings.
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>Landlord Dashboard</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Manage listings, enquiries, occupancy, verification and performance in one place.
             </Typography>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddRoundedIcon />}
-            onClick={() => router.push('/admin/properties/new')}
-            sx={{ textTransform: 'none', fontWeight: 600, flexShrink: 0 }}
-          >
-            Add Listing
-          </Button>
+          <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+            <Button variant="outlined" onClick={() => router.push('/admin/requests')} sx={{ textTransform: 'none' }}>
+              Manage Enquiries
+            </Button>
+            <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => router.push('/admin/properties/new')} sx={{ textTransform: 'none', fontWeight: 700 }}>
+              Add Listing
+            </Button>
+          </Stack>
         </Stack>
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-            <CircularProgress />
-          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}><CircularProgress /></Box>
         ) : (
           <>
-            {/* Stats */}
-            <Grid container spacing={2} sx={{ mb: 4 }}>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <StatCard
-                  icon={<ApartmentRoundedIcon />}
-                  label="Total Listings"
-                  value={properties.length}
-                  color="primary"
-                />
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard title="Total Listings" value={properties.length} helper="All properties" icon={<ApartmentRoundedIcon />} color="#1976d2" />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <StatCard
-                  icon={<CheckCircleRoundedIcon />}
-                  label="Active Listings"
-                  value={activeListings}
-                  color="success"
-                />
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard title="Active Listings" value={activeListings} helper="Visible to students" icon={<CheckCircleRoundedIcon />} color="#2e7d32" />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <StatCard
-                  icon={<PendingActionsRoundedIcon />}
-                  label="Pending Requests"
-                  value={pendingRequests}
-                  color="warning"
-                />
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard title="Pending Enquiries" value={pendingApplications} helper="Need your action" icon={<PendingActionsRoundedIcon />} color="#ed6c02" />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <StatCard
-                  icon={<AssignmentRoundedIcon />}
-                  label="Approved Requests"
-                  value={approvedRequests}
-                  color="info"
-                />
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard title="Pending Viewings" value={pendingViewings} helper="Student booking requests" icon={<Diversity3RoundedIcon />} color="#6a1b9a" />
               </Grid>
             </Grid>
 
-            {/* My Listings */}
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
-              My Listings
-            </Typography>
-            {properties.length === 0 ? (
-              <Paper variant="outlined" sx={{ p: 6, textAlign: 'center', mb: 4 }}>
-                <ApartmentRoundedIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
-                <Typography color="text.secondary">
-                  You haven't added any listings yet.
-                </Typography>
-                <Button
-                  variant="contained"
-                  sx={{ mt: 2, textTransform: 'none' }}
-                  onClick={() => router.push('/admin/properties/new')}
-                >
-                  Add Your First Listing
-                </Button>
-              </Paper>
-            ) : (
-              <TableContainer component={Paper} variant="outlined" sx={{ mb: 4 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow sx={{ bgcolor: 'action.hover' }}>
-                      <TableCell sx={{ fontWeight: 700 }}>Property</TableCell>
-                      <TableCell sx={{ fontWeight: 700, display: { xs: 'none', sm: 'table-cell' } }}>
-                        City
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Price</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }} align="right">
-                        Actions
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {properties.map((p) => (
-                      <TableRow key={p._id} hover>
-                        <TableCell>
-                          <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5 }}>
-                            <Avatar
-                              src={p.images?.[0]}
-                              variant="rounded"
-                              sx={{ width: 36, height: 36, bgcolor: 'primary.light' }}
-                            >
-                              <ApartmentRoundedIcon fontSize="small" />
-                            </Avatar>
-                            <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
-                              {p.title}
-                            </Typography>
-                          </Stack>
-                        </TableCell>
-                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
-                          <Typography variant="caption" color="text.secondary">
-                            {p.city ?? '—'}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2">
-                            {p.price != null ? `R${p.price.toLocaleString()}` : '—'}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            size="small"
-                            label={p.available !== false ? 'Available' : 'Unavailable'}
-                            color={p.available !== false ? 'success' : 'default'}
-                            variant={p.available !== false ? 'filled' : 'outlined'}
-                          />
-                        </TableCell>
-                        <TableCell align="right">
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            sx={{ textTransform: 'none', fontSize: 12 }}
-                            onClick={() => router.push(`/admin/properties/${p._id}/edit`)}
-                          >
-                            Edit
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Card variant="outlined" sx={{ height: '100%' }}>
+                  <CardContent>
+                    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Occupancy Tracking</Typography>
+                      <InsightsRoundedIcon sx={{ color: 'primary.main' }} />
+                    </Stack>
+                    <Typography variant="h3" sx={{ mt: 1, fontWeight: 700 }}>{occupancyRate}%</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Approx. occupancy based on approved applications vs total listings.
+                    </Typography>
+                    <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+                      <Chip size="small" color="success" label={`Approved: ${approvedApplications}`} />
+                      <Chip size="small" color="warning" label={`Pending: ${pendingApplications}`} />
+                      <Chip size="small" variant="outlined" label={`Listings: ${properties.length}`} />
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-            {/* Recent Requests */}
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
-              Recent Requests
-            </Typography>
-            {requests.length === 0 ? (
-              <Paper variant="outlined" sx={{ p: 6, textAlign: 'center' }}>
-                <AssignmentRoundedIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
-                <Typography color="text.secondary">No requests yet.</Typography>
-              </Paper>
-            ) : (
-              <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
-                  <TableHead>
-                    <TableRow sx={{ bgcolor: 'action.hover' }}>
-                      <TableCell sx={{ fontWeight: 700 }}>Student</TableCell>
-                      <TableCell sx={{ fontWeight: 700, display: { xs: 'none', sm: 'table-cell' } }}>
-                        Property
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
-                      <TableCell sx={{ fontWeight: 700, display: { xs: 'none', md: 'table-cell' } }}>
-                        Date
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {requests.slice(0, 20).map((r) => (
-                      <TableRow key={r._id} hover>
-                        <TableCell>
-                          <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5 }}>
-                            <Avatar sx={{ width: 28, height: 28, fontSize: 12, bgcolor: 'secondary.main' }}>
-                              {(r.user?.name ?? r.user?.email ?? '?')[0].toUpperCase()}
-                            </Avatar>
-                            <Box sx={{ minWidth: 0 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
-                                {r.user?.name ?? '—'}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
-                                {r.user?.email ?? ''}
-                              </Typography>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Card variant="outlined" sx={{ height: '100%' }}>
+                  <CardContent>
+                    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Verification Flow</Typography>
+                      <VerifiedRoundedIcon sx={{ color: profileVerified ? 'success.main' : 'warning.main' }} />
+                    </Stack>
+                    <Chip
+                      sx={{ mt: 1 }}
+                      color={profileVerified ? 'success' : 'warning'}
+                      label={profileVerified ? 'Verified Profile' : 'Verification Incomplete'}
+                    />
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+                      {profileVerified
+                        ? 'Your verification details are complete and visible to applicants.'
+                        : 'Complete your profile to improve student trust and conversion.'}
+                    </Typography>
+                    {!profileVerified && (
+                      <Button onClick={() => router.push('/profile')} sx={{ mt: 1.5, textTransform: 'none' }}>
+                        Complete Verification
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, lg: 7 }}>
+                <Paper variant="outlined" sx={{ p: 2.5 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>Enquiry Management</Typography>
+                  {recentRequests.length === 0 ? (
+                    <Typography color="text.secondary" variant="body2">No enquiries yet.</Typography>
+                  ) : (
+                    <Box sx={{ overflowX: 'auto' }}>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 700 }}>Student</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Property</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Move-in</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {recentRequests.map((request) => (
+                            <TableRow key={request._id} hover>
+                              <TableCell>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>{request.student?.name || 'Student'}</Typography>
+                                <Typography variant="caption" color="text.secondary">{request.student?.email || ''}</Typography>
+                              </TableCell>
+                              <TableCell>{request.property?.propertyName || 'Property'}</TableCell>
+                              <TableCell>{request.moveInDate ? new Date(request.moveInDate).toLocaleDateString() : '—'}</TableCell>
+                              <TableCell>
+                                <Chip size="small" color={statusColor(request.status)} label={request.status} sx={{ textTransform: 'capitalize' }} />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </Box>
+                  )}
+                </Paper>
+              </Grid>
+
+              <Grid size={{ xs: 12, lg: 5 }}>
+                <Stack sx={{ gap: 2 }}>
+                  <Paper variant="outlined" sx={{ p: 2.5 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.25 }}>Viewing Bookings</Typography>
+                    {recentViewings.length === 0 ? (
+                      <Typography color="text.secondary" variant="body2">No viewing requests yet.</Typography>
+                    ) : (
+                      <Stack sx={{ gap: 1 }}>
+                        {recentViewings.map((viewing) => (
+                          <Box key={viewing._id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 1.2 }}>
+                            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>{viewing.property?.propertyName || 'Property'}</Typography>
+                              <Chip size="small" color={statusColor(viewing.status)} label={viewing.status} sx={{ textTransform: 'capitalize' }} />
+                            </Stack>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                              {viewing.student?.name || 'Student'} • {new Date(viewing.requestedDate).toLocaleString('en-ZA')}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Stack>
+                    )}
+                  </Paper>
+
+                  <Paper variant="outlined" sx={{ p: 2.5 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.25 }}>Recent Listings</Typography>
+                    {recentlyAddedProperties.length === 0 ? (
+                      <Typography color="text.secondary" variant="body2">No listings yet.</Typography>
+                    ) : (
+                      <Stack sx={{ gap: 1 }}>
+                        {recentlyAddedProperties.map((property) => (
+                          <Stack key={property._id} direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed', borderColor: 'divider', pb: 0.8 }}>
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>{property.propertyName}</Typography>
+                              <Typography variant="caption" color="text.secondary">{property.city || '—'}</Typography>
                             </Box>
+                            <Chip size="small" label={property.isAvailable ? 'Available' : 'Unavailable'} color={property.isAvailable ? 'success' : 'default'} />
                           </Stack>
-                        </TableCell>
-                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
-                          <Typography variant="body2" noWrap>
-                            {r.property?.title ?? '—'}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            size="small"
-                            label={r.status.charAt(0).toUpperCase() + r.status.slice(1)}
-                            color={statusColor(r.status) as any}
-                            variant="filled"
-                          />
-                        </TableCell>
-                        <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
-                          <Typography variant="caption" color="text.secondary">
-                            {new Date(r.createdAt).toLocaleDateString('en-ZA', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric',
-                            })}
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
+                        ))}
+                      </Stack>
+                    )}
+                  </Paper>
+                </Stack>
+              </Grid>
+            </Grid>
           </>
         )}
       </Box>

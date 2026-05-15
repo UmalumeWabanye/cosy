@@ -6,11 +6,11 @@ const {
   getAllRequests,
   updateRequestStatus,
 } = require('../controllers/requestController');
-const { protect, adminOnly } = require('../middleware/auth');
+const { protect, adminOrLandlord } = require('../middleware/auth');
 
 router.post('/', protect, createRequest);
 router.get('/my', protect, getMyRequests);
-router.get('/', protect, adminOnly, getAllRequests);
-router.patch('/:id/status', protect, adminOnly, updateRequestStatus);
+router.get('/', protect, adminOrLandlord, getAllRequests);
+router.patch('/:id/status', protect, adminOrLandlord, updateRequestStatus);
 
 module.exports = router;

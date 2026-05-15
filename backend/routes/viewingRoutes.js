@@ -1,6 +1,7 @@
 const express = require('express');
-const { protect, adminOnly } = require('../middleware/auth');
+const { protect, adminOrLandlord } = require('../middleware/auth');
 const Viewing = require('../models/Viewing');
+const Property = require('../models/Property');
 
 const router = express.Router();
 
@@ -39,9 +40,16 @@ router.get('/my', protect, async (req, res) => {
   }
 });
 
-router.get('/', protect, adminOnly, async (req, res) => {
+router.get('/', protect, adminOrLandlord, async (req, res) => {
   try {
-    const data = await Viewing.find()
+    let filter = {};
+    if (req.user.role === 'landlord') {
+      const myProperties = await Property.find({ createdBy: req.user._id }).select('_id');
+      const myPropertyIds = myProperties.map((property) => property._id);
+      filter = { property: { $in: myPropertyIds } };
+    }
+
+    const data = await Viewing.find(filter)
       .populate('student', 'name email university course avatar')
       .populate('property', 'propertyName city address images price roomType createdBy')
       .sort({ createdAt: -1 });
@@ -51,12 +59,25 @@ router.get('/', protect, adminOnly, async (req, res) => {
   }
 });
 
-router.patch('/:id/status', protect, adminOnly, async (req, res) => {
+router.patch('/:id/status', protect, adminOrLandlord, async (req, res) => {
   try {
     const { status } = req.body;
     if (!['pending', 'approved', 'declined'].includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }
+
+    const currentViewing = await Viewing.findById(req.params.id).populate('property', 'createdBy');
+    if (!currentViewing) {
+      return res.status(404).json({ message: 'Viewing not found' });
+    }
+
+    if (
+      req.user.role === 'landlord' &&
+      String(currentViewing.property?.createdBy) !== String(req.user._id)
+    ) {
+      return res.status(403).json({ message: 'Not allowed to update this viewing' });
+    }
+
     const updated = await Viewing.findByIdAndUpdate(
       req.params.id,
       { status },
