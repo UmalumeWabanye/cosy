@@ -101,7 +101,7 @@ const getProperty = async (req, res, next) => {
   try {
     const property = await Property.findById(req.params.id).populate(
       'createdBy',
-      'name email'
+      'name email avatar'
     );
     if (!property) {
       res.statusCode = 404;

@@ -93,6 +93,7 @@ export default function SetupAccountPage() {
 
   const [avatar, setAvatar] = useState('');
   const [university, setUniversity] = useState('');
+  const [course, setCourse] = useState('');
   const [yearOfStudy, setYearOfStudy] = useState('');
   const [fundingType, setFundingType] = useState('');
   const [idNumber, setIdNumber] = useState('');
@@ -108,7 +109,10 @@ export default function SetupAccountPage() {
     if (user) {
       setAvatar((user as any).avatar ?? '');
       setUniversity(user.university ?? '');
+      setCourse((user as any).course ?? '');
+      setYearOfStudy((user as any).yearOfStudy ?? '');
       setFundingType(user.fundingType ?? '');
+      setIdNumber((user as any).idNumber ?? '');
     }
   }, [user]);
 
@@ -129,6 +133,8 @@ export default function SetupAccountPage() {
       if (step === 1) {
         if (!university) { setError('Please select your university.'); setSaving(false); return false; }
         payload.university = university;
+        if (!course.trim()) { setError('Please enter your course/programme.'); setSaving(false); return false; }
+        payload.course = course.trim();
         if (yearOfStudy) payload.yearOfStudy = yearOfStudy;
       }
       if (step === 2) {
@@ -265,6 +271,14 @@ export default function SetupAccountPage() {
                   <MenuItem value=""><em>Select your institution</em></MenuItem>
                   {UNIVERSITIES.map(u => <MenuItem key={u} value={u}>{u}</MenuItem>)}
                 </TextField>
+                <TextField
+                  label="Course / Programme"
+                  value={course}
+                  fullWidth
+                  required
+                  onChange={e => setCourse(e.target.value)}
+                  placeholder="e.g. BSc Computer Science"
+                />
                 <TextField
                   select label="Year of Study" value={yearOfStudy} fullWidth
                   onChange={e => setYearOfStudy(e.target.value)}

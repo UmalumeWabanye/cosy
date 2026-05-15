@@ -64,7 +64,7 @@ export default function ProfilePage() {
   const [tab, setTab] = useState(0);
   const [avatarPreview, setAvatarPreview] = useState('');
 
-  const [form, setForm] = useState({ name: '', phone: '', university: '', fundingType: '', idNumber: '' });
+  const [form, setForm] = useState({ name: '', phone: '', university: '', course: '', fundingType: '', idNumber: '' });
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -97,6 +97,7 @@ export default function ProfilePage() {
         name: user.name ?? '',
         phone: (user as any).phone ?? '',
         university: user.university ?? '',
+        course: (user as any).course ?? '',
         fundingType: user.fundingType ?? '',
         idNumber: (user as any).idNumber ?? '',
       });
@@ -169,6 +170,7 @@ export default function ProfilePage() {
               <Stack sx={{ flexDirection: 'row', gap: 1, mt: 1, flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
                 {user?.fundingType && <Chip label={user.fundingType} size="small" sx={{ fontSize: 11, height: 22, bgcolor: 'rgba(25,118,210,0.1)', color: 'primary.main', fontWeight: 600 }} />}
                 {user?.university && <Chip icon={<SchoolRoundedIcon sx={{ fontSize: '13px !important' }} />} label={user.university} size="small" variant="outlined" sx={{ fontSize: 11, height: 22 }} />}
+                {(user as any)?.course && <Chip label={(user as any).course} size="small" variant="outlined" sx={{ fontSize: 11, height: 22 }} />}
               </Stack>
             </Box>
             <Button variant="outlined" color="error" size="small" startIcon={<LogoutRoundedIcon />} onClick={handleLogout} sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2, alignSelf: { xs: 'center', sm: 'flex-start' }, whiteSpace: 'nowrap' }}>
@@ -204,6 +206,14 @@ export default function ProfilePage() {
                   <MenuItem value=""><em>Select type</em></MenuItem>
                   {FUNDING_TYPES.map(f => <MenuItem key={f} value={f}>{f}</MenuItem>)}
                 </TextField>
+                <TextField
+                  label="Course / Programme"
+                  value={form.course}
+                  size="small"
+                  fullWidth
+                  onChange={e => setForm(f => ({ ...f, course: e.target.value }))}
+                  placeholder="e.g. BCom Accounting"
+                />
                 <TextField
                   label="SA ID / Passport Number"
                   value={form.idNumber}

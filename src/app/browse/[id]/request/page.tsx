@@ -53,7 +53,7 @@ export default function RequestPropertyPage() {
   });
 
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || user?.role !== 'student')) router.push('/login');
+    if (!isLoading && (!isAuthenticated || user?.role !== 'student')) router.push('/');
   }, [isAuthenticated, isLoading, user, router]);
 
   useEffect(() => {

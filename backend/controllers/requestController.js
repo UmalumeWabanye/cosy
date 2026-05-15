@@ -58,7 +58,7 @@ const getMyRequests = async (req, res, next) => {
 const getAllRequests = async (req, res, next) => {
   try {
     const requests = await Request.find()
-      .populate('student', 'name email university fundingType')
+      .populate('student', 'name email university course yearOfStudy idNumber avatar fundingType')
       .populate('property', 'propertyName city address images price roomType')
       .sort({ createdAt: -1 });
     res.json({ data: requests });

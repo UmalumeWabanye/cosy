@@ -43,7 +43,11 @@ router.post('/login', async (req, res) => {
         name: user.name,
         role: user.role,
         university: user.university,
+        course: user.course,
+        yearOfStudy: user.yearOfStudy,
         fundingType: user.fundingType,
+        avatar: user.avatar,
+        idNumber: user.idNumber,
       },
     });
   } catch (error) {
@@ -81,7 +85,11 @@ router.post('/register', async (req, res) => {
         name: user.name,
         role: user.role,
         university: user.university,
+        course: user.course,
+        yearOfStudy: user.yearOfStudy,
         fundingType: user.fundingType,
+        avatar: user.avatar,
+        idNumber: user.idNumber,
       },
     });
   } catch (err) {
@@ -101,9 +109,13 @@ router.get('/me', protect, async (req, res) => {
 // PATCH /api/auth/me — update student profile (name, phone, university, fundingType, avatar)
 router.patch('/me', protect, async (req, res) => {
   try {
-    const allowed = ['name', 'phone', 'university', 'fundingType', 'avatar'];
+    const allowed = ['name', 'phone', 'university', 'course', 'yearOfStudy', 'fundingType', 'avatar', 'idNumber', 'profileComplete'];
     const updates = {};
     allowed.forEach(field => { if (req.body[field] !== undefined) updates[field] = req.body[field]; });
+
+    if (updates.profileComplete !== undefined) {
+      updates.profileComplete = updates.profileComplete === true || updates.profileComplete === 'true';
+    }
 
     // If avatar is a base64 data URI, upload it to Cloudinary
     if (updates.avatar && updates.avatar.startsWith('data:')) {

@@ -34,7 +34,7 @@ const STATUS_LABELS: Record<string, string> = {
 interface Stats { totalApplications: number; pending: number; approved: number; saved: number; }
 interface RecentRequest {
   _id: string; status: string; createdAt: string;
-  property?: { propertyName?: string; city?: string; images?: string[] };
+  property?: { propertyName?: string; city?: string; images?: Array<string | { url?: string }> };
 }
 
 export default function DashboardPage() {
@@ -106,6 +106,11 @@ export default function DashboardPage() {
   ];
 
   if (isLoading) return null;
+
+  const getImageUrl = (image?: string | { url?: string }) => {
+    if (!image) return '';
+    return typeof image === 'string' ? image : image.url || '';
+  };
 
   return (
     <StudentLayout>
@@ -257,7 +262,7 @@ export default function DashboardPage() {
                         bgcolor: 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
                         {r.property?.images?.[0]
-                          ? <img src={r.property.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ? <img src={getImageUrl(r.property.images[0])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           : <HomeRoundedIcon sx={{ color: 'text.disabled', fontSize: 20 }} />}
                       </Box>
                       <Box sx={{ flexGrow: 1, minWidth: 0 }}>

@@ -9,6 +9,8 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import Avatar from '@mui/material/Avatar';
+import Stack from '@mui/material/Stack';
 import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
@@ -48,7 +50,7 @@ interface Property {
   amenities: string[];
   distanceFromCampus?: number;
   isAvailable: boolean;
-  createdBy: { name: string; email: string };
+  createdBy: { name?: string; email?: string; avatar?: string };
   createdAt: string;
 }
 
@@ -265,7 +267,15 @@ export default function PropertyDetailsPage() {
                   {/* Owner */}
                   <Box sx={{ bgcolor: 'grey.50', p: 2, borderRadius: 1, mb: 2 }}>
                     <Typography variant="caption" color="text.secondary">Listed by</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{property.createdBy?.name ?? '—'}</Typography>
+                    <Stack direction="row" sx={{ alignItems: 'center', gap: 1, mt: 0.5 }}>
+                      <Avatar src={property.createdBy?.avatar || undefined} sx={{ width: 32, height: 32, fontSize: 12 }}>
+                        {(property.createdBy?.name || 'L')[0].toUpperCase()}
+                      </Avatar>
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{property.createdBy?.name ?? '—'}</Typography>
+                        <Typography variant="caption" color="text.secondary">{property.createdBy?.email || ''}</Typography>
+                      </Box>
+                    </Stack>
                   </Box>
 
                   <Button onClick={handleApplyClick} variant="contained" fullWidth sx={{ mb: 1, textTransform: 'none', fontWeight: 700, py: 1.5 }}>

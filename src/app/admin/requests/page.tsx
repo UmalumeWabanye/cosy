@@ -28,6 +28,7 @@ import Divider from '@mui/material/Divider';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ToggleButton from '@mui/material/ToggleButton';
 import IconButton from '@mui/material/IconButton';
+import Avatar from '@mui/material/Avatar';
 
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -35,7 +36,7 @@ import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 
 interface Request {
   _id: string;
-  student: { _id: string; name: string; email: string; university: string };
+  student: { _id: string; name: string; email: string; university?: string; course?: string; yearOfStudy?: string; idNumber?: string; avatar?: string };
   property: { _id: string; propertyName?: string; city?: string; address?: string; images?: Array<string | { url?: string }>; price?: number; roomType?: string } | null;
   moveInDate: string;
   leaseDuration: string;
@@ -188,8 +189,15 @@ export default function AdminRequestsPage() {
                 {filtered.map(r => (
                   <TableRow key={r._id} hover>
                     <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }} >{r.student?.name}</Typography>
-                      <Typography variant="caption" color="text.secondary">{r.student?.email}</Typography>
+                      <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+                        <Avatar src={r.student?.avatar || undefined} sx={{ width: 28, height: 28, fontSize: 12 }}>
+                          {(r.student?.name || 'S')[0].toUpperCase()}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }} >{r.student?.name}</Typography>
+                          <Typography variant="caption" color="text.secondary">{r.student?.email}</Typography>
+                        </Box>
+                      </Stack>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2">{r.property?.propertyName || 'Property'}</Typography>
@@ -241,9 +249,18 @@ export default function AdminRequestsPage() {
               <Divider sx={{ my: 2 }} />
 
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>STUDENT</Typography>
-              <Typography sx={{ fontWeight: 600 }} >{selectedRequest.student?.name}</Typography>
-              <Typography variant="body2" color="text.secondary">{selectedRequest.student?.email}</Typography>
-              <Typography variant="body2" color="text.secondary">{selectedRequest.student?.university}</Typography>
+              <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5, mb: 1 }}>
+                <Avatar src={selectedRequest.student?.avatar || undefined} sx={{ width: 40, height: 40 }}>
+                  {(selectedRequest.student?.name || 'S')[0].toUpperCase()}
+                </Avatar>
+                <Box>
+                  <Typography sx={{ fontWeight: 600 }} >{selectedRequest.student?.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">{selectedRequest.student?.email}</Typography>
+                </Box>
+              </Stack>
+              <Typography variant="body2" color="text.secondary">School: {selectedRequest.student?.university || 'Not provided'}</Typography>
+              <Typography variant="body2" color="text.secondary">Course: {selectedRequest.student?.course || selectedRequest.student?.yearOfStudy || 'Not provided'}</Typography>
+              <Typography variant="body2" color="text.secondary">ID Number: {selectedRequest.student?.idNumber || 'Not provided'}</Typography>
 
               <Divider sx={{ my: 2 }} />
 

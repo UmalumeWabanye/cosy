@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
+import Avatar from '@mui/material/Avatar';
 import CircularProgress from '@mui/material/CircularProgress';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -60,7 +61,7 @@ type Filter = 'all' | 'pending' | 'approved' | 'rejected';
 
 export default function ApplicationsPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [reqs, setReqs] = useState<Req[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>('all');
@@ -69,7 +70,7 @@ export default function ApplicationsPage() {
   const [withdrawing, setWithdrawing] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => { if (!isLoading && !isAuthenticated) router.push('/login'); }, [isAuthenticated, isLoading, router]);
+  useEffect(() => { if (!isLoading && !isAuthenticated) router.push('/'); }, [isAuthenticated, isLoading, router]);
 
   const fetchReqs = useCallback(async () => {
     try {
@@ -115,6 +116,18 @@ export default function ApplicationsPage() {
             Browse Properties
           </Button>
         </Stack>
+
+        <Paper elevation={0} sx={{ p: 1.5, mb: 2.5, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+          <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+            <Avatar src={user?.avatar || undefined} sx={{ width: 36, height: 36, fontSize: 13 }}>
+              {(user?.name || 'S')[0].toUpperCase()}
+            </Avatar>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>{user?.name || 'Student'}</Typography>
+            <Typography variant="caption" color="text.secondary">School: {user?.university || 'Not provided'}</Typography>
+            <Typography variant="caption" color="text.secondary">Course: {user?.course || user?.yearOfStudy || 'Not provided'}</Typography>
+            <Typography variant="caption" color="text.secondary">ID: {user?.idNumber || 'Not provided'}</Typography>
+          </Stack>
+        </Paper>
 
         {/* Filters */}
         <Box sx={{ overflowX: 'auto', pb: 0.5, mb: 2.5 }}>

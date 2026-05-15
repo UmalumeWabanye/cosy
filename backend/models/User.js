@@ -29,6 +29,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    course: {
+      type: String,
+      trim: true,
+    },
+    yearOfStudy: {
+      type: String,
+      trim: true,
+    },
     fundingType: {
       type: String,
       enum: ['NSFAS', 'Private', 'Self-funded'],

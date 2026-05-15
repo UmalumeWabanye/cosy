@@ -58,7 +58,7 @@ export default function RequestsPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || user?.role !== 'student')) router.push('/login');
+    if (!isLoading && (!isAuthenticated || user?.role !== 'student')) router.push('/');
   }, [isAuthenticated, isLoading, user, router]);
 
   useEffect(() => {

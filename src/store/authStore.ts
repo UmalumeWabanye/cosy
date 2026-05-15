@@ -6,8 +6,11 @@ export interface User {
   name: string;
   role: 'admin' | 'student' | 'landlord';
   university?: string;
+  course?: string;
+  yearOfStudy?: string;
   fundingType?: string;
   avatar?: string;
+  idNumber?: string;
 }
 
 interface AuthStore {
