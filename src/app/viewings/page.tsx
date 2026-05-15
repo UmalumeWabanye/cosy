@@ -51,6 +51,7 @@ export default function ViewingsPage() {
   const [properties, setProperties] = useState<PropertyOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ property: '', requestedDate: '', note: '' });
 
@@ -100,6 +101,19 @@ export default function ViewingsPage() {
       setError(e?.response?.data?.message || 'Failed to submit viewing request');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const cancelViewing = async (viewingId: string) => {
+    try {
+      setCancellingId(viewingId);
+      setError('');
+      await api.delete(`/viewings/${viewingId}`);
+      setViewings((prev) => prev.filter((item) => item._id !== viewingId));
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Failed to cancel viewing');
+    } finally {
+      setCancellingId(null);
     }
   };
 
@@ -183,6 +197,21 @@ export default function ViewingsPage() {
                       </Stack>
 
                       {v.note ? <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>{v.note}</Typography> : null}
+
+                      {v.status === 'pending' && (
+                        <Box sx={{ mt: 1 }}>
+                          <Button
+                            size="small"
+                            color="error"
+                            variant="outlined"
+                            sx={{ textTransform: 'none' }}
+                            onClick={() => cancelViewing(v._id)}
+                            disabled={cancellingId === v._id}
+                          >
+                            {cancellingId === v._id ? 'Cancelling…' : 'Cancel Booking'}
+                          </Button>
+                        </Box>
+                      )}
                     </Box>
                   </Stack>
                 </Paper>

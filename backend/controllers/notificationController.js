@@ -7,10 +7,16 @@ const getNotifications = async (req, res, next) => {
   try {
     const { page = 1, limit = 50, unread } = req.query;
     const filter = {};
+
+    if (req.user?.role === 'landlord') {
+      filter.recipient = req.user._id;
+    }
+
     if (unread === 'true') filter.isRead = false;
 
     const total = await Notification.countDocuments(filter);
-    const unreadCount = await Notification.countDocuments({ isRead: false });
+    const unreadFilter = { ...filter, isRead: false };
+    const unreadCount = await Notification.countDocuments(unreadFilter);
     const notifications = await Notification.find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)

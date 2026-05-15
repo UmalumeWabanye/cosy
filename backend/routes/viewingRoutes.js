@@ -2,6 +2,7 @@ const express = require('express');
 const { protect, adminOrLandlord } = require('../middleware/auth');
 const Viewing = require('../models/Viewing');
 const Property = require('../models/Property');
+const Notification = require('../models/Notification');
 
 const router = express.Router();
 
@@ -38,6 +39,35 @@ router.get('/my', protect, async (req, res) => {
     res.json({ data });
   } catch (err) {
     res.status(500).json({ message: err.message || 'Failed to load viewings' });
+  }
+});
+
+router.delete('/:id', protect, async (req, res) => {
+  try {
+    const viewing = await Viewing.findOne({ _id: req.params.id, student: req.user._id })
+      .populate('property', 'propertyName createdBy');
+
+    if (!viewing) {
+      return res.status(404).json({ message: 'Viewing not found' });
+    }
+
+    const landlordId = viewing.property?.createdBy;
+    if (landlordId) {
+      await Notification.create({
+        recipient: landlordId,
+        type: 'request_updated',
+        title: 'Viewing Booking Cancelled',
+        message: `${req.user.name || 'A student'} cancelled a viewing for ${viewing.property?.propertyName || 'your property'}.`,
+        link: '/admin/notifications',
+        refModel: null,
+        refId: null,
+      });
+    }
+
+    await viewing.deleteOne();
+    res.json({ message: 'Viewing booking cancelled' });
+  } catch (err) {
+    res.status(500).json({ message: err.message || 'Failed to cancel viewing' });
   }
 });
 
