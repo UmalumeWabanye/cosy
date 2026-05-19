@@ -452,6 +452,16 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (user?.role !== 'admin') return;
+    const hasPortalAccess = window.sessionStorage.getItem('cosy_admin_portal_access') === 'granted';
+    if (!hasPortalAccess) {
+      router.replace('/admin-access');
+    }
+  }, [router, user?.role]);
+
   const handleNavigate = (path: string) => {
     setMobileOpen(false);
     router.push(path);

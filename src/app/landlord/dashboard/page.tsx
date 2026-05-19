@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/services/api';
-import AdminLayout from '@/components/admin/AdminLayout';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -170,18 +169,21 @@ export default function LandlordDashboardPage() {
   if (isLoading) return null;
 
   return (
-    <AdminLayout pendingCount={pendingApplications}>
-      <Box sx={{ p: { xs: 2, md: 4 } }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
+      <Box sx={{ px: { xs: 2, md: 4 }, pt: { xs: 2, md: 3 }, pb: 2 }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 3, gap: 1.5 }}>
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Landlord Dashboard</Typography>
             <Typography variant="body2" color="text.secondary">
-              Manage listings, enquiries, occupancy, verification and performance in one place.
+              Manage your listings, enquiries, viewings, occupancy, and verification in one place.
             </Typography>
           </Box>
           <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
             <Button variant="outlined" onClick={() => router.push('/admin/requests')} sx={{ textTransform: 'none' }}>
               Manage Enquiries
+            </Button>
+            <Button variant="outlined" onClick={() => router.push('/viewings')} sx={{ textTransform: 'none' }}>
+              View Bookings
             </Button>
             <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => router.push('/admin/properties/new')} sx={{ textTransform: 'none', fontWeight: 700 }}>
               Add Listing
@@ -343,6 +345,6 @@ export default function LandlordDashboardPage() {
           </>
         )}
       </Box>
-    </AdminLayout>
+    </Box>
   );
 }

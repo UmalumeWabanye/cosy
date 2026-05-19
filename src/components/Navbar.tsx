@@ -52,7 +52,7 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, [isHomepage]);
 
-  const hiddenPaths = ['/login', '/register', '/signup'];
+  const hiddenPaths = ['/login', '/register', '/signup', '/admin-access'];
   const studentPortalPaths = [
     '/dashboard',
     '/profile',

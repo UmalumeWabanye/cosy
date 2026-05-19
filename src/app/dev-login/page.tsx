@@ -41,9 +41,9 @@ export default function DevLogin() {
           const data = res.data;
           const user = data.user || data;
           useAuthStore.setState({ user });
-          // redirect to requested page or admin dashboard if admin
+          // redirect to requested page or admin gateway if admin
           if (user?.role === 'admin') {
-            router.push('/admin/dashboard');
+            router.push('/admin-access');
           } else {
             router.push(redirect);
           }

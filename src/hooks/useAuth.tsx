@@ -31,9 +31,9 @@ export function useAuth() {
               const userObj = data.user || data;
               setUser(userObj);
 
-              // Auto-redirect admins to admin dashboard when user explicitly navigates from /dashboard
+              // Auto-redirect admins to separate admin gateway when user explicitly navigates from /dashboard
               if (userObj.role === 'admin' && typeof window !== 'undefined' && window.location.pathname === '/dashboard') {
-                router.push('/admin/dashboard');
+                router.push('/admin-access');
               }
             } else {
               useAuthStore.setState({ token: null, user: null, isAuthenticated: false });

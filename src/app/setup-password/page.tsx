@@ -149,7 +149,7 @@ function SetupPasswordForm() {
       // Role-aware redirect after short delay
       setTimeout(() => {
         if (user.role === 'admin') {
-          router.push('/admin/dashboard');
+          router.push('/admin-access');
         } else if (user.role === 'landlord') {
           router.push('/landlord/dashboard');
         } else {
