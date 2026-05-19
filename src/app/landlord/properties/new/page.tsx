@@ -33,11 +33,18 @@ export default function NewLandlordPropertyPage() {
     universityNearby: '',
     price: '',
     roomType: 'Single',
+    totalRooms: '',
+    availableRooms: '',
     description: '',
     distanceFromCampus: '',
     amenities: '',
+    utilities: '',
+    rules: '',
     nsfasAccredited: false,
     isAvailable: true,
+    paymentStatus: 'not_applicable',
+    contractStatus: 'not_applicable',
+    communicationChannel: 'WhatsApp',
   });
 
   useEffect(() => {
@@ -52,6 +59,14 @@ export default function NewLandlordPropertyPage() {
       setError('Please fill all required fields.');
       return;
     }
+    if (form.totalRooms === '' || form.availableRooms === '') {
+      setError('Please enter the total rooms and available rooms.');
+      return;
+    }
+    if (Number(form.availableRooms) > Number(form.totalRooms)) {
+      setError('Available rooms cannot exceed total rooms.');
+      return;
+    }
 
     try {
       setLoading(true);
@@ -63,11 +78,22 @@ export default function NewLandlordPropertyPage() {
         universityNearby: form.universityNearby,
         price: Number(form.price),
         roomType: form.roomType,
+        totalRooms: Number(form.totalRooms),
+        availableRooms: Number(form.availableRooms),
         description: form.description || undefined,
         distanceFromCampus: form.distanceFromCampus ? Number(form.distanceFromCampus) : undefined,
         amenities: form.amenities
           ? form.amenities.split(',').map((item) => item.trim()).filter(Boolean)
           : [],
+        utilities: form.utilities
+          ? form.utilities.split(',').map((item) => item.trim()).filter(Boolean)
+          : [],
+        rules: form.rules
+          ? form.rules.split('\n').map((item) => item.trim()).filter(Boolean)
+          : [],
+        paymentStatus: form.paymentStatus,
+        contractStatus: form.contractStatus,
+        communicationChannel: form.communicationChannel,
         nsfasAccredited: form.nsfasAccredited,
         isAvailable: form.isAvailable,
       });
@@ -100,7 +126,7 @@ export default function NewLandlordPropertyPage() {
           <TextField label="Address" required value={form.address} onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))} />
           <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 2 }}>
             <TextField label="City" required fullWidth value={form.city} onChange={(e) => setForm((prev) => ({ ...prev, city: e.target.value }))} />
-            <TextField label="Nearby University" required fullWidth value={form.universityNearby} onChange={(e) => setForm((prev) => ({ ...prev, universityNearby: e.target.value }))} />
+              <TextField label="Nearby University / College" required fullWidth value={form.universityNearby} onChange={(e) => setForm((prev) => ({ ...prev, universityNearby: e.target.value }))} />
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 2 }}>
@@ -110,9 +136,34 @@ export default function NewLandlordPropertyPage() {
             </TextField>
           </Stack>
 
+            <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 2 }}>
+              <TextField label="Total Rooms" type="number" required fullWidth value={form.totalRooms} onChange={(e) => setForm((prev) => ({ ...prev, totalRooms: e.target.value }))} />
+              <TextField label="Available Rooms" type="number" required fullWidth value={form.availableRooms} onChange={(e) => setForm((prev) => ({ ...prev, availableRooms: e.target.value }))} />
+            </Stack>
+
           <TextField label="Distance From Campus (km)" type="number" value={form.distanceFromCampus} onChange={(e) => setForm((prev) => ({ ...prev, distanceFromCampus: e.target.value }))} />
           <TextField label="Amenities (comma separated)" value={form.amenities} onChange={(e) => setForm((prev) => ({ ...prev, amenities: e.target.value }))} />
+            <TextField label="Utilities Included (comma separated)" value={form.utilities} onChange={(e) => setForm((prev) => ({ ...prev, utilities: e.target.value }))} />
+            <TextField label="House Rules" multiline rows={3} placeholder="One rule per line" value={form.rules} onChange={(e) => setForm((prev) => ({ ...prev, rules: e.target.value }))} />
           <TextField label="Description" multiline rows={4} value={form.description} onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))} />
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 2 }}>
+              <TextField select fullWidth label="Payment Status" value={form.paymentStatus} onChange={(e) => setForm((prev) => ({ ...prev, paymentStatus: e.target.value }))}>
+                <MenuItem value="not_applicable">Not applicable</MenuItem>
+                <MenuItem value="paid">Paid</MenuItem>
+                <MenuItem value="due">Due</MenuItem>
+                <MenuItem value="overdue">Overdue</MenuItem>
+              </TextField>
+              <TextField select fullWidth label="Contract Status" value={form.contractStatus} onChange={(e) => setForm((prev) => ({ ...prev, contractStatus: e.target.value }))}>
+                <MenuItem value="not_applicable">Not applicable</MenuItem>
+                <MenuItem value="draft">Draft</MenuItem>
+                <MenuItem value="sent">Sent</MenuItem>
+                <MenuItem value="signed">Signed</MenuItem>
+                <MenuItem value="expired">Expired</MenuItem>
+              </TextField>
+            </Stack>
+
+            <TextField label="Communication Channel" helperText="e.g. WhatsApp, email, SMS, in-app chat" value={form.communicationChannel} onChange={(e) => setForm((prev) => ({ ...prev, communicationChannel: e.target.value }))} />
 
           <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 2 }}>
             <FormControlLabel control={<Checkbox checked={form.nsfasAccredited} onChange={(e) => setForm((prev) => ({ ...prev, nsfasAccredited: e.target.checked }))} />} label="NSFAS Accredited" />

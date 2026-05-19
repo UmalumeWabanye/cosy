@@ -210,6 +210,9 @@ export default function LandlordDashboardPage() {
             <Button variant="outlined" onClick={() => router.push('/landlord/viewings')} sx={{ textTransform: 'none' }}>
               View Bookings
             </Button>
+            <Button variant="outlined" onClick={() => router.push('/landlord/messages')} sx={{ textTransform: 'none' }}>
+              Messages
+            </Button>
             <Button variant="outlined" onClick={() => router.push('/landlord/analytics')} sx={{ textTransform: 'none' }}>
               Open Analytics
             </Button>

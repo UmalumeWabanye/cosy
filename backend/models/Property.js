@@ -36,6 +36,14 @@ const propertySchema = new mongoose.Schema(
       enum: ['Single', 'Sharing', 'Ensuite', 'Bachelor'],
       required: [true, 'Room type is required'],
     },
+    totalRooms: {
+      type: Number,
+      min: 0,
+    },
+    availableRooms: {
+      type: Number,
+      min: 0,
+    },
     images: [
       {
         url: { type: String, required: true },
@@ -47,9 +55,35 @@ const propertySchema = new mongoose.Schema(
       trim: true,
     },
     amenities: [String],
+    rules: [String],
+    utilities: [String],
+    roomAllocations: [
+      {
+        roomNumber: { type: String, trim: true, required: true },
+        student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        request: { type: mongoose.Schema.Types.ObjectId, ref: 'Request' },
+        notes: { type: String, trim: true, default: '' },
+        allocatedAt: { type: Date, default: Date.now },
+      },
+    ],
     distanceFromCampus: {
       type: Number,
       min: 0,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['not_applicable', 'paid', 'due', 'overdue'],
+      default: 'not_applicable',
+    },
+    contractStatus: {
+      type: String,
+      enum: ['not_applicable', 'draft', 'sent', 'signed', 'expired'],
+      default: 'not_applicable',
+    },
+    communicationChannel: {
+      type: String,
+      trim: true,
+      default: 'WhatsApp',
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

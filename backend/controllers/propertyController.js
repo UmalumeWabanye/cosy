@@ -106,7 +106,7 @@ const getProperty = async (req, res, next) => {
     const property = await Property.findById(req.params.id).populate(
       'createdBy',
       'name email avatar'
-    );
+    ).populate('roomAllocations.student', 'name email avatar university course').populate('roomAllocations.request', 'status moveInDate leaseDuration createdAt');
     if (!property) {
       res.statusCode = 404;
       throw new Error('Property not found');

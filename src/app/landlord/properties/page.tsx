@@ -28,6 +28,7 @@ import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
+import MeetingRoomRoundedIcon from '@mui/icons-material/MeetingRoomRounded';
 
 interface Property {
   _id: string;
@@ -36,6 +37,8 @@ interface Property {
   address: string;
   price: number;
   roomType: string;
+  totalRooms?: number;
+  availableRooms?: number;
   isAvailable: boolean;
   nsfasAccredited?: boolean;
   universityNearby?: string;
@@ -158,11 +161,17 @@ export default function LandlordPropertiesPage() {
                   <TableCell>
                     <Typography variant="body2">{property.city}</Typography>
                     <Typography variant="caption" color="text.secondary">{property.address}</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                      Rooms: {property.availableRooms ?? '—'} / {property.totalRooms ?? '—'}
+                    </Typography>
                   </TableCell>
                   <TableCell>R{property.price?.toLocaleString()}</TableCell>
                   <TableCell>{property.roomType}</TableCell>
                   <TableCell>
-                    <Chip size="small" label={property.isAvailable ? 'Available' : 'Unavailable'} color={property.isAvailable ? 'success' : 'default'} />
+                    <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap' }}>
+                      <Chip size="small" label={property.isAvailable ? 'Available' : 'Unavailable'} color={property.isAvailable ? 'success' : 'default'} />
+                      {property.nsfasAccredited && <Chip size="small" label="NSFAS" color="info" />}
+                    </Stack>
                   </TableCell>
                   <TableCell align="right">
                     <Stack direction="row" sx={{ justifyContent: 'flex-end', gap: 0.5 }}>
@@ -176,6 +185,11 @@ export default function LandlordPropertiesPage() {
                       <Tooltip title="Edit">
                         <IconButton size="small" color="primary" onClick={() => router.push(`/landlord/properties/${property._id}/edit`)}>
                           <EditRoundedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Allocate Rooms">
+                        <IconButton size="small" color="secondary" onClick={() => router.push(`/landlord/properties/${property._id}/allocate`)}>
+                          <MeetingRoomRoundedIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Delete">
