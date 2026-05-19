@@ -23,7 +23,27 @@ router.get('/reports/collection', async (req, res) => {
       .lean();
 
     const propertyIds = properties.map((property) => property._id);
-    const requests = await Request.find({ property: { $in: propertyIds } })
+
+    if (propertyIds.length === 0) {
+      return res.json({
+        data: {
+          month: targetMonth,
+          year: targetYear,
+          properties: { total: 0, active: 0 },
+          rows: [],
+          summary: {
+            totalActiveTenants: 0,
+            totalExpected: 0,
+            totalApplications: 0,
+            pendingApplications: 0,
+            approvedApplications: 0,
+            rejectedApplications: 0,
+            byFunding: { NSFAS: 0, Private: 0, 'Self-funded': 0 },
+          },
+        },
+      });
+    }
+    const requests = await Request.find({ property: { $in: propertyIds }, status: 'approved' })
       .populate('student', 'name email fundingType phone university course')
       .populate('property', 'propertyName city price roomType')
       .sort({ createdAt: -1 });
@@ -77,10 +97,10 @@ router.get('/reports/collection', async (req, res) => {
         summary: {
           totalActiveTenants: active.length,
           totalExpected: active.reduce((sum, row) => sum + row.monthlyRent, 0),
-          totalApplications: requests.length,
-          pendingApplications: requests.filter((request) => request.status === 'pending').length,
-          approvedApplications: requests.filter((request) => request.status === 'approved').length,
-          rejectedApplications: requests.filter((request) => request.status === 'rejected').length,
+          totalApplications: requests.filter((r) => r.status === 'approved').length,
+          pendingApplications: requests.filter((r) => r.status === 'pending').length,
+          approvedApplications: requests.filter((r) => r.status === 'approved').length,
+          rejectedApplications: requests.filter((r) => r.status === 'rejected').length,
           byFunding: {
             NSFAS: active.filter((row) => row.fundingType === 'NSFAS').length,
             Private: active.filter((row) => row.fundingType === 'Private').length,

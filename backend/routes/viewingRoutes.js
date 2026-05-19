@@ -58,7 +58,7 @@ router.delete('/:id', protect, async (req, res) => {
         type: 'request_updated',
         title: 'Viewing Booking Cancelled',
         message: `${req.user.name || 'A student'} cancelled a viewing for ${viewing.property?.propertyName || 'your property'}.`,
-        link: '/notifications',
+        link: '/landlord/notifications',
         refModel: null,
         refId: null,
       });
