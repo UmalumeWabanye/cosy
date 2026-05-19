@@ -48,6 +48,7 @@ interface RequestItem {
   student?: { _id: string; name?: string; email?: string; university?: string; course?: string };
   property?: { _id: string; propertyName?: string; city?: string };
   moveInDate?: string;
+  leaseDuration?: number;
   createdAt: string;
 }
 
@@ -144,6 +145,29 @@ export default function LandlordDashboardPage() {
   const approvedApplications = useMemo(() => requests.filter((request) => request.status === 'approved').length, [requests]);
   const pendingViewings = useMemo(() => viewings.filter((viewing) => viewing.status === 'pending').length, [viewings]);
 
+  const activeResidents = useMemo(() => {
+    const now = new Date();
+    const uniqueStudentIds = new Set<string>();
+
+    for (const request of requests) {
+      if (request.status !== 'approved') continue;
+      if (!request.student?._id || !request.moveInDate) continue;
+
+      const moveInDate = new Date(request.moveInDate);
+      if (Number.isNaN(moveInDate.getTime())) continue;
+
+      const leaseMonths = Number(request.leaseDuration || 0);
+      const leaseEndDate = new Date(moveInDate);
+      leaseEndDate.setMonth(leaseEndDate.getMonth() + leaseMonths);
+
+      if (moveInDate <= now && leaseEndDate >= now) {
+        uniqueStudentIds.add(request.student._id);
+      }
+    }
+
+    return uniqueStudentIds.size;
+  }, [requests]);
+
   const occupancyRate = useMemo(() => {
     if (properties.length === 0) return 0;
     const rate = Math.round((approvedApplications / properties.length) * 100);
@@ -186,6 +210,9 @@ export default function LandlordDashboardPage() {
             <Button variant="outlined" onClick={() => router.push('/landlord/viewings')} sx={{ textTransform: 'none' }}>
               View Bookings
             </Button>
+            <Button variant="outlined" onClick={() => router.push('/landlord/analytics')} sx={{ textTransform: 'none' }}>
+              Open Analytics
+            </Button>
             <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => router.push('/landlord/properties/new')} sx={{ textTransform: 'none', fontWeight: 700 }}>
               Add Listing
             </Button>
@@ -210,6 +237,9 @@ export default function LandlordDashboardPage() {
               </Grid>
               <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                 <StatCard title="Pending Viewings" value={pendingViewings} helper="Student booking requests" icon={<Diversity3RoundedIcon />} color="#6a1b9a" />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard title="Students Living" value={activeResidents} helper="Active approved occupancies" icon={<InsightsRoundedIcon />} color="#0d9488" />
               </Grid>
             </Grid>
 

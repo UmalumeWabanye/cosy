@@ -4,6 +4,8 @@ const { protect, adminOnly, adminOrLandlord } = require('../middleware/auth');
 const {
   getUsers,
   getUser,
+  getLandlordOverview,
+  getLandlordFilterOptions,
   toggleUser,
   deleteUser,
   getReports,
@@ -22,6 +24,8 @@ router.use(protect);
 // Admin-only management routes
 router.use('/users', adminOnly);
 router.get('/users', getUsers);
+router.get('/users/landlord-filter-options', getLandlordFilterOptions);
+router.get('/users/:id/overview', getLandlordOverview);
 router.get('/users/:id', getUser);
 router.patch('/users/:id/toggle', toggleUser);
 router.delete('/users/:id', deleteUser);

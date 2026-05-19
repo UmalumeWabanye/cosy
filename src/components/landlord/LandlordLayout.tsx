@@ -29,6 +29,7 @@ import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
+import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
 
 const DRAWER_WIDTH = 240;
 
@@ -53,6 +54,7 @@ function getBreadcrumb(pathname: string): string[] {
   if (pathname.startsWith('/landlord/properties')) return ['Landlord', 'Properties'];
   if (pathname.startsWith('/landlord/requests')) return ['Landlord', 'Applications'];
   if (pathname.startsWith('/landlord/viewings')) return ['Landlord', 'Viewings'];
+  if (pathname.startsWith('/landlord/analytics')) return ['Landlord', 'Analytics'];
   return ['Landlord'];
 }
 
@@ -111,6 +113,7 @@ const NAV_ITEMS = [
   { label: 'Applications', icon: <AssignmentRoundedIcon />, path: '/landlord/requests' },
   { label: 'Add Property', icon: <AddRoundedIcon />, path: '/landlord/properties/new' },
   { label: 'Viewings', icon: <CalendarTodayRoundedIcon />, path: '/landlord/viewings' },
+  { label: 'Analytics', icon: <InsightsRoundedIcon />, path: '/landlord/analytics' },
 ];
 
 interface SideMenuInnerProps {

@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Property = require('../models/Property');
 const Request = require('../models/Request');
+const Viewing = require('../models/Viewing');
 
 // ── Users ──────────────────────────────────────────────────────────────────────
 
@@ -9,7 +10,17 @@ const Request = require('../models/Request');
 // @access Admin
 const getUsers = async (req, res, next) => {
   try {
-    const { role, university, fundingType, search, page = 1, limit = 20 } = req.query;
+    const {
+      role,
+      university,
+      fundingType,
+      search,
+      city,
+      institution,
+      college,
+      page = 1,
+      limit = 20,
+    } = req.query;
     const filter = {};
 
     if (role) filter.role = role;
@@ -20,6 +31,20 @@ const getUsers = async (req, res, next) => {
         { name: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
       ];
+    }
+
+    // Landlord-specific location/institution filtering based on owned properties.
+    if (role === 'landlord' && (city || university || institution || college)) {
+      const propertyFilter = {};
+      const institutionQuery = university || institution || college;
+
+      if (city) propertyFilter.city = { $regex: city, $options: 'i' };
+      if (institutionQuery) {
+        propertyFilter.universityNearby = { $regex: institutionQuery, $options: 'i' };
+      }
+
+      const matchingLandlords = await Property.distinct('createdBy', propertyFilter);
+      filter._id = { $in: matchingLandlords };
     }
 
     const total = await User.countDocuments(filter);
@@ -53,6 +78,136 @@ const getUser = async (req, res, next) => {
       .sort({ createdAt: -1 });
 
     res.json({ data: { ...user.toObject(), requests } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc   Get landlord profile + portfolio data for admin drill-down
+// @route  GET /api/admin/users/:id/overview
+// @access Admin
+const getLandlordOverview = async (req, res, next) => {
+  try {
+    const landlord = await User.findById(req.params.id).select('-password');
+    if (!landlord) return res.status(404).json({ message: 'User not found' });
+    if (landlord.role !== 'landlord') {
+      return res.status(400).json({ message: 'Selected user is not a landlord' });
+    }
+
+    const properties = await Property.find({ createdBy: landlord._id }).sort({ createdAt: -1 });
+    const propertyIds = properties.map((property) => property._id);
+
+    const [requests, viewings] = await Promise.all([
+      Request.find({ property: { $in: propertyIds } })
+        .populate('student', 'name email university course fundingType')
+        .populate('property', 'propertyName city universityNearby price isAvailable')
+        .sort({ createdAt: -1 }),
+      Viewing.find({ property: { $in: propertyIds } })
+        .populate('student', 'name email university course')
+        .populate('property', 'propertyName city universityNearby price isAvailable')
+        .sort({ createdAt: -1 }),
+    ]);
+
+    const now = new Date();
+    const requestsByProperty = new Map();
+    const viewingsByProperty = new Map();
+
+    for (const request of requests) {
+      const propertyId = String(request.property?._id || request.property);
+      const group = requestsByProperty.get(propertyId) || [];
+      group.push(request);
+      requestsByProperty.set(propertyId, group);
+    }
+
+    for (const viewing of viewings) {
+      const propertyId = String(viewing.property?._id || viewing.property);
+      const group = viewingsByProperty.get(propertyId) || [];
+      group.push(viewing);
+      viewingsByProperty.set(propertyId, group);
+    }
+
+    const portfolio = properties.map((property) => {
+      const propertyId = String(property._id);
+      const propertyRequests = requestsByProperty.get(propertyId) || [];
+      const propertyViewings = viewingsByProperty.get(propertyId) || [];
+
+      const approvedRequests = propertyRequests.filter((request) => request.status === 'approved');
+      const activeResidents = approvedRequests
+        .filter((request) => {
+          const moveInDate = request.moveInDate ? new Date(request.moveInDate) : null;
+          if (!moveInDate || Number.isNaN(moveInDate.getTime())) return false;
+
+          const leaseMonths = Number(request.leaseDuration || 0);
+          const leaseEndDate = new Date(moveInDate);
+          leaseEndDate.setMonth(leaseEndDate.getMonth() + leaseMonths);
+
+          return moveInDate <= now && leaseEndDate >= now;
+        })
+        .map((request) => request.student)
+        .filter(Boolean);
+
+      return {
+        property,
+        metrics: {
+          totalApplications: propertyRequests.length,
+          pendingApplications: propertyRequests.filter((request) => request.status === 'pending').length,
+          approvedApplications: approvedRequests.length,
+          rejectedApplications: propertyRequests.filter((request) => request.status === 'rejected').length,
+          totalViewings: propertyViewings.length,
+          pendingViewings: propertyViewings.filter((viewing) => viewing.status === 'pending').length,
+          activeResidents: activeResidents.length,
+        },
+        activeResidents,
+      };
+    });
+
+    const uniqueResidents = new Map();
+    for (const item of portfolio) {
+      for (const resident of item.activeResidents) {
+        uniqueResidents.set(String(resident._id), resident);
+      }
+    }
+
+    res.json({
+      data: {
+        landlord,
+        summary: {
+          totalProperties: properties.length,
+          activeProperties: properties.filter((property) => property.isAvailable).length,
+          totalApplications: requests.length,
+          pendingApplications: requests.filter((request) => request.status === 'pending').length,
+          approvedApplications: requests.filter((request) => request.status === 'approved').length,
+          rejectedApplications: requests.filter((request) => request.status === 'rejected').length,
+          totalViewings: viewings.length,
+          pendingViewings: viewings.filter((viewing) => viewing.status === 'pending').length,
+          activeResidents: uniqueResidents.size,
+        },
+        portfolio,
+        requests,
+        viewings,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc   Get landlord filter options for admin users page
+// @route  GET /api/admin/users/landlord-filter-options
+// @access Admin
+const getLandlordFilterOptions = async (req, res, next) => {
+  try {
+    const [cities, institutions] = await Promise.all([
+      Property.distinct('city', { city: { $exists: true, $ne: '' } }),
+      Property.distinct('universityNearby', { universityNearby: { $exists: true, $ne: '' } }),
+    ]);
+
+    res.json({
+      data: {
+        cities: cities.filter(Boolean).sort((a, b) => a.localeCompare(b)),
+        institutions: institutions.filter(Boolean).sort((a, b) => a.localeCompare(b)),
+      },
+    });
   } catch (error) {
     next(error);
   }
@@ -247,4 +402,13 @@ const getCollectionReport = async (req, res, next) => {
   }
 };
 
-module.exports = { getUsers, getUser, toggleUser, deleteUser, getReports, getCollectionReport };
+module.exports = {
+  getUsers,
+  getUser,
+  getLandlordOverview,
+  getLandlordFilterOptions,
+  toggleUser,
+  deleteUser,
+  getReports,
+  getCollectionReport,
+};
