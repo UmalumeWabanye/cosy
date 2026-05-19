@@ -86,6 +86,7 @@ export default function ProfilePage() {
   const [prefRemember, setPrefRemember] = useState(true);
   const [prefNsfasFirst, setPrefNsfasFirst] = useState(false);
   const [prefCompact, setPrefCompact] = useState(false);
+  const [livingPreference, setLivingPreference] = useState<'individual' | 'shared' | 'noPreference'>('noPreference');
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) router.push('/login');
@@ -102,6 +103,12 @@ export default function ProfilePage() {
         idNumber: (user as any).idNumber ?? '',
       });
       setAvatarPreview((user as any).avatar ?? '');
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && (user as any).livingPreference) {
+      setLivingPreference((user as any).livingPreference);
     }
   }, [user]);
 
@@ -305,6 +312,35 @@ export default function ProfilePage() {
                 ))}
               </Stack>
               <Divider sx={{ mb: 3 }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Account Actions</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Living Preferences for Roommates</Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Help us match you with compatible roommates based on your housing preferences.</Typography>
+              <Stack sx={{ gap: 1 }}>
+                {[
+                  { val: 'individual' as const, label: 'Individual Living', desc: 'I prefer to live alone or have my own space' },
+                  { val: 'shared' as const, label: 'Shared Housing', desc: 'I\'m open to sharing accommodation with roommates' },
+                  { val: 'noPreference' as const, label: 'No Preference', desc: 'I\'m flexible with either option' },
+                ].map(opt => (
+                  <Box
+                    key={opt.val}
+                    onClick={() => { setLivingPreference(opt.val); api.patch('/auth/me', { livingPreference: opt.val }).catch(() => {}); }}
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      border: '1.5px solid',
+                      borderColor: livingPreference === opt.val ? 'primary.main' : 'divider',
+                      bgcolor: livingPreference === opt.val ? 'rgba(25,118,210,0.05)' : 'background.paper',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      '&:hover': { borderColor: 'primary.main' },
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{opt.label}</Typography>
+                    <Typography variant="caption" color="text.secondary">{opt.desc}</Typography>
+                  </Box>
+                ))}
+              </Stack>
+              <Divider sx={{ my: 3 }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Account Actions</Typography>
               <Button variant="outlined" startIcon={<LogoutRoundedIcon />} onClick={handleLogout} sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}>
                 Log Out

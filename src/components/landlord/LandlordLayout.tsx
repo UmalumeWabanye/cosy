@@ -112,7 +112,6 @@ function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
 
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/landlord/dashboard' },
-  { label: 'Profile', icon: <PersonRoundedIcon />, path: '/landlord/profile' },
   { label: 'Properties', icon: <ApartmentRoundedIcon />, path: '/landlord/properties' },
   { label: 'Applications', icon: <AssignmentRoundedIcon />, path: '/landlord/requests' },
   { label: 'Add Property', icon: <AddRoundedIcon />, path: '/landlord/properties/new' },
@@ -205,7 +204,11 @@ function SideMenuInner({ user, pathname, onNavigate, onLogout }: SideMenuInnerPr
       <Divider />
 
       {/* User footer */}
-      <Stack direction="row" sx={{ p: 1.5, gap: 1, alignItems: 'center' }}>
+      <Stack
+        direction="row"
+        onClick={() => onNavigate('/landlord/profile')}
+        sx={{ p: 1.5, gap: 1, alignItems: 'center', cursor: 'pointer', borderRadius: 1.5, transition: 'bgcolor 0.2s', '&:hover': { bgcolor: 'rgba(16,185,129,0.08)' } }}
+      >
         <Avatar sx={{
           width: 34, height: 34, bgcolor: '#10b981', fontSize: 13, flexShrink: 0,
           transition: 'box-shadow 0.2s, transform 0.2s',
@@ -222,7 +225,7 @@ function SideMenuInner({ user, pathname, onNavigate, onLogout }: SideMenuInnerPr
           </Typography>
         </Box>
         <Tooltip title="Sign out">
-          <IconButton size="small" onClick={onLogout}>
+          <IconButton size="small" onClick={(e) => { e.stopPropagation(); onLogout(); }}>
             <LogoutRoundedIcon fontSize="small" />
           </IconButton>
         </Tooltip>

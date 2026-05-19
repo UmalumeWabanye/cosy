@@ -13,6 +13,7 @@ export interface User {
   fundingType?: string;
   avatar?: string;
   idNumber?: string;
+  livingPreference?: 'individual' | 'shared' | 'noPreference';
   city?: string;
   province?: string;
   propertyType?: string;

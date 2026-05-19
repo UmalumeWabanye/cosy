@@ -20,6 +20,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
+import MenuItem from '@mui/material/MenuItem';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
@@ -91,6 +92,11 @@ function RegisterForm() {
   const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] = useState('');
+  const [universityError, setUniversityError] = useState(false);
+  const [universityErrorMessage, setUniversityErrorMessage] = useState('');
+  const [fundingTypeError, setFundingTypeError] = useState(false);
+  const [fundingTypeErrorMessage, setFundingTypeErrorMessage] = useState('');
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -101,6 +107,7 @@ function RegisterForm() {
     const emailEl = document.getElementById('email') as HTMLInputElement;
     const passwordEl = document.getElementById('password') as HTMLInputElement;
     const confirmEl = document.getElementById('confirmPassword') as HTMLInputElement;
+    
     let valid = true;
 
     if (!nameEl?.value || nameEl.value.trim().length < 2) {
@@ -118,6 +125,19 @@ function RegisterForm() {
     if (!confirmEl?.value || confirmEl.value !== passwordEl?.value) {
       setConfirmPasswordError(true); setConfirmPasswordErrorMessage('Passwords do not match.'); valid = false;
     } else { setConfirmPasswordError(false); setConfirmPasswordErrorMessage(''); }
+
+    if (!isLandlord) {
+      const universityEl = document.getElementById('university') as HTMLInputElement;
+      const fundingTypeEl = document.getElementsByName('fundingType')[0] as HTMLInputElement;
+
+      if (!universityEl?.value || universityEl.value.trim().length < 2) {
+        setUniversityError(true); setUniversityErrorMessage('Please enter your university.'); valid = false;
+      } else { setUniversityError(false); setUniversityErrorMessage(''); }
+
+      if (!fundingTypeEl?.value || fundingTypeEl.value.trim() === '') {
+        setFundingTypeError(true); setFundingTypeErrorMessage('Please select your funding type.'); valid = false;
+      } else { setFundingTypeError(false); setFundingTypeErrorMessage(''); }
+    }
 
     return valid;
   };
@@ -162,7 +182,7 @@ function RegisterForm() {
       localStorage.setItem('token', token);
       setToken(token);
       setUser(user);
-      // Landlords → landlord dashboard with onboarding wizard, students → account setup
+      
       if (isLandlord) {
         localStorage.setItem('showLandlordWizard', 'true');
         router.push('/landlord/dashboard');
@@ -293,8 +313,47 @@ function RegisterForm() {
               />
             </FormControl>
 
+            {!isLandlord && (
+              <>
+                <FormControl>
+                  <FormLabel htmlFor="university">University</FormLabel>
+                  <TextField
+                    error={universityError}
+                    helperText={universityErrorMessage}
+                    name="university"
+                    placeholder="University Name"
+                    id="university"
+                    required
+                    fullWidth
+                    variant="outlined"
+                    color={universityError ? 'error' : 'primary'}
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel htmlFor="fundingType">Funding Type</FormLabel>
+                  <TextField
+                    select
+                    error={fundingTypeError}
+                    helperText={fundingTypeErrorMessage}
+                    name="fundingType"
+                    id="fundingType"
+                    defaultValue=""
+                    required
+                    fullWidth
+                    variant="outlined"
+                    color={fundingTypeError ? 'error' : 'primary'}
+                  >
+                    <MenuItem value="NSFAS">NSFAS</MenuItem>
+                    <MenuItem value="Bursary">Bursary</MenuItem>
+                    <MenuItem value="Private">Private</MenuItem>
+                    <MenuItem value="Other">Other</MenuItem>
+                  </TextField>
+                </FormControl>
+              </>
+            )}
+
             <Button type="submit" fullWidth variant="contained" disabled={loading}
-              onClick={validateInputs}
               sx={{ py: 1.2, fontWeight: 600, textTransform: 'none' }}>
               {loading ? <CircularProgress size={22} color="inherit" /> : (isLandlord ? 'Create Landlord Account' : 'Sign up')}
             </Button>

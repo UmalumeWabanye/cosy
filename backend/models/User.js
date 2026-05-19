@@ -45,6 +45,12 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Student living preference
+    livingPreference: {
+      type: String,
+      enum: ['individual', 'shared', 'noPreference'],
+      default: 'noPreference',
+    },
     // Landlord profile fields (captured via onboarding wizard)
     phone: { type: String, trim: true },
     whatsapp: { type: String, trim: true },

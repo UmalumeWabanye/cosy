@@ -232,7 +232,6 @@ function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
 
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/admin/dashboard' },
-  { label: 'Profile', icon: <PersonRoundedIcon />, path: '/admin/profile' },
   { label: 'Users', icon: <PeopleRoundedIcon />, path: '/admin/users' },
   { label: 'Notifications', icon: <NotificationsRoundedIcon />, path: '/admin/notifications' },
 ];
@@ -410,7 +409,11 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
       <Divider />
 
       {/* User footer — matches dashboard exactly */}
-      <Stack direction="row" sx={{ p: 1.5, gap: 1, alignItems: 'center' }}>
+      <Stack
+        direction="row"
+        onClick={() => onNavigate('/admin/profile')}
+        sx={{ p: 1.5, gap: 1, alignItems: 'center', cursor: 'pointer', borderRadius: 1.5, transition: 'bgcolor 0.2s', '&:hover': { bgcolor: 'rgba(25,118,210,0.08)' } }}
+      >
         <Avatar sx={{
           width: 34, height: 34, bgcolor: 'primary.main', fontSize: 13, flexShrink: 0,
           transition: 'box-shadow 0.2s, transform 0.2s',
@@ -427,7 +430,7 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
           </Typography>
         </Box>
         <Tooltip title="Sign out">
-          <IconButton size="small" onClick={onLogout}>
+          <IconButton size="small" onClick={(e) => { e.stopPropagation(); onLogout(); }}>
             <LogoutRoundedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
