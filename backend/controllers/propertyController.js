@@ -1,6 +1,6 @@
 const Property = require('../models/Property');
 
-// @desc   Get properties owned by the logged-in landlord
+// @desc   Get properties shown in the landlord property management platform
 // @route  GET /api/properties/mine
 // @access Private/Admin
 const getMyProperties = async (req, res, next) => {
@@ -10,29 +10,13 @@ const getMyProperties = async (req, res, next) => {
     }
 
     const { search, page = 1, limit = 50 } = req.query;
-    const ownerId = String(req.user._id);
-    const ownerEmail = req.user.email || '';
-    const filter = {
-      $or: [
-        { createdBy: req.user._id },
-        // Legacy ownership shapes kept for backward compatibility with older records.
-        { owner: req.user._id },
-        { ownerId: req.user._id },
-        { landlordId: req.user._id },
-        { userId: req.user._id },
-        { 'owner._id': req.user._id },
-        { 'owner.id': ownerId },
-        ...(ownerEmail ? [{ 'owner.email': ownerEmail }, { landlordEmail: ownerEmail }] : []),
-      ],
-    };
+    const filter = {};
     if (search) {
-      const searchFilter = [
+      filter.$or = [
         { propertyName: new RegExp(search, 'i') },
         { city: new RegExp(search, 'i') },
         { address: new RegExp(search, 'i') },
       ];
-
-      filter.$and = [{ $or: searchFilter }];
     }
     const skip = (Number(page) - 1) * Number(limit);
     const total = await Property.countDocuments(filter);
@@ -158,11 +142,6 @@ const updateProperty = async (req, res, next) => {
       res.statusCode = 404;
       throw new Error('Property not found');
     }
-    if (req.user.role === 'landlord' && String(existing.createdBy) !== String(req.user._id)) {
-      res.statusCode = 403;
-      throw new Error('Not allowed to update this property');
-    }
-
     const property = await Property.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
@@ -187,11 +166,6 @@ const deleteProperty = async (req, res, next) => {
       res.statusCode = 404;
       throw new Error('Property not found');
     }
-    if (req.user.role === 'landlord' && String(existing.createdBy) !== String(req.user._id)) {
-      res.statusCode = 403;
-      throw new Error('Not allowed to delete this property');
-    }
-
     const property = await Property.findByIdAndDelete(req.params.id);
     if (!property) {
       res.statusCode = 404;

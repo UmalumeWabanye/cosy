@@ -53,19 +53,12 @@ const getMyRequests = async (req, res, next) => {
   }
 };
 
-// @desc   Get all requests (admin)
+// @desc   Get all requests for the landlord management platform
 // @route  GET /api/requests
 // @access Private/Admin
 const getAllRequests = async (req, res, next) => {
   try {
-    let filter = {};
-    if (req.user.role === 'landlord') {
-      const myProperties = await Property.find({ createdBy: req.user._id }).select('_id');
-      const myPropertyIds = myProperties.map((property) => property._id);
-      filter = { property: { $in: myPropertyIds } };
-    }
-
-    const requests = await Request.find(filter)
+    const requests = await Request.find({})
       .populate('student', 'name email university course yearOfStudy idNumber avatar fundingType')
       .populate('property', 'propertyName city address images price roomType createdBy')
       .sort({ createdAt: -1 });
@@ -85,14 +78,6 @@ const updateRequestStatus = async (req, res, next) => {
     if (!currentRequest) {
       res.statusCode = 404;
       throw new Error('Request not found');
-    }
-
-    if (
-      req.user.role === 'landlord' &&
-      String(currentRequest.property?.createdBy) !== String(req.user._id)
-    ) {
-      res.statusCode = 403;
-      throw new Error('Not allowed to update this request');
     }
 
     const request = await Request.findByIdAndUpdate(
