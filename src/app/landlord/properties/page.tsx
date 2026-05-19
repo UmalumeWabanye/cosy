@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import LandlordLayout from '@/components/landlord/LandlordLayout';
 import api from '@/services/api';
@@ -47,6 +47,7 @@ interface Property {
 
 export default function LandlordPropertiesPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isAuthenticated, isLoading } = useAuth();
 
   const [properties, setProperties] = useState<Property[]>([]);
@@ -54,6 +55,7 @@ export default function LandlordPropertiesPage() {
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const searchQuery = searchParams.get('search')?.trim().toLowerCase() ?? '';
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || user?.role !== 'landlord')) {
@@ -80,6 +82,24 @@ export default function LandlordPropertiesPage() {
       fetchProperties();
     }
   }, [isAuthenticated, user]);
+
+  const visibleProperties = useMemo(() => {
+    if (!searchQuery) return properties;
+    return properties.filter((property) => {
+      const haystack = [
+        property.propertyName,
+        property.city,
+        property.address,
+        property.roomType,
+        property.universityNearby,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      return haystack.includes(searchQuery);
+    });
+  }, [properties, searchQuery]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Delete this property?')) return;
@@ -133,9 +153,13 @@ export default function LandlordPropertiesPage() {
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>
-      ) : properties.length === 0 ? (
+      ) : visibleProperties.length === 0 ? (
         <Paper variant="outlined" sx={{ p: 6, textAlign: 'center' }}>
-          <Typography color="text.secondary">No properties yet for this landlord account.</Typography>
+          <Typography color="text.secondary">
+            {searchQuery
+              ? `No properties matched “${searchParams.get('search') ?? ''}”.`
+              : 'No properties yet for this landlord account.'}
+          </Typography>
           <Button variant="contained" sx={{ mt: 2, textTransform: 'none' }} onClick={() => router.push('/landlord/properties/new')}>Create your first listing</Button>
         </Paper>
       ) : (
@@ -152,7 +176,7 @@ export default function LandlordPropertiesPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {properties.map((property) => (
+              {visibleProperties.map((property) => (
                 <TableRow key={property._id} hover>
                   <TableCell>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{property.propertyName}</Typography>

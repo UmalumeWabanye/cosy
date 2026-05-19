@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import api from '@/services/api';
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -12,6 +13,9 @@ import MuiDrawer from '@mui/material/Drawer';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
+import Badge from '@mui/material/Badge';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -31,7 +35,9 @@ import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
-import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
+import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
 const DRAWER_WIDTH = 240;
 
@@ -51,6 +57,9 @@ export const landlordTheme = createTheme({
 function getBreadcrumb(pathname: string): string[] {
   if (pathname === '/landlord/dashboard') return ['Landlord', 'Dashboard'];
   if (pathname.startsWith('/landlord/profile')) return ['Landlord', 'Profile'];
+  if (pathname.startsWith('/landlord/notifications')) return ['Landlord', 'Notifications'];
+  if (pathname.startsWith('/landlord/reports/collection')) return ['Landlord', 'Reports', 'Monthly Collection'];
+  if (pathname.startsWith('/landlord/reports')) return ['Landlord', 'Reports'];
   if (pathname === '/landlord/properties/new') return ['Landlord', 'Properties', 'New Property'];
   if (/\/landlord\/properties\/[^/]+\/edit/.test(pathname)) return ['Landlord', 'Properties', 'Edit Property'];
   if (/\/landlord\/properties\/[^/]+/.test(pathname)) return ['Landlord', 'Properties', 'View Property'];
@@ -67,15 +76,42 @@ function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
   onOpenMenu?: () => void;
 }) {
   const breadcrumb = getBreadcrumb(pathname);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await api.get('/admin/notifications?unread=true&limit=1');
+        if (mounted) setNotificationCount(res.data?.unreadCount ?? 0);
+      } catch {
+        if (mounted) setNotificationCount(0);
+      }
+    };
+
+    fetchUnreadCount();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = searchTerm.trim();
+    onNavigate(query ? `/landlord/properties?search=${encodeURIComponent(query)}` : '/landlord/properties');
+  };
 
   return (
     <Stack
-      direction="row"
+      direction={{ xs: 'column', xl: 'row' }}
       sx={{
         display: 'flex',
-        alignItems: 'center',
+        alignItems: { xs: 'stretch', xl: 'center' },
         justifyContent: 'space-between',
-        gap: 1,
+        gap: 1.5,
         flexWrap: { xs: 'wrap', md: 'nowrap' },
         pb: 1.5,
         mb: 0,
@@ -106,6 +142,39 @@ function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
           </React.Fragment>
         ))}
       </Stack>
+
+      <Stack direction="row" sx={{ alignItems: 'center', gap: 1, flexWrap: 'wrap', justifyContent: { xs: 'flex-start', xl: 'flex-end' } }}>
+        <Box component="form" onSubmit={handleSearchSubmit} sx={{ width: { xs: '100%', sm: 320, xl: 360 } }}>
+          <TextField
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search properties, tenants"
+            size="small"
+            fullWidth
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRoundedIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+        </Box>
+        <Tooltip title="View calendar">
+          <IconButton size="small" onClick={() => onNavigate('/landlord/viewings')}>
+            <CalendarTodayRoundedIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Notifications">
+          <IconButton size="small" onClick={() => onNavigate('/landlord/notifications')}>
+            <Badge color="error" variant="dot" invisible={notificationCount === 0}>
+              <NotificationsRoundedIcon fontSize="small" />
+            </Badge>
+          </IconButton>
+        </Tooltip>
+      </Stack>
     </Stack>
   );
 }
@@ -117,6 +186,7 @@ const NAV_ITEMS = [
   { label: 'Add Property', icon: <AddRoundedIcon />, path: '/landlord/properties/new' },
   { label: 'Messages', icon: <ChatRoundedIcon />, path: '/landlord/messages' },
   { label: 'Viewings', icon: <CalendarTodayRoundedIcon />, path: '/landlord/viewings' },
+  { label: 'Monthly Collection', icon: <ReceiptLongRoundedIcon />, path: '/landlord/reports/collection' },
   { label: 'Analytics', icon: <InsightsRoundedIcon />, path: '/landlord/analytics' },
 ];
 

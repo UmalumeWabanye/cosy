@@ -10,6 +10,7 @@ const errorHandler = require('../middleware/errorHandler');
 const authRoutes = require('../routes/authRoutes');
 const propertyRoutes = require('../routes/propertyRoutes');
 const requestRoutes = require('../routes/requestRoutes');
+const landlordRoutes = require('../routes/landlordRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -61,6 +62,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/requests', requestRoutes);
+app.use('/api/landlord', landlordRoutes);
 
 // 404 handler
 app.use((req, res) => {
