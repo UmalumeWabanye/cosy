@@ -7,7 +7,7 @@ export default function LandlordMessagesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/messages');
+  router.replace('/landlord/dashboard');
   }, [router]);
 
   return null;
