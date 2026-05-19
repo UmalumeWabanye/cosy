@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import LandlordLayout from '@/components/landlord/LandlordLayout';
@@ -45,7 +45,7 @@ interface Property {
   createdAt: string;
 }
 
-export default function LandlordPropertiesPage() {
+function LandlordPropertiesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -233,5 +233,13 @@ export default function LandlordPropertiesPage() {
       )}
     </Box>
     </LandlordLayout>
+  );
+}
+
+export default function LandlordPropertiesPage() {
+  return (
+    <Suspense fallback={null}>
+      <LandlordPropertiesPageContent />
+    </Suspense>
   );
 }
