@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import LandlordLayout from '@/components/landlord/LandlordLayout';
 import api from '@/services/api';
 
 import Box from '@mui/material/Box';
@@ -115,7 +116,8 @@ export default function EditLandlordPropertyPage() {
   if (isLoading) return null;
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: 'grey.50', minHeight: '100vh' }}>
+    <LandlordLayout>
+      <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: 'grey.50', minHeight: '100vh' }}>
       <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 3, gap: 1.5 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>Edit Property</Typography>
@@ -164,5 +166,6 @@ export default function EditLandlordPropertyPage() {
         </Paper>
       )}
     </Box>
+    </LandlordLayout>
   );
 }

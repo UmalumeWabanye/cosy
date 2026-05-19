@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import LandlordLayout from '@/components/landlord/LandlordLayout';
 import api from '@/services/api';
 
 import Box from '@mui/material/Box';
@@ -169,7 +170,7 @@ export default function LandlordDashboardPage() {
   if (isLoading) return null;
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
+    <LandlordLayout>
       <Box sx={{ px: { xs: 2, md: 4 }, pt: { xs: 2, md: 3 }, pb: 2 }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 3, gap: 1.5 }}>
           <Box>
@@ -345,6 +346,6 @@ export default function LandlordDashboardPage() {
           </>
         )}
       </Box>
-    </Box>
+    </LandlordLayout>
   );
 }
