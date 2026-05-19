@@ -49,6 +49,7 @@ import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
 import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded';
 import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
 import PendingActionsRoundedIcon from '@mui/icons-material/PendingActionsRounded';
+import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 
 interface LandlordUser {
   _id: string;
@@ -270,6 +271,60 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleExportLandlordExcel = async () => {
+    if (!overview) return;
+    const XLSX = await import('xlsx');
+
+    const summaryRows = [
+      { Field: 'Landlord Name', Value: overview.landlord.name || '' },
+      { Field: 'Landlord Email', Value: overview.landlord.email || '' },
+      { Field: 'City', Value: overview.landlord.city || '' },
+      { Field: 'Province', Value: overview.landlord.province || '' },
+      { Field: 'Total Properties', Value: overview.summary.totalProperties },
+      { Field: 'Active Properties', Value: overview.summary.activeProperties },
+      { Field: 'Total Applications', Value: overview.summary.totalApplications },
+      { Field: 'Pending Applications', Value: overview.summary.pendingApplications },
+      { Field: 'Approved Applications', Value: overview.summary.approvedApplications },
+      { Field: 'Rejected Applications', Value: overview.summary.rejectedApplications },
+      { Field: 'Total Viewings', Value: overview.summary.totalViewings },
+      { Field: 'Pending Viewings', Value: overview.summary.pendingViewings },
+      { Field: 'Students Living There', Value: overview.summary.activeResidents },
+    ];
+
+    const propertyRows = overview.portfolio.map((item) => ({
+      Property: item.property.propertyName,
+      City: item.property.city || '',
+      Institution: item.property.universityNearby || '',
+      Price: Number(item.property.price || 0),
+      Applications: item.metrics.totalApplications,
+      'Pending Applications': item.metrics.pendingApplications,
+      'Approved Applications': item.metrics.approvedApplications,
+      Viewings: item.metrics.totalViewings,
+      'Pending Viewings': item.metrics.pendingViewings,
+      'Students Living': item.metrics.activeResidents,
+    }));
+
+    const residentRows = overview.portfolio.flatMap((item) =>
+      item.activeResidents.map((resident) => ({
+        'Resident Name': resident.name || '',
+        'Resident Email': resident.email || '',
+        University: resident.university || '',
+        Course: resident.course || '',
+        Property: item.property.propertyName,
+      }))
+    );
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(summaryRows), 'Summary');
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(propertyRows), 'Properties');
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(residentRows), 'Residents');
+
+    const safeName = (overview.landlord.name || 'landlord').replace(/\s+/g, '-').toLowerCase();
+    XLSX.writeFile(workbook, `landlord-portfolio-${safeName}.xlsx`);
+
+    setSnackbar('Landlord portfolio exported as Excel workbook');
+  };
+
   return (
     <AdminLayout>
       <Box sx={{ p: { xs: 2, md: 4 } }}>
@@ -344,6 +399,15 @@ export default function AdminUsersPage() {
                     <Chip label={overview.landlord.city || 'City not set'} variant="outlined" />
                     <Chip label={overview.landlord.province || 'Province not set'} variant="outlined" />
                     <Chip label={overview.landlord.isVerified ? 'Active' : 'Inactive'} color={overview.landlord.isVerified ? 'success' : 'default'} />
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<FileDownloadRoundedIcon />}
+                      onClick={handleExportLandlordExcel}
+                      sx={{ textTransform: 'none' }}
+                    >
+                      Export Excel
+                    </Button>
                   </Stack>
                 </Stack>
 
