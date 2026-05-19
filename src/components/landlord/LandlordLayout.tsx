@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import api from '@/services/api';
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -14,8 +13,8 @@ import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import Badge from '@mui/material/Badge';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
+import InputBase from '@mui/material/InputBase';
+import Popover from '@mui/material/Popover';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -38,6 +37,8 @@ import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
 
 const DRAWER_WIDTH = 240;
 
@@ -76,42 +77,57 @@ function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
   onOpenMenu?: () => void;
 }) {
   const breadcrumb = getBreadcrumb(pathname);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [notificationCount, setNotificationCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [calAnchor, setCalAnchor] = useState<HTMLElement | null>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState(todayStr);
 
+  const displayDate = new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+  });
+
+  // Poll unread count every 30 s
   useEffect(() => {
-    let mounted = true;
-
-    const fetchUnreadCount = async () => {
+    let cancelled = false;
+    const load = async () => {
       try {
-        const res = await api.get('/admin/notifications?unread=true&limit=1');
-        if (mounted) setNotificationCount(res.data?.unreadCount ?? 0);
-      } catch {
-        if (mounted) setNotificationCount(0);
-      }
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await fetch(`${API}/admin/notifications?limit=1`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) setUnreadCount(data.unreadCount ?? 0);
+      } catch { /* silent */ }
     };
+    load();
+    const id = setInterval(load, 30_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [pathname]);
 
-    fetchUnreadCount();
+  const handleCalClick = (e: React.MouseEvent<HTMLElement>) => {
+    setCalAnchor(e.currentTarget);
+    setTimeout(() => dateInputRef.current?.showPicker?.(), 50);
+  };
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const query = searchTerm.trim();
-    onNavigate(query ? `/landlord/properties?search=${encodeURIComponent(query)}` : '/landlord/properties');
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (!val) return;
+    setSelectedDate(val);
+    setCalAnchor(null);
+    onNavigate(`/landlord/viewings?date=${val}`);
   };
 
   return (
     <Stack
-      direction={{ xs: 'column', xl: 'row' }}
+      direction="row"
       sx={{
         display: 'flex',
-        alignItems: { xs: 'stretch', xl: 'center' },
+        alignItems: 'center',
         justifyContent: 'space-between',
-        gap: 1.5,
+        gap: 1,
         flexWrap: { xs: 'wrap', md: 'nowrap' },
         pb: 1.5,
         mb: 0,
@@ -143,33 +159,77 @@ function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
         ))}
       </Stack>
 
-      <Stack direction="row" sx={{ alignItems: 'center', gap: 1, flexWrap: 'wrap', justifyContent: { xs: 'flex-start', xl: 'flex-end' } }}>
-        <Box component="form" onSubmit={handleSearchSubmit} sx={{ width: { xs: '100%', sm: 320, xl: 360 } }}>
-          <TextField
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search properties, tenants"
-            size="small"
-            fullWidth
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchRoundedIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-              },
+      <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5, display: { xs: 'none', md: 'flex' } }}>
+        {/* Search */}
+        <Stack
+          direction="row"
+          component="form"
+          onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
+            e.preventDefault();
+            const input = e.currentTarget.querySelector('input');
+            const query = input?.value.trim() ?? '';
+            onNavigate(query ? `/landlord/properties?search=${encodeURIComponent(query)}` : '/landlord/properties');
+          }}
+          sx={{
+            alignItems: 'center', gap: 0.75, px: 1.5, py: 0.5,
+            border: '1px solid', borderColor: 'divider', borderRadius: 2,
+            bgcolor: 'background.paper', minWidth: 180,
+            '&:focus-within': { borderColor: 'primary.main' },
+          }}
+        >
+          <SearchRoundedIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+          <InputBase placeholder="Search…" sx={{ fontSize: 13, flex: 1 }} inputProps={{ 'aria-label': 'search' }} />
+        </Stack>
+
+        {/* Clickable calendar chip */}
+        <Tooltip title="Filter by date">
+          <Stack
+            direction="row"
+            onClick={handleCalClick}
+            sx={{
+              alignItems: 'center', gap: 0.75, px: 1.5, py: 0.5,
+              border: '1px solid', borderColor: 'divider', borderRadius: 2,
+              bgcolor: 'background.paper', cursor: 'pointer',
+              transition: 'border-color 0.2s, box-shadow 0.2s',
+              '&:hover': { borderColor: 'primary.main', boxShadow: '0 0 0 2px rgba(16,185,129,0.12)' },
             }}
-          />
-        </Box>
-        <Tooltip title="View calendar">
-          <IconButton size="small" onClick={() => onNavigate('/landlord/viewings')}>
-            <CalendarTodayRoundedIcon fontSize="small" />
-          </IconButton>
+          >
+            <CalendarTodayRoundedIcon sx={{ fontSize: 14, color: selectedDate !== todayStr ? 'primary.main' : 'text.secondary' }} />
+            <Typography variant="caption" sx={{ fontWeight: 500, color: selectedDate !== todayStr ? 'primary.main' : 'text.secondary', whiteSpace: 'nowrap' }}>
+              {displayDate}
+            </Typography>
+          </Stack>
         </Tooltip>
-        <Tooltip title="Notifications">
-          <IconButton size="small" onClick={() => onNavigate('/landlord/notifications')}>
-            <Badge color="error" variant="dot" invisible={notificationCount === 0}>
+
+        <Popover
+          open={Boolean(calAnchor)}
+          anchorEl={calAnchor}
+          onClose={() => setCalAnchor(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          slotProps={{ paper: { sx: { p: 1.5, borderRadius: 2, overflow: 'visible' } } }}
+        >
+          <input
+            ref={dateInputRef}
+            type="date"
+            value={selectedDate}
+            onChange={handleDateChange}
+            style={{ fontSize: 14, border: 'none', outline: 'none', background: 'transparent', cursor: 'pointer' }}
+          />
+        </Popover>
+
+        {/* Notifications bell */}
+        <Tooltip title={unreadCount > 0 ? `${unreadCount} unread notifications` : 'Notifications'}>
+          <IconButton
+            size="small"
+            onClick={() => onNavigate('/landlord/notifications')}
+            sx={{
+              border: '1px solid', borderColor: 'divider', borderRadius: 1.5,
+              transition: 'border-color 0.2s, box-shadow 0.2s',
+              '&:hover': { borderColor: 'primary.main', boxShadow: '0 0 0 2px rgba(16,185,129,0.12)' },
+            }}
+          >
+            <Badge badgeContent={unreadCount > 0 ? unreadCount : undefined} color="error" max={99}>
               <NotificationsRoundedIcon fontSize="small" />
             </Badge>
           </IconButton>
