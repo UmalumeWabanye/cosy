@@ -68,7 +68,7 @@ export default function Navbar() {
   const shouldHide =
     hiddenPaths.includes(pathname) ||
     pathname.startsWith('/admin') ||
-    pathname.startsWith('/landlord/dashboard') ||
+    pathname.startsWith('/landlord') ||
     studentPortalPaths.some(p => pathname === p || pathname.startsWith(p + '/'));
   if (shouldHide) return null;
 

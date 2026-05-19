@@ -111,7 +111,7 @@ const updateRequestStatus = async (req, res, next) => {
       title: 'Request Status Updated',
       message: `An accommodation request has been marked as "${status}".`,
       link: req.user.role === 'landlord'
-        ? `/landlord/dashboard?requestId=${request._id}`
+        ? `/landlord/requests?requestId=${request._id}`
         : `/admin/requests?requestId=${request._id}`,
       refModel: 'Request',
       refId: request._id,
