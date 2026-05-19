@@ -7,6 +7,7 @@ import LandlordLayout from '@/components/landlord/LandlordLayout';
 import api from '@/services/api';
 
 import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
