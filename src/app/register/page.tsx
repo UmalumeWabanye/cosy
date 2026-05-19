@@ -134,7 +134,7 @@ function RegisterForm() {
     const payload: Record<string, string> = { name, email, password };
 
     if (isLandlord) {
-      payload.role = 'admin';
+      payload.role = 'landlord';
     } else {
       payload.university = data.get('university') as string;
       payload.fundingType = data.get('fundingType') as string;

@@ -17,20 +17,22 @@ const register = async (req, res, next) => {
       throw new Error('User already exists with that email');
     }
 
+    const normalizedRole = role === 'landlord' ? 'landlord' : role === 'admin' ? 'admin' : 'student';
+
     const user = await User.create({
       name,
       email,
       password,
       university,
       fundingType,
-      role: role === 'admin' ? 'admin' : 'student',
+      role: normalizedRole,
     });
 
     // Notify admins of new self-registration
     await Notification.create({
       type: 'new_user',
       title: 'New User Registered',
-      message: `${name} (${email}) registered as a student.`,
+      message: `${name} (${email}) registered as a ${normalizedRole}.`,
       link: '/admin/users',
       refModel: 'User',
       refId: user._id,

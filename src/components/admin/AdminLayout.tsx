@@ -26,8 +26,6 @@ import { drawerClasses } from '@mui/material/Drawer';
 
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
-import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
@@ -59,11 +57,6 @@ export const adminTheme = createTheme({
 
 function getBreadcrumb(pathname: string): string[] {
   if (pathname === '/admin/dashboard') return ['Admin', 'Dashboard'];
-  if (pathname === '/admin/properties/new') return ['Admin', 'Properties', 'New Property'];
-  if (/\/admin\/properties\/[^/]+\/edit/.test(pathname)) return ['Admin', 'Properties', 'Edit Property'];
-  if (/\/admin\/properties\/[^/]+/.test(pathname)) return ['Admin', 'Properties', 'View Property'];
-  if (pathname.startsWith('/admin/properties')) return ['Admin', 'Properties'];
-  if (pathname.startsWith('/admin/requests')) return ['Admin', 'Applications'];
   if (pathname.startsWith('/admin/users')) return ['Admin', 'Users'];
   if (pathname.startsWith('/admin/notifications')) return ['Admin', 'Notifications'];
   if (pathname.startsWith('/admin/reports/analytics')) return ['Admin', 'Reports', 'Analytics'];
@@ -237,10 +230,8 @@ function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
 
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/admin/dashboard' },
-  { label: 'Properties', icon: <ApartmentRoundedIcon />, path: '/admin/properties' },
-  { label: 'Applications', icon: <AssignmentRoundedIcon />, path: '/admin/requests' },
-  { label: 'Add Property', icon: <AddRoundedIcon />, path: '/admin/properties/new' },
   { label: 'Users', icon: <PeopleRoundedIcon />, path: '/admin/users' },
+  { label: 'Notifications', icon: <NotificationsRoundedIcon />, path: '/admin/notifications' },
 ];
 
 const REPORT_SUB_ITEMS = [
@@ -280,7 +271,7 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
         </Box>
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.1 }}>Cosy Admin</Typography>
-          <Typography variant="caption" color="text.secondary">Web app</Typography>
+          <Typography variant="caption" color="text.secondary">Control Center</Typography>
         </Box>
       </Stack>
 
