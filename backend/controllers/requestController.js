@@ -33,7 +33,21 @@ const createRequest = async (req, res, next) => {
       refId: request._id,
     });
 
-    res.status(201).json({ data: request });
+      // Also notify the landlord of the property
+      const property = await Property.findById(request.property).select('createdBy');
+      if (property?.createdBy) {
+        await Notification.create({
+          recipient: property.createdBy,
+          type: 'new_request',
+          title: 'New Accommodation Request',
+          message: `A student submitted a new request for ${request.property?.propertyName ?? 'your property'}.`,
+          link: `/landlord/requests?requestId=${request._id}`,
+          refModel: 'Request',
+          refId: request._id,
+        });
+      }
+
+      res.status(201).json({ data: request });
   } catch (error) {
     next(error);
   }
