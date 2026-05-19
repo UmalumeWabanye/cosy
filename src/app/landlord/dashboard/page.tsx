@@ -204,21 +204,6 @@ export default function LandlordDashboardPage() {
             </Typography>
           </Box>
           <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
-            <Button variant="outlined" onClick={() => router.push('/landlord/requests')} sx={{ textTransform: 'none' }}>
-              Manage Enquiries
-            </Button>
-            <Button variant="outlined" onClick={() => router.push('/landlord/viewings')} sx={{ textTransform: 'none' }}>
-              View Bookings
-            </Button>
-            <Button variant="outlined" onClick={() => router.push('/landlord/messages')} sx={{ textTransform: 'none' }}>
-              Messages
-            </Button>
-            <Button variant="outlined" onClick={() => router.push('/landlord/analytics')} sx={{ textTransform: 'none' }}>
-              Open Analytics
-            </Button>
-            <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => router.push('/landlord/properties/new')} sx={{ textTransform: 'none', fontWeight: 700 }}>
-              Add Listing
-            </Button>
           </Stack>
         </Stack>
 

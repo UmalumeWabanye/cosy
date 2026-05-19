@@ -25,6 +25,7 @@ import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import ChatRoundedIcon from '@mui/icons-material/ChatRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
@@ -112,6 +113,7 @@ const NAV_ITEMS = [
   { label: 'Properties', icon: <ApartmentRoundedIcon />, path: '/landlord/properties' },
   { label: 'Applications', icon: <AssignmentRoundedIcon />, path: '/landlord/requests' },
   { label: 'Add Property', icon: <AddRoundedIcon />, path: '/landlord/properties/new' },
+  { label: 'Messages', icon: <ChatRoundedIcon />, path: '/landlord/messages' },
   { label: 'Viewings', icon: <CalendarTodayRoundedIcon />, path: '/landlord/viewings' },
   { label: 'Analytics', icon: <InsightsRoundedIcon />, path: '/landlord/analytics' },
 ];
