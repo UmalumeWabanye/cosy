@@ -33,6 +33,7 @@ import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
@@ -57,6 +58,7 @@ export const adminTheme = createTheme({
 
 function getBreadcrumb(pathname: string): string[] {
   if (pathname === '/admin/dashboard') return ['Admin', 'Dashboard'];
+  if (pathname.startsWith('/admin/profile')) return ['Admin', 'Profile'];
   if (pathname.startsWith('/admin/users')) return ['Admin', 'Users'];
   if (pathname.startsWith('/admin/notifications')) return ['Admin', 'Notifications'];
   if (pathname.startsWith('/admin/reports/analytics')) return ['Admin', 'Reports', 'Analytics'];
@@ -230,6 +232,7 @@ function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
 
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/admin/dashboard' },
+  { label: 'Profile', icon: <PersonRoundedIcon />, path: '/admin/profile' },
   { label: 'Users', icon: <PeopleRoundedIcon />, path: '/admin/users' },
   { label: 'Notifications', icon: <NotificationsRoundedIcon />, path: '/admin/notifications' },
 ];

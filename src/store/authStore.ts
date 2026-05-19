@@ -5,12 +5,18 @@ export interface User {
   email: string;
   name: string;
   role: 'admin' | 'student' | 'landlord';
+  phone?: string;
+  whatsapp?: string;
   university?: string;
   course?: string;
   yearOfStudy?: string;
   fundingType?: string;
   avatar?: string;
   idNumber?: string;
+  city?: string;
+  province?: string;
+  propertyType?: string;
+  numberOfProperties?: string;
   isVerified?: boolean;
   profileComplete?: boolean;
 }

@@ -270,7 +270,7 @@ export default function LandlordDashboardPage() {
                         : 'Complete your profile to improve student trust and conversion.'}
                     </Typography>
                     {!profileVerified && (
-                      <Button onClick={() => router.push('/profile')} sx={{ mt: 1.5, textTransform: 'none' }}>
+                      <Button onClick={() => router.push('/landlord/profile')} sx={{ mt: 1.5, textTransform: 'none' }}>
                         Complete Verification
                       </Button>
                     )}

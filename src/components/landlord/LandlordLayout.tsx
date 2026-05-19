@@ -31,6 +31,7 @@ import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 
 const DRAWER_WIDTH = 240;
 
@@ -49,6 +50,7 @@ export const landlordTheme = createTheme({
 
 function getBreadcrumb(pathname: string): string[] {
   if (pathname === '/landlord/dashboard') return ['Landlord', 'Dashboard'];
+  if (pathname.startsWith('/landlord/profile')) return ['Landlord', 'Profile'];
   if (pathname === '/landlord/properties/new') return ['Landlord', 'Properties', 'New Property'];
   if (/\/landlord\/properties\/[^/]+\/edit/.test(pathname)) return ['Landlord', 'Properties', 'Edit Property'];
   if (/\/landlord\/properties\/[^/]+/.test(pathname)) return ['Landlord', 'Properties', 'View Property'];
@@ -110,6 +112,7 @@ function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
 
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/landlord/dashboard' },
+  { label: 'Profile', icon: <PersonRoundedIcon />, path: '/landlord/profile' },
   { label: 'Properties', icon: <ApartmentRoundedIcon />, path: '/landlord/properties' },
   { label: 'Applications', icon: <AssignmentRoundedIcon />, path: '/landlord/requests' },
   { label: 'Add Property', icon: <AddRoundedIcon />, path: '/landlord/properties/new' },
