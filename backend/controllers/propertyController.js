@@ -5,14 +5,34 @@ const Property = require('../models/Property');
 // @access Private/Admin
 const getMyProperties = async (req, res, next) => {
   try {
+    if (!req.user || req.user.role !== 'landlord') {
+      return res.json({ data: [], total: 0, pages: 0, currentPage: Number(req.query.page || 1) });
+    }
+
     const { search, page = 1, limit = 50 } = req.query;
-    const filter = { createdBy: req.user._id };
+    const ownerId = String(req.user._id);
+    const ownerEmail = req.user.email || '';
+    const filter = {
+      $or: [
+        { createdBy: req.user._id },
+        // Legacy ownership shapes kept for backward compatibility with older records.
+        { owner: req.user._id },
+        { ownerId: req.user._id },
+        { landlordId: req.user._id },
+        { userId: req.user._id },
+        { 'owner._id': req.user._id },
+        { 'owner.id': ownerId },
+        ...(ownerEmail ? [{ 'owner.email': ownerEmail }, { landlordEmail: ownerEmail }] : []),
+      ],
+    };
     if (search) {
-      filter.$or = [
+      const searchFilter = [
         { propertyName: new RegExp(search, 'i') },
         { city: new RegExp(search, 'i') },
         { address: new RegExp(search, 'i') },
       ];
+
+      filter.$and = [{ $or: searchFilter }];
     }
     const skip = (Number(page) - 1) * Number(limit);
     const total = await Property.countDocuments(filter);

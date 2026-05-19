@@ -105,7 +105,7 @@ export default function LandlordDashboardPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || (user?.role !== 'landlord' && user?.role !== 'admin'))) {
+    if (!isLoading && (!isAuthenticated || user?.role !== 'landlord')) {
       router.push('/');
     }
   }, [isLoading, isAuthenticated, user, router]);
@@ -135,7 +135,7 @@ export default function LandlordDashboardPage() {
       }
     };
 
-    if (isAuthenticated && (user?.role === 'landlord' || user?.role === 'admin')) {
+    if (isAuthenticated && user?.role === 'landlord') {
       fetchData();
     }
   }, [isAuthenticated, user]);
