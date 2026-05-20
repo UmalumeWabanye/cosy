@@ -85,8 +85,6 @@ export default function AdminDashboardClientInner() {
   const [recentUsers, setRecentUsers] = useState<UserItem[]>([]);
   const [landlords, setLandlords] = useState<UserItem[]>([]);
   const [alertCount, setAlertCount] = useState(0);
-  const [totalProperties, setTotalProperties] = useState(0);
-  const [totalOccupancy, setTotalOccupancy] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -122,17 +120,6 @@ export default function AdminDashboardClientInner() {
         setRecentUsers(Array.isArray(recentUsersRes.data?.data) ? recentUsersRes.data.data : []);
         setLandlords(Array.isArray(landlordRes.data?.data) ? landlordRes.data.data : []);
         setAlertCount(notificationRes.data?.unreadCount ?? 0);
-        
-        // Fetch property stats for occupancy metrics
-        try {
-          const propertiesRes = await api.get('/properties?limit=1000');
-          const properties = Array.isArray(propertiesRes.data?.data) ? propertiesRes.data.data : [];
-          const occupancy = properties.reduce((acc: number, prop: any) => acc + (prop.roomAllocations?.length || 0), 0);
-          setTotalProperties(properties.length);
-          setTotalOccupancy(occupancy);
-        } catch (e) {
-          // Properties fetch failed, continue with stats
-        }
       } catch (e: any) {
         setError(e?.response?.data?.message || 'Failed to load admin dashboard');
       } finally {
@@ -170,7 +157,7 @@ export default function AdminDashboardClientInner() {
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Admin Control Center</Typography>
             <Typography variant="body2" color="text.secondary">
-              Oversee user accounts, landlord verification, and platform alerts across Cosy.
+              Oversee users, requests, properties, and moderation across the student and landlord platforms.
             </Typography>
           </Box>
           <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
@@ -197,9 +184,6 @@ export default function AdminDashboardClientInner() {
               </Grid>
               <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                 <StatCard title="Unread Admin Alerts" value={alertCount} helper="Notifications requiring attention" icon={<NotificationsRoundedIcon />} color="#ed6c02" />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                <StatCard title="Properties Listed" value={totalProperties} helper={`${totalOccupancy} occupants across listings`} icon={<ApartmentRoundedIcon />} color="#10b981" />
               </Grid>
             </Grid>
 
@@ -245,14 +229,6 @@ export default function AdminDashboardClientInner() {
                       <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
                         <Typography variant="body2" color="text.secondary">Unread Admin Alerts</Typography>
                         <Typography variant="body2" sx={{ fontWeight: 700 }}>{alertCount}</Typography>
-                      </Stack>
-                      <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">Properties Listed</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{totalProperties}</Typography>
-                      </Stack>
-                      <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">Current Occupancy</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{totalOccupancy}</Typography>
                       </Stack>
                     </Stack>
                     <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap', mt: 2 }}>

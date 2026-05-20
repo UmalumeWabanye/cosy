@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import api from '@/services/api';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
@@ -11,13 +12,12 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 
-const ADMIN_PORTAL_KEY = process.env.NEXT_PUBLIC_ADMIN_PORTAL_KEY || 'cosy-admin';
-
 export default function AdminAccessPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
   const [accessKey, setAccessKey] = useState('');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (isLoading) return;
@@ -40,16 +40,26 @@ export default function AdminAccessPage() {
     }
   }, [isLoading, isAuthenticated, user, router]);
 
-  const submit = (event: React.FormEvent) => {
+  const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-
-    if (accessKey.trim() !== ADMIN_PORTAL_KEY) {
-      setError('Invalid admin access key.');
+    if (!accessKey.trim()) {
+      setError('Access key is required.');
       return;
     }
 
-    window.sessionStorage.setItem('cosy_admin_portal_access', 'granted');
-    router.replace('/admin/dashboard');
+    try {
+      setSubmitting(true);
+      setError('');
+      await api.post('/admin/access/verify', { accessKey: accessKey.trim() });
+
+      window.sessionStorage.setItem('cosy_admin_portal_access', 'granted');
+      router.replace('/admin/dashboard');
+    } catch (err: any) {
+      const message = err?.response?.data?.message || 'Invalid admin access key.';
+      setError(message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (isLoading) return null;
@@ -79,8 +89,8 @@ export default function AdminAccessPage() {
               fullWidth
               autoFocus
             />
-            <Button variant="contained" type="submit" sx={{ fontWeight: 700 }}>
-              Enter Admin Platform
+            <Button variant="contained" type="submit" disabled={submitting} sx={{ fontWeight: 700 }}>
+              {submitting ? 'Verifying...' : 'Enter Admin Platform'}
             </Button>
           </Box>
         </Stack>

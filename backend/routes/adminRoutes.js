@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const { body } = require('express-validator');
 const { protect, adminOnly, adminOrLandlord } = require('../middleware/auth');
+const { handleValidation } = require('../middleware/validateRequest');
 const {
   getUsers,
   getUser,
@@ -20,6 +22,25 @@ const {
 
 // All routes require authentication
 router.use(protect);
+
+// Verify admin portal key server-side before granting dashboard entry
+router.post('/access/verify', [
+  adminOnly,
+  body('accessKey').isString().trim().notEmpty().isLength({ max: 128 }).withMessage('Access key is required'),
+  handleValidation,
+], (req, res) => {
+  const expectedKey = process.env.ADMIN_PORTAL_KEY;
+
+  if (!expectedKey) {
+    return res.status(500).json({ message: 'Admin portal key is not configured on the server' });
+  }
+
+  if (req.body.accessKey !== expectedKey) {
+    return res.status(403).json({ message: 'Invalid admin access key' });
+  }
+
+  return res.json({ success: true });
+});
 
 // Admin-only management routes
 router.use('/users', adminOnly);

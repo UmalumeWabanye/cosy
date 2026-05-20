@@ -1,39 +1,38 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const { body, param } = require('express-validator');
 const generateToken = require('../utils/generateToken');
 const User = require('../models/User');
-const { protect } = require('../middleware/auth');
+const { protect, adminOnly } = require('../middleware/auth');
+const { handleValidation } = require('../middleware/validateRequest');
 const sendInviteEmail = require('../utils/sendInviteEmail');
 
 const router = express.Router();
 
 // LOGIN ROUTE
-router.post('/login', async (req, res) => {
+router.post('/login', [
+  body('email').isEmail().withMessage('A valid email is required').normalizeEmail(),
+  body('password').isString().isLength({ min: 6, max: 128 }).withMessage('Password must be 6-128 characters long'),
+  handleValidation,
+], async (req, res) => {
   const { email, password } = req.body;
-  console.log('Login attempt:', { email, password });
 
   try {
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      console.log('User not found:', email);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
     if (!user.password) {
-      console.log('User found but NO PASSWORD FIELD!', user);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log('bcrypt.compare result:', isMatch);
     if (!isMatch) {
-      console.log('Incorrect password for:', email);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     const token = generateToken(user._id);
-
-    console.log('Login success:', email);
 
     res.json({
       token,
@@ -57,7 +56,15 @@ router.post('/login', async (req, res) => {
 });
 
 // REGISTER ROUTE
-router.post('/register', async (req, res) => {
+router.post('/register', [
+  body('name').isString().trim().isLength({ min: 2, max: 100 }).withMessage('Name must be 2-100 characters long'),
+  body('email').isEmail().withMessage('A valid email is required').normalizeEmail(),
+  body('password').isString().isLength({ min: 6, max: 128 }).withMessage('Password must be 6-128 characters long'),
+  body('role').optional().isIn(['student', 'admin', 'landlord']).withMessage('Invalid role'),
+  body('university').optional().isString().trim().isLength({ max: 150 }).withMessage('University is too long'),
+  body('fundingType').optional().isString().trim().isLength({ max: 50 }).withMessage('Funding type is invalid'),
+  handleValidation,
+], async (req, res) => {
   const { name, email, password, role, university, fundingType } = req.body;
   try {
     // Check if the user already exists
@@ -98,8 +105,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-module.exports = router;
-
 // GET current user (for /api/auth/me)
 router.get('/me', protect, async (req, res) => {
   if (!req.user) return res.status(401).json({ message: 'Not authorized' });
@@ -107,7 +112,19 @@ router.get('/me', protect, async (req, res) => {
 });
 
 // PATCH /api/auth/me — update student profile (name, phone, university, fundingType, avatar)
-router.patch('/me', protect, async (req, res) => {
+router.patch('/me', [
+  protect,
+  body('name').optional().isString().trim().isLength({ min: 2, max: 100 }).withMessage('Name must be 2-100 characters long'),
+  body('phone').optional().isString().trim().isLength({ max: 30 }).withMessage('Phone number is invalid'),
+  body('university').optional().isString().trim().isLength({ max: 150 }).withMessage('University is too long'),
+  body('course').optional().isString().trim().isLength({ max: 150 }).withMessage('Course is too long'),
+  body('yearOfStudy').optional().isString().trim().isLength({ max: 30 }).withMessage('Year of study is invalid'),
+  body('fundingType').optional().isString().trim().isLength({ max: 50 }).withMessage('Funding type is invalid'),
+  body('avatar').optional().isString().withMessage('Avatar is invalid'),
+  body('idNumber').optional().isString().trim().isLength({ max: 30 }).withMessage('ID number is invalid'),
+  body('profileComplete').optional().isBoolean().withMessage('Profile complete must be true or false'),
+  handleValidation,
+], async (req, res) => {
   try {
     const allowed = ['name', 'phone', 'university', 'course', 'yearOfStudy', 'fundingType', 'avatar', 'idNumber', 'profileComplete'];
     const updates = {};
@@ -135,7 +152,12 @@ router.patch('/me', protect, async (req, res) => {
 });
 
 // PATCH /api/auth/change-password
-router.patch('/change-password', protect, async (req, res) => {
+router.patch('/change-password', [
+  protect,
+  body('currentPassword').isString().isLength({ min: 6, max: 128 }).withMessage('Current password must be 6-128 characters long'),
+  body('newPassword').isString().isLength({ min: 6, max: 128 }).withMessage('New password must be 6-128 characters long'),
+  handleValidation,
+], async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword || newPassword.length < 6) {
@@ -154,7 +176,19 @@ router.patch('/change-password', protect, async (req, res) => {
 });
 
 // PUT /api/auth/profile — update landlord onboarding profile
-router.put('/profile', protect, async (req, res) => {
+router.put('/profile', [
+  protect,
+  body('phone').optional().isString().trim().isLength({ max: 30 }).withMessage('Phone number is invalid'),
+  body('whatsapp').optional().isString().trim().isLength({ max: 30 }).withMessage('WhatsApp number is invalid'),
+  body('avatar').optional().isString().withMessage('Avatar is invalid'),
+  body('city').optional().isString().trim().isLength({ max: 80 }).withMessage('City is too long'),
+  body('province').optional().isString().trim().isLength({ max: 80 }).withMessage('Province is too long'),
+  body('propertyType').optional().isString().trim().isLength({ max: 80 }).withMessage('Property type is invalid'),
+  body('numberOfProperties').optional().isString().trim().isLength({ max: 30 }).withMessage('Number of properties is invalid'),
+  body('idNumber').optional().isString().trim().isLength({ max: 30 }).withMessage('ID number is invalid'),
+  body('profileComplete').optional().isBoolean().withMessage('Profile complete must be true or false'),
+  handleValidation,
+], async (req, res) => {
   try {
     const allowed = ['phone', 'whatsapp', 'avatar', 'city', 'province', 'propertyType', 'numberOfProperties', 'idNumber', 'profileComplete'];
     const updates = {};
@@ -179,19 +213,16 @@ router.put('/profile', protect, async (req, res) => {
 });
 
 // POST /api/auth/invite — admin invites a new user
-router.post('/invite', protect, async (req, res) => {
+router.post('/invite', [
+  protect,
+  adminOnly,
+  body('name').isString().trim().isLength({ min: 2, max: 100 }).withMessage('Name must be 2-100 characters long'),
+  body('email').isEmail().withMessage('A valid email is required').normalizeEmail(),
+  body('role').isIn(['student', 'landlord', 'admin']).withMessage('Invalid role'),
+  handleValidation,
+], async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
     const { name, email, role } = req.body;
-    if (!name || !email || !role) {
-      return res.status(400).json({ message: 'Name, email and role are required' });
-    }
-    const allowedRoles = ['student', 'landlord', 'admin'];
-    if (!allowedRoles.includes(role)) {
-      return res.status(400).json({ message: 'Invalid role' });
-    }
     if (await User.findOne({ email })) {
       return res.status(400).json({ message: 'A user with that email already exists' });
     }
@@ -223,7 +254,10 @@ router.post('/invite', protect, async (req, res) => {
 });
 
 // GET /api/auth/invite/:token — validate invite token
-router.get('/invite/:token', async (req, res) => {
+router.get('/invite/:token', [
+  param('token').isHexadecimal().isLength({ min: 64, max: 64 }).withMessage('Invalid invite token'),
+  handleValidation,
+], async (req, res) => {
   try {
     const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
     const user = await User.findOne({
@@ -240,7 +274,11 @@ router.get('/invite/:token', async (req, res) => {
 });
 
 // POST /api/auth/setup-password — complete account setup via invite
-router.post('/setup-password', async (req, res) => {
+router.post('/setup-password', [
+  body('token').isHexadecimal().isLength({ min: 64, max: 64 }).withMessage('Invalid invite token'),
+  body('password').isString().isLength({ min: 6, max: 128 }).withMessage('Password must be 6-128 characters long'),
+  handleValidation,
+], async (req, res) => {
   try {
     const { token, password } = req.body;
     if (!token || !password || password.length < 6) {
@@ -273,3 +311,5 @@ router.post('/setup-password', async (req, res) => {
     res.status(500).json({ message: 'Could not complete setup' });
   }
 });
+
+module.exports = router;
