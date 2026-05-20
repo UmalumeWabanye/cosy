@@ -34,3 +34,4 @@ temp_*.txt
 temp_*.tsx
 *.patch
 coverage/
+task_comments.txt
