@@ -52,25 +52,8 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, [isHomepage]);
 
-  const hiddenPaths = ['/login', '/register', '/signup', '/admin-access'];
-  const studentPortalPaths = [
-    '/dashboard',
-    '/profile',
-    '/applications',
-    '/maintenance',
-    '/saved-listings',
-    '/notifications',
-    '/browse',
-    '/viewings',
-    '/messages',
-    '/roommates',
-    '/requests',
-  ];
-  const shouldHide =
-    hiddenPaths.includes(pathname) ||
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/landlord') ||
-    studentPortalPaths.some(p => pathname === p || pathname.startsWith(p + '/'));
+  const marketingPaths = ['/', '/about'];
+  const shouldHide = !marketingPaths.includes(pathname);
   if (shouldHide) return null;
 
   const handleLogout = () => {
