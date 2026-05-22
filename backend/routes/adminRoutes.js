@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
-const { protect, adminOnly, adminOrLandlord } = require('../middleware/auth');
+const { protect, adminOnly } = require('../middleware/auth');
 const { handleValidation } = require('../middleware/validateRequest');
 const {
   getUsers,
@@ -55,8 +55,8 @@ router.use('/reports', adminOnly);
 router.get('/reports', getReports);
 router.get('/reports/collection', getCollectionReport);
 
-// Notifications are available to admins and landlords
-router.use('/notifications', adminOrLandlord);
+// Notifications are admin-only in this namespace
+router.use('/notifications', adminOnly);
 router.get('/notifications', getNotifications);
 router.patch('/notifications/read-all', markAllRead);
 router.patch('/notifications/:id/read', markRead);

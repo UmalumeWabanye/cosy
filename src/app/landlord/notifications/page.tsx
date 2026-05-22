@@ -80,7 +80,7 @@ export default function LandlordNotificationsPage() {
     try {
       setLoading(true);
       setError('');
-      const res = await api.get('/admin/notifications?limit=100');
+      const res = await api.get('/landlord/notifications?limit=100');
       setNotifications(res.data?.data ?? []);
       setUnreadCount(res.data?.unreadCount ?? 0);
     } catch (err: any) {
@@ -95,20 +95,20 @@ export default function LandlordNotificationsPage() {
   }, [fetchNotifications]);
 
   const markRead = async (id: string) => {
-    await api.patch(`/admin/notifications/${id}/read`);
+    await api.patch(`/landlord/notifications/${id}/read`);
     setNotifications((prev) => prev.map((notification) => notification._id === id ? { ...notification, isRead: true } : notification));
     setUnreadCount((current) => Math.max(0, current - 1));
   };
 
   const markAllRead = async () => {
-    await api.patch('/admin/notifications/read-all');
+    await api.patch('/landlord/notifications/read-all');
     setNotifications((prev) => prev.map((notification) => ({ ...notification, isRead: true })));
     setUnreadCount(0);
   };
 
   const deleteNotification = async (id: string) => {
     const current = notifications.find((notification) => notification._id === id);
-    await api.delete(`/admin/notifications/${id}`);
+    await api.delete(`/landlord/notifications/${id}`);
     if (current && !current.isRead) {
       setUnreadCount((value) => Math.max(0, value - 1));
     }

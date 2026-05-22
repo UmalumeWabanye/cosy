@@ -96,7 +96,7 @@ function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
-        const res = await fetch(`${API}/admin/notifications?limit=1`, {
+        const res = await fetch(`${API}/landlord/notifications?limit=1`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) return;

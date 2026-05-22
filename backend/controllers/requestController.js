@@ -93,16 +93,6 @@ const createRequest = async (req, res, next) => {
 
     await request.populate('property', 'propertyName city');
 
-    // Notify all admins of new request
-    await Notification.create({
-      type: 'new_request',
-      title: 'New Accommodation Request',
-      message: `A student submitted a new request for ${request.property?.propertyName ?? 'a property'}.`,
-      link: `/admin/requests?requestId=${request._id}`,
-      refModel: 'Request',
-      refId: request._id,
-    });
-
       // Also notify the landlord of the property
       const property = await Property.findById(request.property).select('createdBy');
       if (property?.createdBy) {
@@ -194,9 +184,7 @@ const updateRequestStatus = async (req, res, next) => {
       type: 'request_updated',
       title: 'Request Status Updated',
       message: `An accommodation request has been marked as "${status}".`,
-      link: req.user.role === 'landlord'
-        ? `/landlord/requests?requestId=${request._id}`
-        : `/admin/requests?requestId=${request._id}`,
+      link: `/applications?requestId=${request._id}`,
       refModel: 'Request',
       refId: request._id,
     });

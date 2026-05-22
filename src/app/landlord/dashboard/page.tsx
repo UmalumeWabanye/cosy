@@ -115,19 +115,32 @@ export default function LandlordDashboardPage() {
       try {
         setLoading(true);
         setError('');
-        const [propertyRes, requestRes, viewingRes] = await Promise.all([
+        const [propertyRes, requestRes, viewingRes] = await Promise.allSettled([
           api.get('/properties/mine?limit=200'),
           api.get('/requests'),
           api.get('/viewings'),
         ]);
 
-        const propertyData = propertyRes.data?.data ?? [];
-        const requestData = requestRes.data?.data ?? [];
-        const viewingData = viewingRes.data?.data ?? [];
+        const propertyData =
+          propertyRes.status === 'fulfilled'
+            ? (propertyRes.value.data?.data ?? propertyRes.value.data ?? [])
+            : [];
+        const requestData =
+          requestRes.status === 'fulfilled'
+            ? (requestRes.value.data?.data ?? requestRes.value.data ?? [])
+            : [];
+        const viewingData =
+          viewingRes.status === 'fulfilled'
+            ? (viewingRes.value.data?.data ?? viewingRes.value.data ?? [])
+            : [];
 
         setProperties(Array.isArray(propertyData) ? propertyData : []);
         setRequests(Array.isArray(requestData) ? requestData : []);
         setViewings(Array.isArray(viewingData) ? viewingData : []);
+
+        if (requestRes.status !== 'fulfilled') {
+          setError('Could not load applications right now. Please refresh.');
+        }
       } catch (e: any) {
         setError(e?.response?.data?.message || 'Failed to load landlord dashboard');
       } finally {

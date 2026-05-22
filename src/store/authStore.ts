@@ -37,5 +37,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
   isAuthenticated: false,
   setUser: (user) => set({ user }),
   setToken: (token) => set({ token, isAuthenticated: !!token }),
-  logout: () => set({ user: null, token: null, isAuthenticated: false }),
+  logout: () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      localStorage.removeItem('showLandlordWizard');
+    }
+    set({ user: null, token: null, isAuthenticated: false });
+  },
 }));

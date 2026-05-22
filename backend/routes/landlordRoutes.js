@@ -2,10 +2,27 @@ const express = require('express');
 const { protect } = require('../middleware/auth');
 const Property = require('../models/Property');
 const Request = require('../models/Request');
+const {
+  getNotifications,
+  markRead,
+  markAllRead,
+  deleteNotification,
+} = require('../controllers/notificationController');
 
 const router = express.Router();
 
 router.use(protect);
+
+router.use('/notifications', (req, res, next) => {
+  if (req.user?.role !== 'landlord') {
+    return res.status(403).json({ message: 'Landlord access required' });
+  }
+  return next();
+});
+router.get('/notifications', getNotifications);
+router.patch('/notifications/read-all', markAllRead);
+router.patch('/notifications/:id/read', markRead);
+router.delete('/notifications/:id', deleteNotification);
 
 router.get('/reports/collection', async (req, res) => {
   try {

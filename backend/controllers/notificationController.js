@@ -1,16 +1,19 @@
 const Notification = require('../models/Notification');
 
+const notificationScopeFilter = (user) => {
+  if (user?.role === 'landlord') {
+    return { recipient: user._id };
+  }
+  return { recipient: null };
+};
+
 // @desc   Get all notifications (admin)
 // @route  GET /api/admin/notifications
 // @access Admin
 const getNotifications = async (req, res, next) => {
   try {
     const { page = 1, limit = 50, unread } = req.query;
-    const filter = {};
-
-    if (req.user?.role === 'landlord') {
-      filter.recipient = req.user._id;
-    }
+    const filter = notificationScopeFilter(req.user);
 
     if (unread === 'true') filter.isRead = false;
 
@@ -33,8 +36,9 @@ const getNotifications = async (req, res, next) => {
 // @access Admin
 const markRead = async (req, res, next) => {
   try {
-    const n = await Notification.findByIdAndUpdate(
-      req.params.id,
+    const scopeFilter = notificationScopeFilter(req.user);
+    const n = await Notification.findOneAndUpdate(
+      { _id: req.params.id, ...scopeFilter },
       { isRead: true },
       { new: true }
     );
@@ -50,7 +54,8 @@ const markRead = async (req, res, next) => {
 // @access Admin
 const markAllRead = async (req, res, next) => {
   try {
-    await Notification.updateMany({ isRead: false }, { isRead: true });
+    const scopeFilter = notificationScopeFilter(req.user);
+    await Notification.updateMany({ ...scopeFilter, isRead: false }, { isRead: true });
     res.json({ message: 'All notifications marked as read' });
   } catch (err) {
     next(err);
@@ -62,7 +67,8 @@ const markAllRead = async (req, res, next) => {
 // @access Admin
 const deleteNotification = async (req, res, next) => {
   try {
-    await Notification.findByIdAndDelete(req.params.id);
+    const scopeFilter = notificationScopeFilter(req.user);
+    await Notification.findOneAndDelete({ _id: req.params.id, ...scopeFilter });
     res.json({ message: 'Notification deleted' });
   } catch (err) {
     next(err);
