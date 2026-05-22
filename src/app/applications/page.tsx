@@ -17,6 +17,8 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
+import TextField from '@mui/material/TextField';
+import Rating from '@mui/material/Rating';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Alert from '@mui/material/Alert';
@@ -30,6 +32,8 @@ import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
+import RateReviewRoundedIcon from '@mui/icons-material/RateReviewRounded';
+import StarRoundedIcon from '@mui/icons-material/StarRounded';
 
 interface Req {
   _id: string;
@@ -69,6 +73,14 @@ export default function ApplicationsPage() {
   const [withdrawId, setWithdrawId] = useState<string | null>(null);
   const [withdrawing, setWithdrawing] = useState(false);
   const [error, setError] = useState('');
+  // Review state
+  const [eligibleIds, setEligibleIds] = useState<Set<string>>(new Set());
+  const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
+  const [reviewTarget, setReviewTarget] = useState<{ propertyId: string; propertyName: string } | null>(null);
+  const [reviewRating, setReviewRating] = useState<number | null>(null);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState('');
 
   useEffect(() => { if (!isLoading && !isAuthenticated) router.push('/'); }, [isAuthenticated, isLoading, router]);
 
@@ -81,6 +93,36 @@ export default function ApplicationsPage() {
   }, []);
 
   useEffect(() => { fetchReqs(); }, [fetchReqs]);
+
+  // Fetch review eligibility after applications load
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    api.get('/reviews/eligible').then(res => {
+      setEligibleIds(new Set(res.data.eligible ?? []));
+      setReviewedIds(new Set(res.data.reviewed ?? []));
+    }).catch(() => { /* silent */ });
+  }, [isAuthenticated]);
+
+  const handleSubmitReview = async () => {
+    if (!reviewTarget || !reviewRating) return;
+    setReviewSubmitting(true);
+    setReviewError('');
+    try {
+      await api.post('/reviews', {
+        propertyId: reviewTarget.propertyId,
+        rating: reviewRating,
+        comment: reviewComment.trim() || undefined,
+      });
+      setReviewedIds(prev => new Set([...prev, reviewTarget.propertyId]));
+      setReviewTarget(null);
+      setReviewRating(null);
+      setReviewComment('');
+    } catch (e: any) {
+      setReviewError(e?.response?.data?.message || 'Failed to submit review');
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width:600px)');
@@ -263,6 +305,32 @@ export default function ApplicationsPage() {
                             Withdraw
                           </Button>
                         )}
+                        {req.status === 'approved' && prop && eligibleIds.has(prop._id) && (
+                          reviewedIds.has(prop._id) ? (
+                            <Chip
+                              icon={<StarRoundedIcon sx={{ fontSize: '14px !important', color: '#92400e !important' }} />}
+                              label="Review submitted"
+                              size="small"
+                              sx={{ height: 28, fontSize: 11, fontWeight: 700, bgcolor: '#fef3c7', color: '#92400e' }}
+                            />
+                          ) : (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="warning"
+                              startIcon={<RateReviewRoundedIcon sx={{ fontSize: '14px !important' }} />}
+                              onClick={() => {
+                                setReviewTarget({ propertyId: prop._id, propertyName: prop.propertyName || prop.name || 'this property' });
+                                setReviewRating(null);
+                                setReviewComment('');
+                                setReviewError('');
+                              }}
+                              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5, fontSize: 12 }}
+                            >
+                              Leave Review
+                            </Button>
+                          )
+                        )}
                       </Stack>
                     </Box>
                   </Stack>
@@ -287,6 +355,54 @@ export default function ApplicationsPage() {
           <Button variant="contained" color="error" onClick={handleWithdraw} disabled={withdrawing}
             sx={{ textTransform: 'none', borderRadius: 1.5 }}>
             {withdrawing ? 'Withdrawing…' : 'Withdraw'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Leave Review dialog */}
+      <Dialog open={!!reviewTarget} onClose={() => !reviewSubmitting && setReviewTarget(null)} maxWidth="sm" fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Leave a Review</DialogTitle>
+        <DialogContent sx={{ pt: '12px !important' }}>
+          {reviewTarget && (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Share your experience staying at <strong>{reviewTarget.propertyName}</strong>.
+            </Typography>
+          )}
+          <Stack sx={{ alignItems: 'flex-start', gap: 0.5, mb: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>Your rating <span style={{ color: '#d32f2f' }}>*</span></Typography>
+            <Rating
+              value={reviewRating}
+              onChange={(_, v) => setReviewRating(v)}
+              size="large"
+              sx={{ '& .MuiRating-iconFilled': { color: '#f59e0b' } }}
+            />
+          </Stack>
+          <TextField
+            label="Comment (optional)"
+            multiline
+            rows={4}
+            fullWidth
+            value={reviewComment}
+            onChange={e => setReviewComment(e.target.value)}
+            inputProps={{ maxLength: 500 }}
+            helperText={`${reviewComment.length}/500`}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
+          />
+          {reviewError && <Alert severity="error" sx={{ mt: 1.5, borderRadius: 1.5 }}>{reviewError}</Alert>}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={() => setReviewTarget(null)} disabled={reviewSubmitting} sx={{ textTransform: 'none', borderRadius: 1.5 }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="warning"
+            onClick={handleSubmitReview}
+            disabled={reviewSubmitting || !reviewRating}
+            sx={{ textTransform: 'none', borderRadius: 1.5, fontWeight: 700 }}
+          >
+            {reviewSubmitting ? 'Submitting…' : 'Submit Review'}
           </Button>
         </DialogActions>
       </Dialog>

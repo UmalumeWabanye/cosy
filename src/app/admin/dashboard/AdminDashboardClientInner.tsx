@@ -25,6 +25,7 @@ import TableRow from '@mui/material/TableRow';
 
 import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
+import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
@@ -173,17 +174,23 @@ export default function AdminDashboardClientInner() {
         ) : (
           <>
             <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+              <Grid size={{ xs: 12, sm: 6, lg: 2 }}>
                 <StatCard title="Total Users" value={reports?.summary.totalUsers || 0} helper={`${studentCount} students • ${landlordCount} landlords`} icon={<PeopleRoundedIcon />} color="#1976d2" />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+              <Grid size={{ xs: 12, sm: 6, lg: 2 }}>
                 <StatCard title="Students" value={studentCount} helper="Student accounts on the platform" icon={<PeopleRoundedIcon />} color="#1565c0" />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                <StatCard title="Landlords" value={landlordCount} helper={`${verifiedLandlords} verified • ${unverifiedLandlords} pending review`} icon={<ApartmentRoundedIcon />} color="#6a1b9a" />
+              <Grid size={{ xs: 12, sm: 6, lg: 2 }}>
+                <StatCard title="Landlords" value={landlordCount} helper={`${verifiedLandlords} verified`} icon={<ApartmentRoundedIcon />} color="#6a1b9a" />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                <StatCard title="Unread Admin Alerts" value={alertCount} helper="Notifications requiring attention" icon={<NotificationsRoundedIcon />} color="#ed6c02" />
+              <Grid size={{ xs: 12, sm: 6, lg: 2 }}>
+                <StatCard title="Total Properties" value={reports?.summary.totalProperties || 0} helper="Listed across the platform" icon={<ApartmentRoundedIcon />} color="#0d9488" />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 2 }}>
+                <StatCard title="Total Requests" value={reports?.summary.totalRequests || 0} helper="Accommodation applications" icon={<AssignmentRoundedIcon />} color="#2e7d32" />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 2 }}>
+                <StatCard title="Admin Alerts" value={alertCount} helper="Notifications requiring attention" icon={<NotificationsRoundedIcon />} color="#ed6c02" />
               </Grid>
             </Grid>
 
@@ -214,26 +221,40 @@ export default function AdminDashboardClientInner() {
                       <InsightsRoundedIcon sx={{ color: 'primary.main' }} />
                     </Stack>
                     <Stack sx={{ mt: 1.5, gap: 1 }}>
-                      <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">Total Users</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{reports?.summary.totalUsers || 0}</Typography>
-                      </Stack>
-                      <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">Students</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{studentCount}</Typography>
-                      </Stack>
-                      <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">Landlords</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{landlordCount}</Typography>
-                      </Stack>
-                      <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">Unread Admin Alerts</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{alertCount}</Typography>
-                      </Stack>
+                      {[
+                        { label: 'Total Users', value: reports?.summary.totalUsers || 0 },
+                        { label: 'Students', value: studentCount },
+                        { label: 'Landlords', value: landlordCount },
+                        { label: 'Properties Listed', value: reports?.summary.totalProperties || 0 },
+                        { label: 'Total Requests', value: reports?.summary.totalRequests || 0 },
+                        { label: 'Unread Alerts', value: alertCount },
+                      ].map(row => (
+                        <Stack key={row.label} direction="row" sx={{ justifyContent: 'space-between' }}>
+                          <Typography variant="body2" color="text.secondary">{row.label}</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 700 }}>{row.value}</Typography>
+                        </Stack>
+                      ))}
                     </Stack>
+                    {(reports?.requestsByStatus?.length ?? 0) > 0 && (
+                      <>
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block', fontWeight: 600 }}>Requests by Status</Typography>
+                        <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap', mt: 0.5 }}>
+                          {(reports?.requestsByStatus || []).map(s => (
+                            <Chip
+                              key={s._id}
+                              size="small"
+                              label={`${s._id}: ${s.count}`}
+                              color={s._id === 'approved' ? 'success' : s._id === 'pending' ? 'warning' : s._id === 'rejected' ? 'error' : 'default'}
+                              sx={{ textTransform: 'capitalize', fontWeight: 600 }}
+                            />
+                          ))}
+                        </Stack>
+                      </>
+                    )}
                     <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap', mt: 2 }}>
                       <Button size="small" variant="outlined" sx={{ textTransform: 'none' }} onClick={() => router.push('/admin/users')}>Users</Button>
                       <Button size="small" variant="outlined" sx={{ textTransform: 'none' }} onClick={() => router.push('/admin/notifications')}>Notifications</Button>
+                      <Button size="small" variant="outlined" sx={{ textTransform: 'none' }} onClick={() => router.push('/admin/reports/analytics')}>Analytics</Button>
                     </Stack>
                   </CardContent>
                 </Card>

@@ -204,6 +204,22 @@ export default function LandlordDashboardPage() {
             </Typography>
           </Box>
           <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+            <Button
+              variant="outlined"
+              startIcon={<InsightsRoundedIcon />}
+              onClick={() => router.push('/landlord/analytics')}
+              sx={{ textTransform: 'none' }}
+            >
+              Analytics
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AddRoundedIcon />}
+              onClick={() => router.push('/landlord/properties/new')}
+              sx={{ textTransform: 'none', fontWeight: 700 }}
+            >
+              Add Property
+            </Button>
           </Stack>
         </Stack>
 
@@ -228,6 +244,9 @@ export default function LandlordDashboardPage() {
               </Grid>
               <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                 <StatCard title="Students Living" value={activeResidents} helper="Active approved occupancies" icon={<InsightsRoundedIcon />} color="#0d9488" />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard title="Occupancy Rate" value={`${occupancyRate}%`} helper="Approved vs total listings" icon={<VerifiedRoundedIcon />} color={occupancyRate >= 70 ? '#2e7d32' : occupancyRate >= 40 ? '#ed6c02' : '#d32f2f'} />
               </Grid>
             </Grid>
 
@@ -280,6 +299,37 @@ export default function LandlordDashboardPage() {
             </Grid>
 
             <Grid container spacing={2}>
+              {/* Quick Actions */}
+              <Grid size={{ xs: 12 }}>
+                <Paper variant="outlined" sx={{ p: 2 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Quick Actions</Typography>
+                  <Stack direction="row" sx={{ gap: 1.5, flexWrap: 'wrap' }}>
+                    {[
+                      { label: 'Add Property', icon: <AddRoundedIcon fontSize="small" />, path: '/landlord/properties/new', color: '#1976d2', filled: true },
+                      { label: 'Review Applications', icon: <ApartmentRoundedIcon fontSize="small" />, path: '/landlord/requests', color: '#ed6c02', filled: false },
+                      { label: 'Manage Viewings', icon: <InsightsRoundedIcon fontSize="small" />, path: '/landlord/viewings', color: '#6a1b9a', filled: false },
+                      { label: 'View Analytics', icon: <InsightsRoundedIcon fontSize="small" />, path: '/landlord/analytics', color: '#0d9488', filled: false },
+                      { label: 'Monthly Report', icon: <PendingActionsRoundedIcon fontSize="small" />, path: '/landlord/reports/collection', color: '#2e7d32', filled: false },
+                    ].map(item => (
+                      <Button
+                        key={item.label}
+                        variant={item.filled ? 'contained' : 'outlined'}
+                        size="small"
+                        startIcon={item.icon}
+                        onClick={() => router.push(item.path)}
+                        sx={{
+                          textTransform: 'none', fontWeight: 600, borderRadius: 2,
+                          ...(item.filled ? {} : { borderColor: `${item.color}60`, color: item.color, '&:hover': { borderColor: item.color, bgcolor: `${item.color}10` } }),
+                          ...(item.filled ? { bgcolor: item.color, '&:hover': { bgcolor: item.color, opacity: 0.9 } } : {}),
+                        }}
+                      >
+                        {item.label}
+                      </Button>
+                    ))}
+                  </Stack>
+                </Paper>
+              </Grid>
+
               <Grid size={{ xs: 12, lg: 7 }}>
                 <Paper variant="outlined" sx={{ p: 2.5 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>Enquiry Management</Typography>

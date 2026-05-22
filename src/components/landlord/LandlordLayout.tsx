@@ -37,6 +37,7 @@ import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import HandymanRoundedIcon from '@mui/icons-material/HandymanRounded';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
 
@@ -67,6 +68,7 @@ function getBreadcrumb(pathname: string): string[] {
   if (pathname.startsWith('/landlord/properties')) return ['Landlord', 'Properties'];
   if (pathname.startsWith('/landlord/requests')) return ['Landlord', 'Applications'];
   if (pathname.startsWith('/landlord/viewings')) return ['Landlord', 'Viewings'];
+  if (pathname.startsWith('/landlord/maintenance')) return ['Landlord', 'Maintenance'];
   if (pathname.startsWith('/landlord/analytics')) return ['Landlord', 'Analytics'];
   return ['Landlord'];
 }
@@ -246,6 +248,7 @@ const NAV_ITEMS = [
   { label: 'Add Property', icon: <AddRoundedIcon />, path: '/landlord/properties/new' },
   { label: 'Messages', icon: <ChatRoundedIcon />, path: '/landlord/messages' },
   { label: 'Viewings', icon: <CalendarTodayRoundedIcon />, path: '/landlord/viewings' },
+  { label: 'Maintenance', icon: <HandymanRoundedIcon />, path: '/landlord/maintenance' },
   { label: 'Monthly Collection', icon: <ReceiptLongRoundedIcon />, path: '/landlord/reports/collection' },
   { label: 'Analytics', icon: <InsightsRoundedIcon />, path: '/landlord/analytics' },
 ];

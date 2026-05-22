@@ -29,7 +29,7 @@ import { useAuthStore } from '@/store/authStore';
 
 const theme = createTheme({
   typography: {
-    fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
+    fontFamily: ['var(--font-sans)', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
   },
   shape: { borderRadius: 8 },
 });
@@ -93,12 +93,13 @@ export default function Navbar() {
         position="sticky"
         elevation={0}
         sx={{
-          bgcolor: 'background.paper',
+          bgcolor: 'rgba(247, 251, 255, 0.76)',
           color: 'text.primary',
           borderBottom: '1px solid',
-          borderColor: 'divider',
-          transition: 'box-shadow 0.3s ease',
-          boxShadow: scrolled ? '0 2px 16px rgba(0,0,0,0.08)' : 'none',
+          borderColor: 'rgba(15, 108, 189, 0.16)',
+          backdropFilter: 'blur(10px)',
+          transition: 'box-shadow 0.3s ease, background-color 0.3s ease',
+          boxShadow: scrolled ? '0 8px 24px rgba(5, 37, 65, 0.12)' : 'none',
         }}
       >
         <Toolbar sx={{ maxWidth: 1280, width: '100%', mx: 'auto', px: { xs: 2, sm: 3 }, gap: 1 }}>
@@ -114,7 +115,7 @@ export default function Navbar() {
             >
               <ApartmentRoundedIcon sx={{ color: 'white', fontSize: 18 }} />
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', fontFamily: 'inherit', letterSpacing: '-0.01em' }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontFamily: 'var(--font-display)', letterSpacing: '0.01em' }}>
               Cosy
             </Typography>
           </Link>

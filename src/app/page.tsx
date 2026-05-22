@@ -41,7 +41,15 @@ import api from '@/services/api';
 
 const theme = createTheme({
   typography: {
-    fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
+    fontFamily: ['var(--font-sans)', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
+    h1: {
+      fontFamily: 'var(--font-display)',
+      letterSpacing: '0.01em',
+    },
+    h4: {
+      fontFamily: 'var(--font-display)',
+      letterSpacing: '0.01em',
+    },
   },
   shape: { borderRadius: 8 },
 });
@@ -196,12 +204,12 @@ export default function HomePage() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh' }}>
+      <Box className="cinema-reveal" sx={{ bgcolor: 'transparent', minHeight: '100vh' }}>
 
         {/* ─── HERO ─────────────────────────────────────────────── */}
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #0d47a1 0%, #1565c0 40%, #1976d2 70%, #42a5f5 100%)',
+            background: 'linear-gradient(130deg, #08182a 0%, #0d2f52 34%, #155a93 72%, #2f87c8 100%)',
             pt: { xs: 8, md: 14 },
             pb: { xs: 6, md: 10 },
             px: 2,
@@ -212,7 +220,14 @@ export default function HomePage() {
               position: 'absolute',
               inset: 0,
               backgroundImage:
-                'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.06) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 45%)',
+                'radial-gradient(circle at 18% 42%, rgba(131, 208, 255, 0.25) 0%, transparent 40%), radial-gradient(circle at 82% 18%, rgba(255, 244, 214, 0.18) 0%, transparent 38%)',
+            },
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              inset: '-35% -10% 25% -10%',
+              background: 'conic-gradient(from 180deg at 50% 50%, rgba(255,255,255,0.07), transparent 40%, rgba(255,255,255,0.08), transparent 75%)',
+              animation: 'skyPulse 14s ease-in-out infinite',
             },
           }}
         >
@@ -235,12 +250,12 @@ export default function HomePage() {
                 <Typography
                   variant="h1"
                   sx={{
-                    fontWeight: 900,
+                    fontWeight: 700,
                     color: 'white',
                     mb: 2,
                     fontSize: { xs: '2.2rem', sm: '3rem', md: '3.8rem' },
                     lineHeight: 1.1,
-                    letterSpacing: '-0.02em',
+                    letterSpacing: '0.01em',
                   }}
                 >
                   Find Your Perfect
@@ -686,10 +701,18 @@ export default function HomePage() {
         {/* ─── CTA ──────────────────────────────────────────────── */}
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #0d47a1 0%, #1565c0 50%, #1976d2 100%)',
+            background: 'linear-gradient(135deg, #09192b 0%, #10395f 45%, #16517f 100%)',
             py: { xs: 8, md: 10 },
             px: 2,
             textAlign: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              inset: 0,
+              background: 'radial-gradient(circle at 80% -10%, rgba(147, 214, 255, 0.24), transparent 50%)',
+            },
           }}
         >
           <Container maxWidth="sm">

@@ -16,6 +16,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
+import Rating from '@mui/material/Rating';
+import Chip from '@mui/material/Chip';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import WifiIcon from '@mui/icons-material/Wifi';
 import LocalParkingIcon from '@mui/icons-material/LocalParking';
@@ -30,6 +33,7 @@ import SatelliteIcon from '@mui/icons-material/Satellite';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import ChatRoundedIcon from '@mui/icons-material/ChatRounded';
 import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded';
+import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import api from '@/services/api';
 
 const amenityIcons: Record<string, React.ReactNode> = {
@@ -57,6 +61,14 @@ interface Property {
   createdAt: string;
 }
 
+interface Review {
+  _id: string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+  student: { name?: string };
+}
+
 export default function PropertyDetailsPage() {
   const router = useRouter();
   const params = useParams();
@@ -65,8 +77,20 @@ export default function PropertyDetailsPage() {
   const [property, setProperty] = useState<Property | null>(null);
   const [error, setError] = useState('');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [avgRating, setAvgRating] = useState<number | null>(null);
+  const [reviewsTotal, setReviewsTotal] = useState(0);
 
   const propertyId = params.id as string;
+
+  const fetchReviews = async (id: string) => {
+    try {
+      const res = await api.get(`/reviews/property/${id}`);
+      setReviews(res.data.data ?? []);
+      setAvgRating(res.data.avgRating ?? null);
+      setReviewsTotal(res.data.total ?? 0);
+    } catch { /* silent — reviews are supplementary */ }
+  };
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -74,6 +98,7 @@ export default function PropertyDetailsPage() {
         setLoading(true);
         const response = await api.get(`/properties/${propertyId}`);
         setProperty(response.data);
+        await fetchReviews(propertyId);
       } catch (err: unknown) {
         const message = typeof err === 'object' && err && 'response' in err
           ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
@@ -235,10 +260,55 @@ export default function PropertyDetailsPage() {
                   {/* Reviews */}
               <Card variant="outlined">
                 <CardContent>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Reviews</Typography>
-                  <Box sx={{ textAlign: 'center', py: 4 }}>
-                    <Typography color="text.secondary">No reviews yet</Typography>
-                  </Box>
+                  <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>Student Reviews</Typography>
+                    {reviewsTotal > 0 && avgRating !== null && (
+                      <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+                        <Rating value={avgRating} precision={0.1} readOnly size="small" />
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{avgRating.toFixed(1)}</Typography>
+                        <Typography variant="caption" color="text.secondary">({reviewsTotal} {reviewsTotal === 1 ? 'review' : 'reviews'})</Typography>
+                      </Stack>
+                    )}
+                  </Stack>
+
+                  {reviews.length === 0 ? (
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                      <StarRoundedIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
+                      <Typography color="text.secondary" variant="body2">No reviews yet</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Reviews are submitted by students who completed their stay here.
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Stack sx={{ gap: 0 }}>
+                      {reviews.map((review, i) => (
+                        <Box key={review._id}>
+                          {i > 0 && <Divider sx={{ my: 2 }} />}
+                          <Stack direction="row" sx={{ gap: 1.5 }}>
+                            <Avatar sx={{ width: 36, height: 36, fontSize: 13, bgcolor: 'primary.light', color: 'primary.dark', flexShrink: 0 }}>
+                              {(review.student?.name || 'S')[0].toUpperCase()}
+                            </Avatar>
+                            <Box sx={{ flex: 1 }}>
+                              <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 0.5 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {review.student?.name || 'Student'}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {new Date(review.createdAt).toLocaleDateString('en-ZA', { month: 'short', year: 'numeric' })}
+                                </Typography>
+                              </Stack>
+                              <Rating value={review.rating} readOnly size="small" sx={{ mb: review.comment ? 0.75 : 0 }} />
+                              {review.comment && (
+                                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, mt: 0.5 }}>
+                                  {review.comment}
+                                </Typography>
+                              )}
+                            </Box>
+                          </Stack>
+                        </Box>
+                      ))}
+                    </Stack>
+                  )}
                 </CardContent>
               </Card>
             </Grid>
@@ -274,7 +344,17 @@ export default function PropertyDetailsPage() {
                     <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main', my: 0.5 }}>
                       R{property.price.toLocaleString()}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">{property.roomType} room</Typography>
+                    <Stack direction="row" sx={{ alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                      <Typography variant="caption" color="text.secondary">{property.roomType} room</Typography>
+                      {avgRating !== null && (
+                        <Chip
+                          icon={<StarRoundedIcon sx={{ fontSize: '14px !important', color: '#f59e0b !important' }} />}
+                          label={`${avgRating.toFixed(1)} (${reviewsTotal})`}
+                          size="small"
+                          sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: '#fef3c7', color: '#92400e' }}
+                        />
+                      )}
+                    </Stack>
                   </Box>
 
                   {/* NSFAS */}

@@ -11,6 +11,8 @@ const authRoutes = require('../routes/authRoutes');
 const propertyRoutes = require('../routes/propertyRoutes');
 const requestRoutes = require('../routes/requestRoutes');
 const landlordRoutes = require('../routes/landlordRoutes');
+const reviewRoutes = require('../routes/reviewRoutes');
+const maintenanceRoutes = require('../routes/maintenanceRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -63,6 +65,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/landlord', landlordRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
 
 // 404 handler
 app.use((req, res) => {

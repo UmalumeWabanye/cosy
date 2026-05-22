@@ -36,6 +36,7 @@ import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
+import HandymanRoundedIcon from '@mui/icons-material/HandymanRounded';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
 const DRAWER_WIDTH = 240;
@@ -56,6 +57,7 @@ const NAV_ITEMS = [
   { label: 'Messages', icon: <ChatRoundedIcon />, path: '/messages' },
   { label: 'Roommates', icon: <GroupsRoundedIcon />, path: '/roommates' },
   { label: 'Saved Listings', icon: <BookmarkRoundedIcon />, path: '/saved-listings' },
+  { label: 'Maintenance', icon: <HandymanRoundedIcon />, path: '/maintenance' },
   { label: 'Notifications', icon: <NotificationsRoundedIcon />, path: '/notifications', badge: true },
 ];
 
@@ -68,6 +70,7 @@ function getBreadcrumb(pathname: string): string[] {
   if (pathname.startsWith('/messages')) return ['Home', 'Messages'];
   if (pathname.startsWith('/roommates')) return ['Home', 'Roommates'];
   if (pathname.startsWith('/saved-listings')) return ['Home', 'Saved Listings'];
+  if (pathname.startsWith('/maintenance')) return ['Home', 'Maintenance'];
   if (pathname.startsWith('/notifications')) return ['Home', 'Notifications'];
   if (pathname.startsWith('/profile')) return ['Home', 'Profile'];
   return ['Home'];

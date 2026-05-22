@@ -7,8 +7,8 @@ const Property = require('../models/Property');
 // @access Private/Student
 const createRequest = async (req, res, next) => {
   try {
-    const propertyId = req.body.property;
-    const { moveInDate, leaseDuration, fundingType, message } = req.body;
+    const { property: propertyId, moveInDate, leaseDuration, fundingType, message } =
+      req.body;
 
     const normalizedFundingType = fundingType === 'Private / Bursary' ? 'Private' : fundingType;
 
@@ -34,10 +34,10 @@ const createRequest = async (req, res, next) => {
     });
 
       // Also notify the landlord of the property
-      const propertyDoc = await Property.findById(request.property).select('createdBy');
-      if (propertyDoc?.createdBy) {
+      const property = await Property.findById(request.property).select('createdBy');
+      if (property?.createdBy) {
         await Notification.create({
-          recipient: propertyDoc.createdBy,
+          recipient: property.createdBy,
           type: 'new_request',
           title: 'New Accommodation Request',
           message: `A student submitted a new request for ${request.property?.propertyName ?? 'your property'}.`,

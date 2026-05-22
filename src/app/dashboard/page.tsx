@@ -26,6 +26,7 @@ import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import WavingHandRoundedIcon from '@mui/icons-material/WavingHandRounded';
+import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: '#ed6c02', approved: '#2e7d32', rejected: '#d32f2f',
@@ -157,6 +158,36 @@ export default function DashboardPage() {
             />
           )}
         </Paper>
+
+        {/* Profile completion nudge */}
+        {!loading && user && !(user as any).profileComplete && (
+          <Paper elevation={0} sx={{
+            p: 2, mb: 2.5, borderRadius: 2.5,
+            border: '1px solid', borderColor: 'warning.light',
+            bgcolor: 'rgba(237,108,2,0.06)',
+            display: 'flex', alignItems: 'center', gap: 2,
+          }}>
+            <AccountCircleRoundedIcon sx={{ color: 'warning.main', fontSize: 32, flexShrink: 0 }} />
+            <Box sx={{ flexGrow: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 700, color: 'warning.dark' }}>
+                Complete your profile to unlock all features
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Add your university, funding type, and ID number so landlords can review your applications.
+              </Typography>
+            </Box>
+            <Button
+              size="small"
+              variant="contained"
+              color="warning"
+              endIcon={<ArrowForwardRoundedIcon />}
+              onClick={() => router.push('/profile')}
+              sx={{ textTransform: 'none', fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap' }}
+            >
+              Complete Profile
+            </Button>
+          </Paper>
+        )}
 
         {/* Stats grid */}
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2,1fr)', sm: 'repeat(4,1fr)' }, gap: 2, mb: 3 }}>
