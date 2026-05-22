@@ -48,9 +48,21 @@ router.post(
       const property = await Property.findById(propertyId).select('createdBy');
       if (!property) return res.status(404).json({ message: 'Property not found' });
 
+      let roomNumber = (approvedReq.roomNumber || '').trim();
+      if (!roomNumber) {
+        const propertyWithAllocations = await Property.findById(propertyId).select('roomAllocations');
+        const allocation = propertyWithAllocations?.roomAllocations?.find((item) => {
+          const allocationRequestId = item.request ? String(item.request) : null;
+          const allocationStudentId = item.student ? String(item.student) : null;
+          return allocationRequestId === String(approvedReq._id) || allocationStudentId === String(req.user._id);
+        });
+        roomNumber = (allocation?.roomNumber || '').trim();
+      }
+
       const ticket = await Maintenance.create({
         student: req.user._id,
         property: propertyId,
+        roomNumber,
         landlord: property.createdBy,
         category,
         description: description.trim(),
@@ -98,7 +110,9 @@ router.get('/active-properties', protect, async (req, res) => {
       student: req.user._id,
       status: 'approved',
       moveInDate: { $lte: now },
-    }).populate('property', 'propertyName city address');
+    })
+      .populate('property', 'propertyName city address roomAllocations')
+      .sort({ moveInDate: -1 });
 
     // Filter to leases that haven't ended yet (or have no clear end)
     const active = approved.filter((r) => {
@@ -108,7 +122,26 @@ router.get('/active-properties', protect, async (req, res) => {
       return end >= now;
     });
 
-    return res.json({ data: active.map((r) => ({ request: r._id, property: r.property, moveInDate: r.moveInDate })) });
+    const data = active.map((r) => {
+      let roomNumber = (r.roomNumber || '').trim();
+      if (!roomNumber && r.property?.roomAllocations?.length) {
+        const allocation = r.property.roomAllocations.find((item) => {
+          const allocationRequestId = item.request ? String(item.request) : null;
+          const allocationStudentId = item.student ? String(item.student) : null;
+          return allocationRequestId === String(r._id) || allocationStudentId === String(req.user._id);
+        });
+        roomNumber = (allocation?.roomNumber || '').trim();
+      }
+
+      return {
+        request: r._id,
+        property: r.property,
+        moveInDate: r.moveInDate,
+        roomNumber,
+      };
+    });
+
+    return res.json({ data });
   } catch {
     return res.status(500).json({ message: 'Failed to fetch active properties' });
   }

@@ -60,6 +60,7 @@ interface ActiveProperty {
   request: string;
   property: { _id: string; propertyName?: string; city?: string; address?: string } | null;
   moveInDate: string;
+  roomNumber?: string;
 }
 
 interface Ticket {
@@ -70,6 +71,7 @@ interface Ticket {
   status: 'open' | 'in_progress' | 'resolved' | 'closed';
   expectedDate?: string;
   landlordNote?: string;
+  roomNumber?: string;
   createdAt: string;
   updatedAt: string;
   property?: { _id: string; propertyName?: string; city?: string };
@@ -215,6 +217,12 @@ export default function MaintenancePage() {
                   <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
                     <LocationOnRoundedIcon sx={{ fontSize: 13, color: 'text.disabled' }} />
                     <Typography variant="caption" color="text.secondary">{ap.property.city}</Typography>
+                    {ap.roomNumber && (
+                      <>
+                        <Typography variant="caption" color="text.secondary" sx={{ mx: 0.5 }}>·</Typography>
+                        <Typography variant="caption" sx={{ color: 'success.dark', fontWeight: 700 }}>Room {ap.roomNumber}</Typography>
+                      </>
+                    )}
                     <Typography variant="caption" color="text.secondary" sx={{ mx: 0.5 }}>·</Typography>
                     <CalendarMonthRoundedIcon sx={{ fontSize: 13, color: 'text.disabled' }} />
                     <Typography variant="caption" color="text.secondary">
@@ -255,6 +263,7 @@ export default function MaintenancePage() {
                             {ticket.property && (
                               <Typography variant="caption" color="text.secondary">
                                 {ticket.property.propertyName} · {ticket.property.city}
+                                {ticket.roomNumber ? ` · Room ${ticket.roomNumber}` : ''}
                               </Typography>
                             )}
                           </Box>

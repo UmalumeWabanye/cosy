@@ -38,6 +38,8 @@ const STATUS_LABELS: Record<string, string> = {
 interface Stats { totalApplications: number; pending: number; approved: number; saved: number; }
 interface RecentRequest {
   _id: string; status: string; createdAt: string;
+  roomNumber?: string;
+  moveInDate?: string;
   property?: { propertyName?: string; city?: string; images?: Array<string | { url?: string }> };
 }
 
@@ -46,6 +48,7 @@ export default function DashboardPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [stats, setStats] = useState<Stats>({ totalApplications: 0, pending: 0, approved: 0, saved: 0 });
   const [recent, setRecent] = useState<RecentRequest[]>([]);
+  const [activeTenancy, setActiveTenancy] = useState<RecentRequest | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -69,6 +72,7 @@ export default function DashboardPage() {
           saved: saved.length,
         });
         setRecent(reqs.slice(0, 5));
+        setActiveTenancy(reqs.find((r) => r.status === 'approved' && r.roomNumber) || reqs.find((r) => r.status === 'approved') || null);
       } catch { /* silent */ }
       finally { setLoading(false); }
     };
@@ -158,6 +162,35 @@ export default function DashboardPage() {
             />
           )}
         </Paper>
+
+        {activeTenancy?.property && (
+          <Paper elevation={0} sx={{
+            p: 2,
+            mb: 2.5,
+            borderRadius: 2.5,
+            border: '1px solid',
+            borderColor: 'success.light',
+            bgcolor: 'rgba(46,125,50,0.06)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1,
+            flexWrap: 'wrap',
+          }}>
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 700, color: 'success.dark' }}>
+                Active Tenancy: {activeTenancy.property.propertyName}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {activeTenancy.property.city}
+                {activeTenancy.roomNumber ? ` · Room ${activeTenancy.roomNumber}` : ''}
+              </Typography>
+            </Box>
+            <Button size="small" variant="outlined" color="success" onClick={() => router.push('/maintenance')} sx={{ textTransform: 'none' }}>
+              Manage Maintenance
+            </Button>
+          </Paper>
+        )}
 
         {/* Profile completion nudge */}
         {!loading && user && !(user as any).profileComplete && (
@@ -316,6 +349,15 @@ export default function DashboardPage() {
                           color: STATUS_COLORS[r.status],
                         }}
                       />
+                      {r.status === 'approved' && r.roomNumber && (
+                        <Chip
+                          label={`Room ${r.roomNumber}`}
+                          size="small"
+                          variant="outlined"
+                          color="success"
+                          sx={{ height: 20, fontSize: 10, fontWeight: 700 }}
+                        />
+                      )}
                     </Box>
                   </React.Fragment>
                 ))}

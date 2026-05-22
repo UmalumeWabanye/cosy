@@ -24,6 +24,11 @@ const maintenanceSchema = new mongoose.Schema(
       ref: 'Property',
       required: true,
     },
+    roomNumber: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     landlord: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

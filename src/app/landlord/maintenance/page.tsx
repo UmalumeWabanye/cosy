@@ -58,6 +58,7 @@ interface Ticket {
   description: string;
   priority: string;
   status: string;
+  roomNumber?: string;
   expectedDate?: string;
   landlordNote?: string;
   createdAt: string;
@@ -238,6 +239,7 @@ export default function LandlordMaintenancePage() {
                         {ticket.property && (
                           <Typography variant="caption" color="text.secondary">
                             {ticket.property.propertyName} · {ticket.property.city}
+                            {ticket.roomNumber ? ` · Room ${ticket.roomNumber}` : ''}
                           </Typography>
                         )}
                       </Box>
