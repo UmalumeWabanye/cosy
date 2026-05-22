@@ -346,7 +346,7 @@ export default function LandlordMaintenancePage() {
               fullWidth
               value={editForm.expectedDate}
               onChange={e => setEditForm(f => ({ ...f, expectedDate: e.target.value }))}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
               helperText="Let the tenant know when to expect the fix"
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
             />
@@ -356,7 +356,7 @@ export default function LandlordMaintenancePage() {
               multiline rows={3} fullWidth
               value={editForm.landlordNote}
               onChange={e => setEditForm(f => ({ ...f, landlordNote: e.target.value }))}
-              inputProps={{ maxLength: 500 }}
+              slotProps={{ htmlInput: { maxLength: 500 } }}
               helperText={`${editForm.landlordNote.length}/500 — e.g. "Plumber booked for Thursday morning"`}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
             />

@@ -385,7 +385,7 @@ export default function ApplicationsPage() {
             fullWidth
             value={reviewComment}
             onChange={e => setReviewComment(e.target.value)}
-            inputProps={{ maxLength: 500 }}
+            slotProps={{ htmlInput: { maxLength: 500 } }}
             helperText={`${reviewComment.length}/500`}
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
           />

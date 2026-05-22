@@ -123,8 +123,8 @@ router.get('/landlord', protect, async (req, res) => {
     }
 
     const { status } = req.query;
-    const filter: Record<string, unknown> = { landlord: req.user._id };
-    if (status && ['open', 'in_progress', 'resolved', 'closed'].includes(status as string)) {
+    const filter = { landlord: req.user._id };
+    if (typeof status === 'string' && ['open', 'in_progress', 'resolved', 'closed'].includes(status)) {
       filter.status = status;
     }
 

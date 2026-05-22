@@ -384,7 +384,7 @@ export default function MaintenancePage() {
               multiline rows={4} fullWidth
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              inputProps={{ maxLength: 1000 }}
+              slotProps={{ htmlInput: { maxLength: 1000 } }}
               helperText={`${form.description.length}/1000 — Be specific: location in the property, how long it's been happening, etc.`}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
             />
