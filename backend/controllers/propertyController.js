@@ -1,5 +1,7 @@
 const Property = require('../models/Property');
 
+const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // @desc   Get properties shown in the landlord property management platform
 // @route  GET /api/properties/mine
 // @access Private/Admin
@@ -60,11 +62,15 @@ const getProperties = async (req, res, next) => {
       filter.isAvailable = false;
     }
 
-    if (city) filter.city = new RegExp(city, 'i');
-    if (university || universityNearby) filter.universityNearby = new RegExp(university || universityNearby, 'i');
+    if (city) filter.city = new RegExp(escapeRegex(city), 'i');
+    if (university || universityNearby) {
+      filter.universityNearby = new RegExp(escapeRegex(university || universityNearby), 'i');
+    }
     if (fundingType === 'nsfas') filter.nsfasAccredited = true;
     if (nsfasAccredited !== undefined) filter.nsfasAccredited = nsfasAccredited === 'true';
-    if (roomType) filter.roomType = roomType;
+    if (roomType) {
+      filter.roomType = new RegExp(`^${escapeRegex(roomType)}$`, 'i');
+    }
     if (minPrice || maxPrice) {
       filter.price = {};
       if (minPrice) filter.price.$gte = Number(minPrice);

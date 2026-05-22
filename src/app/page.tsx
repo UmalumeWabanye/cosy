@@ -310,10 +310,10 @@ export default function HomePage() {
                         value={roomType} onChange={(e) => setRoomType(e.target.value)} size="small"
                       >
                         <MenuItem value="">Any Room</MenuItem>
-                        <MenuItem value="single">Single</MenuItem>
-                        <MenuItem value="double">Double</MenuItem>
-                        <MenuItem value="sharing">Sharing</MenuItem>
-                        <MenuItem value="studio">Studio</MenuItem>
+                        <MenuItem value="Single">Single</MenuItem>
+                        <MenuItem value="Sharing">Sharing</MenuItem>
+                        <MenuItem value="Ensuite">Ensuite</MenuItem>
+                        <MenuItem value="Bachelor">Bachelor</MenuItem>
                       </TextField>
                     </Grid>
                     <Grid size={{ xs: 12 }}>

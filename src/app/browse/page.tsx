@@ -45,7 +45,7 @@ const UNIVERSITIES = [
 ];
 
 const CITIES = ['Cape Town', 'Johannesburg', 'Pretoria', 'Durban', 'Stellenbosch', 'Grahamstown', 'Port Elizabeth', 'Bloemfontein'];
-const ROOM_TYPES = ['Single', 'Double', 'Sharing', 'Studio', 'Ensuite'];
+const ROOM_TYPES = ['Single', 'Sharing', 'Ensuite', 'Bachelor'];
 
 const UNSPLASH_FALLBACKS = [
   '1522708323590-d24dbb6b0267', '1560448204-e02f11c3d0e2', '1484154218962-a197022b5858',
@@ -182,8 +182,8 @@ export default function BrowsePage() {
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
           {ROOM_TYPES.map((rt) => (
             <Chip key={rt} label={rt} size="small" clickable
-              onClick={() => set('roomType', filters.roomType === rt.toLowerCase() ? '' : rt.toLowerCase())}
-              sx={{ fontWeight: 600, bgcolor: filters.roomType === rt.toLowerCase() ? 'primary.main' : 'transparent', color: filters.roomType === rt.toLowerCase() ? 'white' : 'text.secondary', border: '1px solid', borderColor: filters.roomType === rt.toLowerCase() ? 'primary.main' : 'divider' }}
+              onClick={() => set('roomType', filters.roomType === rt ? '' : rt)}
+              sx={{ fontWeight: 600, bgcolor: filters.roomType === rt ? 'primary.main' : 'transparent', color: filters.roomType === rt ? 'white' : 'text.secondary', border: '1px solid', borderColor: filters.roomType === rt ? 'primary.main' : 'divider' }}
             />
           ))}
         </Box>
@@ -223,7 +223,7 @@ export default function BrowsePage() {
               </TextField>
               <TextField select size="small" value={filters.roomType} onChange={(e) => set('roomType', e.target.value)} slotProps={{ select: { displayEmpty: true } }} sx={{ minWidth: 130 }}>
                 <MenuItem value="">Room Type</MenuItem>
-                {ROOM_TYPES.map((r) => <MenuItem key={r} value={r.toLowerCase()}>{r}</MenuItem>)}
+                {ROOM_TYPES.map((r) => <MenuItem key={r} value={r}>{r}</MenuItem>)}
               </TextField>
               <Chip label="NSFAS" clickable onClick={() => set('nsfas', !filters.nsfas)}
                 sx={{ fontWeight: 600, fontSize: '0.8rem', bgcolor: filters.nsfas ? 'primary.main' : 'transparent', color: filters.nsfas ? 'white' : 'text.secondary', border: '1px solid', borderColor: filters.nsfas ? 'primary.main' : 'divider' }}
