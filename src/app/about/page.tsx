@@ -79,7 +79,7 @@ const VALUES = [
 export default function AboutPage() {
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ bgcolor: '#fff', overflowX: 'hidden' }}>
+      <Box className="cinema-public-page cinema-reveal" sx={{ bgcolor: '#fff', overflowX: 'hidden' }}>
 
         {/* HERO */}
         <Box sx={{

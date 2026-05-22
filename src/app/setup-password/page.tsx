@@ -181,7 +181,7 @@ function SetupPasswordForm() {
   // ── Invalid token
   if (tokenError) {
     return (
-      <Card variant="outlined">
+      <Card className="cinema-panel" variant="outlined">
         <CosyLogo />
         <Alert severity="error">{tokenError}</Alert>
         <Typography variant="body2" color="text.secondary">
@@ -194,7 +194,7 @@ function SetupPasswordForm() {
   // ── Success
   if (done) {
     return (
-      <Card variant="outlined">
+      <Card className="cinema-panel" variant="outlined">
         <CosyLogo />
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 2 }}>
           <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'success.main' }} />
@@ -209,7 +209,7 @@ function SetupPasswordForm() {
 
   // ── Set password form
   return (
-    <Card variant="outlined">
+    <Card className="cinema-panel" variant="outlined">
       <CosyLogo />
 
       <Box>
@@ -315,10 +315,10 @@ export default function SetupPasswordPage() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline enableColorScheme />
-      <PageContainer direction="column" sx={{ justifyContent: 'center' }}>
+      <PageContainer className="cinema-public-page cinema-reveal" direction="column" sx={{ justifyContent: 'center' }}>
         <Suspense
           fallback={
-            <MuiCard variant="outlined" sx={{ maxWidth: 450, mx: 'auto', p: 4 }}>
+            <MuiCard className="cinema-panel" variant="outlined" sx={{ maxWidth: 450, mx: 'auto', p: 4 }}>
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                 <CircularProgress />
               </Box>

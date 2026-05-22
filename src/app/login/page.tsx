@@ -191,8 +191,8 @@ export default function LoginPage() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline enableColorScheme />
-      <SignInContainer direction="column" sx={{ justifyContent: 'center' }}>
-        <Card variant="outlined">
+      <SignInContainer className="cinema-public-page cinema-reveal" direction="column" sx={{ justifyContent: 'center' }}>
+        <Card className="cinema-panel" variant="outlined">
           <CosyIcon />
 
           <Typography component="h1" variant="h4" sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)', fontWeight: 700 }}>

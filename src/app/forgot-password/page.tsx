@@ -53,8 +53,9 @@ export default function ForgotPasswordPage() {
 
   return (
     <ThemeProvider theme={theme}>
-      <SignInContainer>
+      <SignInContainer className="cinema-public-page cinema-reveal">
         <Card
+          className="cinema-panel"
           variant="outlined"
           sx={{
             width: '100%',

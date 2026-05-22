@@ -29,7 +29,7 @@ import { useAuthStore } from '@/store/authStore';
 
 const theme = createTheme({
   typography: {
-    fontFamily: ['var(--font-sans)', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
+    fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
   },
   shape: { borderRadius: 8 },
 });
@@ -115,7 +115,7 @@ export default function Navbar() {
             >
               <ApartmentRoundedIcon sx={{ color: 'white', fontSize: 18 }} />
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontFamily: 'var(--font-display)', letterSpacing: '0.01em' }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', fontFamily: 'inherit', letterSpacing: '-0.01em' }}>
               Cosy
             </Typography>
           </Link>

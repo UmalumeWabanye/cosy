@@ -10,6 +10,7 @@ import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Slider from '@mui/material/Slider';
+import Stack from '@mui/material/Stack';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
@@ -171,7 +172,57 @@ export default function LandlordPage() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh' }}>
+      <Box className="cinema-reveal cinema-public-page" sx={{ bgcolor: '#f8fafc', minHeight: '100vh' }}>
+
+        {/* ─── LANDLORD NAVBAR ───────────────────────────────────── */}
+        <Box
+          component="header"
+          sx={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
+            borderBottom: '1px solid',
+            borderColor: 'rgba(25,118,210,0.2)',
+            bgcolor: 'rgba(247, 252, 255, 0.85)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.4, px: 2 }}>
+            <Link href="/" style={{ textDecoration: 'none' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 1.5,
+                    background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 18 }} />
+                </Box>
+                <Typography sx={{ fontWeight: 800, color: '#16324a', letterSpacing: '-0.01em' }}>Cosy Landlords</Typography>
+              </Box>
+            </Link>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Button component={Link} href="/" sx={{ textTransform: 'none', fontWeight: 600, color: '#1565c0', display: { xs: 'none', sm: 'inline-flex' } }}>
+                For Tenants
+              </Button>
+              <Button component={Link} href="/about" sx={{ textTransform: 'none', fontWeight: 600, color: '#1565c0', display: { xs: 'none', md: 'inline-flex' } }}>
+                About
+              </Button>
+              <Button component={Link} href="/login" variant="outlined" sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, display: { xs: 'none', sm: 'inline-flex' } }}>
+                Login
+              </Button>
+              <Button component={Link} href="/register?role=landlord" variant="contained" sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 700 }}>
+                List Property
+              </Button>
+            </Box>
+          </Container>
+        </Box>
 
         {/* ─── HERO ─────────────────────────────────────────────── */}
         <Box
@@ -667,6 +718,44 @@ export default function LandlordPage() {
             </Button>
             <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'rgba(255,255,255,0.5)' }}>
               No credit card required · Free to list · Cancel anytime
+            </Typography>
+          </Container>
+        </Box>
+
+        {/* ─── LANDLORD FOOTER ───────────────────────────────────── */}
+        <Box component="footer" sx={{ bgcolor: '#0f2740', color: '#bfd2e8', py: { xs: 6, md: 7 }, px: 2 }}>
+          <Container maxWidth="lg">
+            <Grid container spacing={4}>
+              <Grid size={{ xs: 12, md: 5 }}>
+                <Typography sx={{ fontWeight: 800, color: '#ffffff', mb: 1 }}>Cosy Landlords</Typography>
+                <Typography variant="body2" sx={{ color: '#bfd2e8', maxWidth: 420, lineHeight: 1.75 }}>
+                  Built for South African property owners who want quality student tenants, reliable occupancy, and easy portfolio management.
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 6, md: 2.5 }}>
+                <Typography sx={{ fontWeight: 700, color: '#ffffff', mb: 1.2 }}>Landlord</Typography>
+                <Stack spacing={0.8}>
+                  <Link href="/register?role=landlord" style={{ color: '#bfd2e8', textDecoration: 'none' }}>Create Account</Link>
+                  <Link href="/login" style={{ color: '#bfd2e8', textDecoration: 'none' }}>Sign In</Link>
+                  <Link href="/landlord/dashboard" style={{ color: '#bfd2e8', textDecoration: 'none' }}>Dashboard</Link>
+                </Stack>
+              </Grid>
+              <Grid size={{ xs: 6, md: 2.5 }}>
+                <Typography sx={{ fontWeight: 700, color: '#ffffff', mb: 1.2 }}>Company</Typography>
+                <Stack spacing={0.8}>
+                  <Link href="/about" style={{ color: '#bfd2e8', textDecoration: 'none' }}>About</Link>
+                  <Link href="/browse" style={{ color: '#bfd2e8', textDecoration: 'none' }}>Browse Listings</Link>
+                  <Link href="/" style={{ color: '#bfd2e8', textDecoration: 'none' }}>Home</Link>
+                </Stack>
+              </Grid>
+              <Grid size={{ xs: 12, md: 2 }}>
+                <Typography sx={{ fontWeight: 700, color: '#ffffff', mb: 1.2 }}>Contact</Typography>
+                <Typography variant="body2" sx={{ color: '#bfd2e8', lineHeight: 1.7 }}>support@cosy.com</Typography>
+              </Grid>
+            </Grid>
+            <Divider sx={{ my: 3, borderColor: 'rgba(191,210,232,0.24)' }} />
+            <Typography variant="caption" sx={{ color: '#9fb8d2' }}>
+              © {new Date().getFullYear()} Cosy. All rights reserved.
             </Typography>
           </Container>
         </Box>

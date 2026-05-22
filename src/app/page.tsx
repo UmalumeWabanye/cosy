@@ -41,15 +41,7 @@ import api from '@/services/api';
 
 const theme = createTheme({
   typography: {
-    fontFamily: ['var(--font-sans)', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
-    h1: {
-      fontFamily: 'var(--font-display)',
-      letterSpacing: '0.01em',
-    },
-    h4: {
-      fontFamily: 'var(--font-display)',
-      letterSpacing: '0.01em',
-    },
+    fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
   },
   shape: { borderRadius: 8 },
 });

@@ -212,7 +212,7 @@ export default function SetupAccountPage() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', bgcolor: 'grey.50' }}>
+      <Box className="cinema-public-page cinema-reveal" sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', bgcolor: 'grey.50' }}>
         {/* Top bar */}
         <Box sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', px: { xs: 2, sm: 4 }, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <CosyLogo />
@@ -221,7 +221,7 @@ export default function SetupAccountPage() {
         <LinearProgress variant="determinate" value={progress} sx={{ height: 3, bgcolor: 'grey.200', '& .MuiLinearProgress-bar': { bgcolor: 'primary.main' } }} />
 
         <Box sx={{ flex: 1, display: 'flex', alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'center', p: { xs: 2, sm: 4 }, pt: { xs: 4, sm: 4 } }}>
-          <Paper elevation={0} sx={{ maxWidth: 520, width: '100%', p: { xs: 3, sm: 5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+          <Paper className="cinema-panel" elevation={0} sx={{ maxWidth: 520, width: '100%', p: { xs: 3, sm: 5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
 
             {/* Step header */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
