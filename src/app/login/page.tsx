@@ -106,6 +106,16 @@ function ForgotPassword({ open, onClose }: { open: boolean; onClose: () => void 
 export default function LoginPage() {
   const router = useRouter();
   const { setToken, setUser } = useAuthStore();
+  const [redirect] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    return new URLSearchParams(window.location.search).get('redirect') || '';
+  });
+
+  const getSafeRedirect = () => {
+    if (!redirect.startsWith('/')) return '';
+    if (redirect.startsWith('//')) return '';
+    return redirect;
+  };
 
   const [emailError, setEmailError] = useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = useState('');
@@ -173,7 +183,11 @@ export default function LoginPage() {
       setToken(token);
       setUser(user);
 
-      if (user.role === 'admin') {
+      const safeRedirect = getSafeRedirect();
+
+      if (safeRedirect) {
+        router.push(safeRedirect);
+      } else if (user.role === 'admin') {
         router.push('/admin-access');
       } else if (user.role === 'landlord') {
         router.push('/landlord/dashboard');
@@ -273,7 +287,7 @@ export default function LoginPage() {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Typography sx={{ textAlign: 'center' }}>
               Don&apos;t have an account?{' '}
-              <Link href="/register" variant="body2" sx={{ alignSelf: 'center' }}>Sign up</Link>
+              <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'} variant="body2" sx={{ alignSelf: 'center' }}>Sign up</Link>
             </Typography>
           </Box>
         </Card>

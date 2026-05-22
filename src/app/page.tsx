@@ -38,6 +38,7 @@ import SupportAgentOutlinedIcon from '@mui/icons-material/SupportAgentOutlined';
 import VerifiedOutlinedIcon from '@mui/icons-material/VerifiedOutlined';
 import XIcon from '@mui/icons-material/X';
 import api from '@/services/api';
+import SaveButton from '@/components/SaveButton';
 
 const theme = createTheme({
   typography: {
@@ -547,36 +548,41 @@ export default function HomePage() {
                   ))
                 : featured.length > 0
                   ? featured.map((prop) => (
-                      <Grid key={prop._id} size={{ xs: 12, sm: 6, md: 4 }}>
+                      <Grid key={prop._id} size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex' }}>
                         <Card
                           component={Link}
                           href={`/browse/${prop._id}`}
                           variant="outlined"
                           sx={{
-                            borderRadius: 3, overflow: 'hidden', textDecoration: 'none', display: 'block',
+                            borderRadius: 3, overflow: 'hidden', textDecoration: 'none', display: 'flex', flexDirection: 'column', width: '100%',
                             transition: 'transform 0.2s, box-shadow 0.2s',
                             '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 32px rgba(0,0,0,0.1)', borderColor: 'primary.main' },
                           }}
                         >
-                          {prop.images?.[0] ? (
-                            <CardMedia component="img" height={180} image={getPropertyImage(prop, featured.indexOf(prop))} alt={getPropertyTitle(prop)} sx={{ objectFit: 'cover' }} />
-                          ) : (
-                            <Box
-                              component="img"
-                              src={getPropertyImage(prop, featured.indexOf(prop))}
-                              alt={getPropertyTitle(prop)}
-                              sx={{ width: '100%', height: 180, objectFit: 'cover', display: 'block' }}
-                            />
-                          )}
-                          <CardContent>
+                          <Box sx={{ position: 'relative' }}>
+                            {prop.images?.[0] ? (
+                              <CardMedia component="img" height={180} image={getPropertyImage(prop, featured.indexOf(prop))} alt={getPropertyTitle(prop)} sx={{ objectFit: 'cover' }} />
+                            ) : (
+                              <Box
+                                component="img"
+                                src={getPropertyImage(prop, featured.indexOf(prop))}
+                                alt={getPropertyTitle(prop)}
+                                sx={{ width: '100%', height: 180, objectFit: 'cover', display: 'block' }}
+                              />
+                            )}
+                            <Box sx={{ position: 'absolute', top: 8, right: 8, bgcolor: 'rgba(255,255,255,0.92)', borderRadius: 2, boxShadow: '0 2px 10px rgba(0,0,0,0.18)' }}>
+                              <SaveButton propertyId={prop._id} size="small" />
+                            </Box>
+                          </Box>
+                          <CardContent sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                             <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', mb: 0.5 }} noWrap>
                               {getPropertyTitle(prop)}
                             </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary', mb: 1.5 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary', mb: 1, minHeight: 20 }}>
                               <LocationOnRoundedIcon sx={{ fontSize: 14 }} />
                               <Typography variant="caption">{getPropertyCity(prop)}</Typography>
                             </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, mt: 'auto' }}>
                               <Typography sx={{ fontWeight: 800, color: '#1976d2', fontSize: '1rem' }}>
                                 R {prop.price?.toLocaleString()}/mo
                               </Typography>

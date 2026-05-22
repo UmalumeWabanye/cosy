@@ -320,13 +320,13 @@ export default function BrowsePage() {
                     onMouseLeave={() => setHoveredId(null)}
                     sx={{
                       borderRadius: 2.5, overflow: 'hidden', textDecoration: 'none',
-                      display: 'flex', flexDirection: 'row', transition: 'border-color 0.2s, box-shadow 0.2s', cursor: 'pointer',
+                      display: 'flex', flexDirection: 'row', minHeight: 138, transition: 'border-color 0.2s, box-shadow 0.2s', cursor: 'pointer',
                       '&:hover': { borderColor: 'primary.main', boxShadow: '0 4px 18px rgba(25,118,210,0.12)' },
                     }}
                   >
-                    <Box sx={{ position: 'relative', flexShrink: 0, width: { xs: 110, sm: 160 } }}>
+                    <Box sx={{ position: 'relative', flexShrink: 0, width: { xs: 110, sm: 160 }, minHeight: 138 }}>
                       <Box component="img" src={getImage(prop, idx)} alt={getTitle(prop)}
-                        sx={{ width: '100%', height: '100%', minHeight: 130, objectFit: 'cover', display: 'block' }} />
+                        sx={{ width: '100%', height: '100%', minHeight: 138, objectFit: 'cover', display: 'block' }} />
                       {isNsfas(prop) && (
                         <Chip icon={<VerifiedRoundedIcon sx={{ fontSize: 12, color: '#1565c0 !important' }} />} label="NSFAS" size="small"
                           sx={{ position: 'absolute', bottom: 7, left: 7, bgcolor: 'white', color: '#1565c0', fontWeight: 700, fontSize: '0.66rem', height: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.18)' }} />
@@ -349,9 +349,9 @@ export default function BrowsePage() {
                           <LocationOnRoundedIcon sx={{ fontSize: 13, color: 'text.disabled', flexShrink: 0 }} />
                           <Typography variant="caption" sx={{ color: 'text.secondary' }} noWrap>{getCity(prop)}</Typography>
                         </Box>
-                        {getUniversity(prop) && (
-                          <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block' }} noWrap>Near {getUniversity(prop)}</Typography>
-                        )}
+                        <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', minHeight: 18 }} noWrap>
+                          {getUniversity(prop) ? `Near ${getUniversity(prop)}` : ' '}
+                        </Typography>
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
                         <Typography sx={{ fontWeight: 800, color: 'primary.main', fontSize: '0.97rem' }}>{getPrice(prop)}</Typography>

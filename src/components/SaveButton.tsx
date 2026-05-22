@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import api from '@/services/api';
 import { useAuth } from '@/hooks/useAuth';
 import IconButton from '@mui/material/IconButton';
@@ -22,6 +23,7 @@ export default function SaveButton({
   size = 'small',
 }: SaveButtonProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated } = useAuth();
   const [isSaved, setIsSaved] = useState(false);
   const [initialized, setInitialized] = useState(false);
@@ -67,7 +69,9 @@ export default function SaveButton({
     event.stopPropagation();
 
     if (!isAuthenticated) {
-      router.push('/login');
+      const search = typeof window !== 'undefined' ? window.location.search : '';
+      const redirectTo = `${pathname || '/browse'}${search}`;
+      router.push(`/login?redirect=${encodeURIComponent(redirectTo)}`);
       return;
     }
 

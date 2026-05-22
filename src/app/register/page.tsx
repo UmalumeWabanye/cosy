@@ -83,6 +83,13 @@ function RegisterForm() {
   const { setUser, setToken } = useAuthStore();
 
   const isLandlord = searchParams.get('role') === 'landlord';
+  const redirect = searchParams.get('redirect') || '';
+
+  const getSafeRedirect = () => {
+    if (!redirect.startsWith('/')) return '';
+    if (redirect.startsWith('//')) return '';
+    return redirect;
+  };
 
   const [nameError, setNameError] = useState(false);
   const [nameErrorMessage, setNameErrorMessage] = useState('');
@@ -187,7 +194,8 @@ function RegisterForm() {
         localStorage.setItem('showLandlordWizard', 'true');
         router.push('/landlord/dashboard');
       } else {
-        router.push('/setup-account');
+        const safeRedirect = getSafeRedirect();
+        router.push(safeRedirect || '/setup-account');
       }
     } catch (err: any) {
       setServerError(err?.response?.data?.message || err.message || 'Registration failed');
@@ -360,7 +368,13 @@ function RegisterForm() {
 
             <Typography sx={{ textAlign: 'center' }}>
               Already have an account?{' '}
-              <Link href="/login" variant="body2" sx={{ alignSelf: 'center' }}>Sign in</Link>
+              <Link
+                href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}${isLandlord ? '&role=landlord' : ''}` : isLandlord ? '/login?role=landlord' : '/login'}
+                variant="body2"
+                sx={{ alignSelf: 'center' }}
+              >
+                Sign in
+              </Link>
             </Typography>
           </Box>
         </Card>
