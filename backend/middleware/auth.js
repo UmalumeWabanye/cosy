@@ -43,4 +43,11 @@ const adminOrLandlord = (req, res, next) => {
   return res.status(403).json({ message: 'Admin or landlord access required' });
 };
 
-module.exports = { protect, adminOnly, adminOrLandlord };
+const landlordOnly = (req, res, next) => {
+  if (req.user && req.user.role === 'landlord') {
+    return next();
+  }
+  return res.status(403).json({ message: 'Landlord access required' });
+};
+
+module.exports = { protect, adminOnly, adminOrLandlord, landlordOnly };

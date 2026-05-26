@@ -1,6 +1,9 @@
 const Property = require('../models/Property');
+const User = require('../models/User');
 
 const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const getLandlordIds = async () => User.find({ role: 'landlord' }).distinct('_id');
 
 // @desc   Get properties shown in the landlord property management platform
 // @route  GET /api/properties/mine
@@ -12,7 +15,7 @@ const getMyProperties = async (req, res, next) => {
     }
 
     const { search, page = 1, limit = 50 } = req.query;
-    const filter = {};
+    const filter = { createdBy: req.user._id };
     if (search) {
       filter.$or = [
         { propertyName: new RegExp(search, 'i') },
@@ -54,6 +57,8 @@ const getProperties = async (req, res, next) => {
     } = req.query;
 
     const filter = {};
+    const landlordIds = await getLandlordIds();
+    filter.createdBy = { $in: landlordIds };
 
     if (status === 'published' || status === 'available') {
       filter.isAvailable = true;
@@ -111,9 +116,9 @@ const getProperty = async (req, res, next) => {
   try {
     const property = await Property.findById(req.params.id).populate(
       'createdBy',
-      'name email avatar'
+      'name email avatar role'
     ).populate('roomAllocations.student', 'name email avatar university course').populate('roomAllocations.request', 'status moveInDate leaseDuration createdAt');
-    if (!property) {
+    if (!property || property.createdBy?.role !== 'landlord') {
       res.statusCode = 404;
       throw new Error('Property not found');
     }

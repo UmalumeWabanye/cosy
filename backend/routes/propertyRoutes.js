@@ -10,21 +10,21 @@ const {
   updateProperty,
   deleteProperty,
 } = require('../controllers/propertyController');
-const { protect, adminOrLandlord } = require('../middleware/auth');
+const { protect, landlordOnly } = require('../middleware/auth');
 
 // multer — memory storage so we can pass buffer to Cloudinary
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 // Student-facing property browsing must remain public.
-router.get('/mine', protect, adminOrLandlord, getMyProperties);
+router.get('/mine', protect, landlordOnly, getMyProperties);
 router.get('/', getProperties);
 router.get('/:id', getProperty);
-router.post('/', protect, adminOrLandlord, createProperty);
-router.put('/:id', protect, adminOrLandlord, updateProperty);
-router.delete('/:id', protect, adminOrLandlord, deleteProperty);
+router.post('/', protect, landlordOnly, createProperty);
+router.put('/:id', protect, landlordOnly, updateProperty);
+router.delete('/:id', protect, landlordOnly, deleteProperty);
 
 // POST /api/properties/:id/upload-image — upload a single image to Cloudinary
-router.post('/:id/upload-image', protect, adminOrLandlord, upload.single('image'), async (req, res) => {
+router.post('/:id/upload-image', protect, landlordOnly, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'No file provided' });
 
