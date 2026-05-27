@@ -19,6 +19,29 @@ import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 
 const ROOM_TYPES = ['Single', 'Sharing', 'Ensuite', 'Bachelor'];
+const TRANSPORT_MODES = [
+  { value: 'private', label: 'Private transport provided by residence' },
+  { value: 'campus_route', label: 'Located on campus shuttle route' },
+  { value: 'both', label: 'Both private and campus-route support' },
+];
+
+type TransportScheduleForm = {
+  routeName: string;
+  pickupFromResidence: string;
+  departureToCampus: string;
+  returnPickupFromCampus: string;
+  arrivalAtResidence: string;
+  days: string;
+};
+
+const createEmptySchedule = (): TransportScheduleForm => ({
+  routeName: '',
+  pickupFromResidence: '',
+  departureToCampus: '',
+  returnPickupFromCampus: '',
+  arrivalAtResidence: '',
+  days: '',
+});
 
 export default function NewLandlordPropertyPage() {
   const router = useRouter();
@@ -45,7 +68,13 @@ export default function NewLandlordPropertyPage() {
     paymentStatus: 'not_applicable',
     contractStatus: 'not_applicable',
     communicationChannel: 'WhatsApp',
+    transportationEnabled: false,
+    transportationMode: 'private',
+    transportationProviderName: '',
+    transportationContact: '',
+    transportationNotes: '',
   });
+  const [transportSchedules, setTransportSchedules] = useState<TransportScheduleForm[]>([]);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || user?.role !== 'landlord')) {
@@ -96,6 +125,35 @@ export default function NewLandlordPropertyPage() {
         communicationChannel: form.communicationChannel,
         nsfasAccredited: form.nsfasAccredited,
         isAvailable: form.isAvailable,
+        transportation: form.transportationEnabled
+          ? {
+              enabled: true,
+              mode: form.transportationMode,
+              providerName: form.transportationProviderName.trim(),
+              contact: form.transportationContact.trim(),
+              notes: form.transportationNotes.trim(),
+              schedules: transportSchedules
+                .map((schedule) => ({
+                  routeName: schedule.routeName.trim(),
+                  pickupFromResidence: schedule.pickupFromResidence.trim(),
+                  departureToCampus: schedule.departureToCampus.trim(),
+                  returnPickupFromCampus: schedule.returnPickupFromCampus.trim(),
+                  arrivalAtResidence: schedule.arrivalAtResidence.trim(),
+                  days: schedule.days
+                    .split(',')
+                    .map((day) => day.trim())
+                    .filter(Boolean),
+                }))
+                .filter((schedule) =>
+                  schedule.routeName ||
+                  schedule.pickupFromResidence ||
+                  schedule.departureToCampus ||
+                  schedule.returnPickupFromCampus ||
+                  schedule.arrivalAtResidence ||
+                  schedule.days.length
+                ),
+            }
+          : { enabled: false, mode: 'none', providerName: '', contact: '', notes: '', schedules: [] },
       });
       router.push('/landlord/properties');
     } catch (e: any) {
@@ -164,6 +222,111 @@ export default function NewLandlordPropertyPage() {
             </Stack>
 
             <TextField label="Communication Channel" helperText="e.g. WhatsApp, email, SMS, in-app chat" value={form.communicationChannel} onChange={(e) => setForm((prev) => ({ ...prev, communicationChannel: e.target.value }))} />
+
+            <Paper variant="outlined" sx={{ p: 2, bgcolor: 'grey.50' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Transportation Setup</Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                Configure private residence transport or campus-route schedules visible to students.
+              </Typography>
+
+              <FormControlLabel
+                control={<Checkbox checked={form.transportationEnabled} onChange={(e) => setForm((prev) => ({ ...prev, transportationEnabled: e.target.checked }))} />}
+                label="This property has transportation support"
+              />
+
+              {form.transportationEnabled && (
+                <Stack sx={{ gap: 1.5, mt: 1.5 }}>
+                  <TextField
+                    select
+                    label="Transport Type"
+                    value={form.transportationMode}
+                    onChange={(e) => setForm((prev) => ({ ...prev, transportationMode: e.target.value }))}
+                  >
+                    {TRANSPORT_MODES.map((mode) => <MenuItem key={mode.value} value={mode.value}>{mode.label}</MenuItem>)}
+                  </TextField>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 1.5 }}>
+                    <TextField label="Provider Name" fullWidth value={form.transportationProviderName} onChange={(e) => setForm((prev) => ({ ...prev, transportationProviderName: e.target.value }))} />
+                    <TextField label="Transport Contact" fullWidth value={form.transportationContact} onChange={(e) => setForm((prev) => ({ ...prev, transportationContact: e.target.value }))} />
+                  </Stack>
+                  <TextField label="Transport Notes" multiline rows={2} placeholder="Optional notes for students" value={form.transportationNotes} onChange={(e) => setForm((prev) => ({ ...prev, transportationNotes: e.target.value }))} />
+
+                  <Stack sx={{ gap: 1 }}>
+                    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>Route Schedules</Typography>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => setTransportSchedules((prev) => [...prev, createEmptySchedule()])}
+                        sx={{ textTransform: 'none' }}
+                      >
+                        Add Route
+                      </Button>
+                    </Stack>
+
+                    {transportSchedules.length === 0 ? (
+                      <Typography variant="caption" color="text.secondary">No schedules yet. Add a route to show pickup/return times to students.</Typography>
+                    ) : transportSchedules.map((schedule, index) => (
+                      <Paper key={index} variant="outlined" sx={{ p: 1.5 }}>
+                        <Stack sx={{ gap: 1 }}>
+                          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography variant="caption" sx={{ fontWeight: 700 }}>Route {index + 1}</Typography>
+                            <Button
+                              size="small"
+                              color="error"
+                              onClick={() => setTransportSchedules((prev) => prev.filter((_, idx) => idx !== index))}
+                              sx={{ textTransform: 'none', minWidth: 0, px: 1 }}
+                            >
+                              Remove
+                            </Button>
+                          </Stack>
+                          <TextField
+                            label="Route Name"
+                            size="small"
+                            value={schedule.routeName}
+                            onChange={(e) => setTransportSchedules((prev) => prev.map((item, idx) => idx === index ? { ...item, routeName: e.target.value } : item))}
+                          />
+                          <TextField
+                            label="Pickup From Residence"
+                            size="small"
+                            value={schedule.pickupFromResidence}
+                            onChange={(e) => setTransportSchedules((prev) => prev.map((item, idx) => idx === index ? { ...item, pickupFromResidence: e.target.value } : item))}
+                          />
+                          <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 1 }}>
+                            <TextField
+                              label="Departure To Campus (e.g. 07:00)"
+                              size="small"
+                              fullWidth
+                              value={schedule.departureToCampus}
+                              onChange={(e) => setTransportSchedules((prev) => prev.map((item, idx) => idx === index ? { ...item, departureToCampus: e.target.value } : item))}
+                            />
+                            <TextField
+                              label="Campus Pickup Return (e.g. 17:00)"
+                              size="small"
+                              fullWidth
+                              value={schedule.returnPickupFromCampus}
+                              onChange={(e) => setTransportSchedules((prev) => prev.map((item, idx) => idx === index ? { ...item, returnPickupFromCampus: e.target.value } : item))}
+                            />
+                          </Stack>
+                          <TextField
+                            label="Arrival Back at Residence"
+                            size="small"
+                            value={schedule.arrivalAtResidence}
+                            onChange={(e) => setTransportSchedules((prev) => prev.map((item, idx) => idx === index ? { ...item, arrivalAtResidence: e.target.value } : item))}
+                          />
+                          <TextField
+                            label="Operating Days"
+                            size="small"
+                            placeholder="Mon, Tue, Wed, Thu, Fri"
+                            value={schedule.days}
+                            onChange={(e) => setTransportSchedules((prev) => prev.map((item, idx) => idx === index ? { ...item, days: e.target.value } : item))}
+                          />
+                        </Stack>
+                      </Paper>
+                    ))}
+                  </Stack>
+                </Stack>
+              )}
+            </Paper>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 2 }}>
             <FormControlLabel control={<Checkbox checked={form.nsfasAccredited} onChange={(e) => setForm((prev) => ({ ...prev, nsfasAccredited: e.target.checked }))} />} label="NSFAS Accredited" />

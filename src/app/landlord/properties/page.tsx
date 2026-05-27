@@ -41,9 +41,20 @@ interface Property {
   availableRooms?: number;
   isAvailable: boolean;
   nsfasAccredited?: boolean;
+  transportation?: {
+    enabled?: boolean;
+    mode?: 'none' | 'private' | 'campus_route' | 'both';
+  };
   universityNearby?: string;
   createdAt: string;
 }
+
+const transportModeLabel = (mode?: string) => {
+  if (mode === 'private') return 'Private Transport';
+  if (mode === 'campus_route') return 'Campus Route';
+  if (mode === 'both') return 'Private + Campus';
+  return 'Transport';
+};
 
 function LandlordPropertiesPageContent() {
   const router = useRouter();
@@ -195,6 +206,9 @@ function LandlordPropertiesPageContent() {
                     <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap' }}>
                       <Chip size="small" label={property.isAvailable ? 'Available' : 'Unavailable'} color={property.isAvailable ? 'success' : 'default'} />
                       {property.nsfasAccredited && <Chip size="small" label="NSFAS" color="info" />}
+                      {property.transportation?.enabled && (
+                        <Chip size="small" label={transportModeLabel(property.transportation.mode)} color="secondary" />
+                      )}
                     </Stack>
                   </TableCell>
                   <TableCell align="right">

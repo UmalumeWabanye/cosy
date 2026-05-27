@@ -58,6 +58,10 @@ interface Property {
   price?: number; pricing?: { minRent?: number; maxRent?: number };
   images?: Array<string | { url?: string }>; fundingType?: string; nsfasAccredited?: boolean; nsfasAccreditation?: boolean;
   roomType?: string; university?: string; universityNearby?: string; status?: string; lat?: number; lng?: number;
+  transportation?: {
+    enabled?: boolean;
+    mode?: 'none' | 'private' | 'campus_route' | 'both';
+  };
 }
 
 interface PropertyMapProps {
@@ -148,6 +152,13 @@ export default function BrowsePage() {
     return 'Price on request';
   };
   const isNsfas = (p: Property) => p.fundingType === 'nsfas' || p.nsfasAccreditation || p.nsfasAccredited;
+  const getTransportLabel = (p: Property) => {
+    if (!p.transportation?.enabled) return '';
+    if (p.transportation.mode === 'private') return 'Private Transport';
+    if (p.transportation.mode === 'campus_route') return 'Campus Route';
+    if (p.transportation.mode === 'both') return 'Private + Campus';
+    return 'Transport Available';
+  };
 
   const FilterPanel = () => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, p: { xs: 2, sm: 3 } }}>
@@ -352,6 +363,13 @@ export default function BrowsePage() {
                         <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', minHeight: 18 }} noWrap>
                           {getUniversity(prop) ? `Near ${getUniversity(prop)}` : ' '}
                         </Typography>
+                        {getTransportLabel(prop) && (
+                          <Chip
+                            label={getTransportLabel(prop)}
+                            size="small"
+                            sx={{ mt: 0.5, height: 20, fontSize: '0.66rem', fontWeight: 700, bgcolor: '#ede7f6', color: '#5e35b1' }}
+                          />
+                        )}
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
                         <Typography sx={{ fontWeight: 800, color: 'primary.main', fontSize: '0.97rem' }}>{getPrice(prop)}</Typography>

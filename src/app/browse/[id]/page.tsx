@@ -57,6 +57,21 @@ interface Property {
   amenities: string[];
   distanceFromCampus?: number;
   isAvailable: boolean;
+  transportation?: {
+    enabled?: boolean;
+    mode?: 'none' | 'private' | 'campus_route' | 'both';
+    providerName?: string;
+    contact?: string;
+    notes?: string;
+    schedules?: Array<{
+      routeName?: string;
+      pickupFromResidence?: string;
+      departureToCampus?: string;
+      returnPickupFromCampus?: string;
+      arrivalAtResidence?: string;
+      days?: string[];
+    }>;
+  };
   createdBy: { _id?: string; name?: string; email?: string; avatar?: string };
   createdAt: string;
 }
@@ -168,6 +183,14 @@ export default function PropertyDetailsPage() {
   };
 
   const propertyName = property.propertyName || property.name || 'Accommodation';
+  const transportModeLabel =
+    property.transportation?.mode === 'private'
+      ? 'Private residence transport'
+      : property.transportation?.mode === 'campus_route'
+        ? 'Campus shuttle route'
+        : property.transportation?.mode === 'both'
+          ? 'Private and campus-route transport'
+          : 'Transport support';
 
   return (
     <StudentLayout>
@@ -253,6 +276,56 @@ export default function PropertyDetailsPage() {
                         </Grid>
                       ))}
                     </Grid>
+                  </CardContent>
+                </Card>
+              )}
+
+              {property.transportation?.enabled && (
+                <Card variant="outlined" sx={{ mb: 3 }}>
+                  <CardContent>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Transportation Schedule</Typography>
+                    <Chip size="small" color="secondary" label={transportModeLabel} sx={{ mb: 1.5, fontWeight: 700 }} />
+
+                    {(property.transportation.providerName || property.transportation.contact) && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        {property.transportation.providerName ? `Provider: ${property.transportation.providerName}` : ''}
+                        {property.transportation.providerName && property.transportation.contact ? ' · ' : ''}
+                        {property.transportation.contact ? `Contact: ${property.transportation.contact}` : ''}
+                      </Typography>
+                    )}
+
+                    {property.transportation.notes && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {property.transportation.notes}
+                      </Typography>
+                    )}
+
+                    {property.transportation.schedules?.length ? (
+                      <Stack sx={{ gap: 1.25 }}>
+                        {property.transportation.schedules.map((schedule, index) => (
+                          <Box key={`${schedule.routeName || 'route'}-${index}`} sx={{ p: 1.5, borderRadius: 1.5, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                              {schedule.routeName || `Route ${index + 1}`}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                              {schedule.days?.length ? `Days: ${schedule.days.join(', ')}` : 'Days: Not specified'}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                              To campus: {schedule.pickupFromResidence || 'Residence pickup TBD'}
+                              {schedule.departureToCampus ? ` at ${schedule.departureToCampus}` : ''}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                              Return: {schedule.returnPickupFromCampus || 'Campus pickup TBD'}
+                              {schedule.arrivalAtResidence ? `, arrives ${schedule.arrivalAtResidence}` : ''}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Stack>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        Transport is available for this residence. Contact the provider for full departure and return times.
+                      </Typography>
+                    )}
                   </CardContent>
                 </Card>
               )}

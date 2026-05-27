@@ -85,6 +85,42 @@ const propertySchema = new mongoose.Schema(
       trim: true,
       default: 'WhatsApp',
     },
+    transportation: {
+      enabled: {
+        type: Boolean,
+        default: false,
+      },
+      mode: {
+        type: String,
+        enum: ['none', 'private', 'campus_route', 'both'],
+        default: 'none',
+      },
+      providerName: {
+        type: String,
+        trim: true,
+        default: '',
+      },
+      contact: {
+        type: String,
+        trim: true,
+        default: '',
+      },
+      notes: {
+        type: String,
+        trim: true,
+        default: '',
+      },
+      schedules: [
+        {
+          routeName: { type: String, trim: true, default: '' },
+          pickupFromResidence: { type: String, trim: true, default: '' },
+          departureToCampus: { type: String, trim: true, default: '' },
+          returnPickupFromCampus: { type: String, trim: true, default: '' },
+          arrivalAtResidence: { type: String, trim: true, default: '' },
+          days: [{ type: String, trim: true }],
+        },
+      ],
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
