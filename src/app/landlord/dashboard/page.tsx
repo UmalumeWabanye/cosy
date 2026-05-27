@@ -69,6 +69,8 @@ interface ViewingItem {
   property?: { _id: string; propertyName?: string; city?: string };
 }
 
+type PressureColor = 'error' | 'warning' | 'info' | 'success';
+
 function statusColor(status: string): 'success' | 'warning' | 'error' | 'default' {
   if (status === 'approved') return 'success';
   if (status === 'rejected' || status === 'declined') return 'error';
@@ -206,7 +208,7 @@ export default function LandlordDashboardPage() {
       const vacantRooms = Math.max(0, totalRooms - occupiedRooms);
       const occupancyRateForProperty = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
       const pressureLabel = occupancyRateForProperty >= 90 ? 'Critical' : occupancyRateForProperty >= 75 ? 'High' : vacantRooms <= 2 ? 'Watch' : 'Healthy';
-      const pressureColor = occupancyRateForProperty >= 90 ? 'error' : occupancyRateForProperty >= 75 ? 'warning' : vacantRooms <= 2 ? 'info' : 'success';
+      const pressureColor: PressureColor = occupancyRateForProperty >= 90 ? 'error' : occupancyRateForProperty >= 75 ? 'warning' : vacantRooms <= 2 ? 'info' : 'success';
 
       const upcomingMoveIns = propertyRequests
         .filter((request) => request.moveInDate && new Date(request.moveInDate) > now)

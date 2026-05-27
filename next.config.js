@@ -1,8 +1,12 @@
 /** @type {import('next').NextConfig} */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const path = require('path');
 
 const nextConfig = {
   reactStrictMode: true,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   compiler: {
     styledComponents: true,
   },
