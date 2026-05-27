@@ -4,6 +4,7 @@ import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/services/api';
+import { trackEvent } from '@/utils/analytics';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -167,6 +168,12 @@ function RegisterForm() {
       payload.fundingType = data.get('fundingType') as string;
     }
 
+    trackEvent('signup-attempt', {
+      role: isLandlord ? 'landlord' : 'student',
+      fundingType: payload.fundingType || 'na',
+      hasRedirect: Boolean(redirect),
+    });
+
     try {
       setLoading(true);
       setServerError('');
@@ -189,6 +196,9 @@ function RegisterForm() {
       localStorage.setItem('token', token);
       setToken(token);
       setUser(user);
+      trackEvent('signup-confirm', {
+        role: user.role || (isLandlord ? 'landlord' : 'student'),
+      });
       
       if (isLandlord) {
         localStorage.setItem('showLandlordWizard', 'true');

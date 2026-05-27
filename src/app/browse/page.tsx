@@ -34,6 +34,7 @@ import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
 import ViewListRoundedIcon from '@mui/icons-material/ViewListRounded';
 import api from '@/services/api';
+import { trackEvent } from '@/utils/analytics';
 
 
 const PropertyMap = nextDynamic(() => import('@/components/PropertyMap'), { ssr: false });
@@ -121,6 +122,12 @@ export default function BrowsePage() {
       roomType: params.get('roomType') || '',
       nsfas: params.get('fundingType') === 'nsfas',
     }));
+    trackEvent('browse-visit', {
+      source: params.get('source') || 'direct',
+      university: params.get('university') || 'any',
+      city: params.get('city') || 'any',
+      fundingType: params.get('fundingType') || 'any',
+    });
   }, []);
 
   useEffect(() => {
@@ -222,6 +229,11 @@ export default function BrowsePage() {
   };
 
   const toggleCompare = (propertyId: string) => {
+    const willAdd = !compareIds.includes(propertyId);
+    trackEvent('compare-click', {
+      propertyId,
+      action: willAdd ? 'add' : 'remove',
+    });
     setCompareIds((prev) => {
       if (prev.includes(propertyId)) return prev.filter((id) => id !== propertyId);
       if (prev.length >= 3) return prev;
@@ -269,6 +281,12 @@ export default function BrowsePage() {
       }
       setSavedSearchName('');
       setSavedSearchMessage('Search saved. You will receive digest alerts when matches increase.');
+      trackEvent('save-search', {
+        hasCity: Boolean(filters.city),
+        hasUniversity: Boolean(filters.university),
+        hasBudget: Boolean(filters.minPrice || filters.maxPrice),
+        nsfas: filters.nsfas,
+      });
     } catch (e: any) {
       setSavedSearchError(e?.response?.data?.message || 'Failed to save this search.');
     }
@@ -500,6 +518,12 @@ export default function BrowsePage() {
                     key={prop._id}
                     component={Link}
                     href={`/browse/${prop._id}`}
+                    onClick={() => trackEvent('listing-view', {
+                      propertyId: prop._id,
+                      city: getCity(prop),
+                      university: getUniversity(prop) || 'unknown',
+                      nsfas: isNsfas(prop),
+                    })}
                     variant="outlined"
                     onMouseEnter={() => setHoveredId(prop._id)}
                     onMouseLeave={() => setHoveredId(null)}

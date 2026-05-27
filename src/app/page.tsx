@@ -40,6 +40,7 @@ import VerifiedOutlinedIcon from '@mui/icons-material/VerifiedOutlined';
 import XIcon from '@mui/icons-material/X';
 import api from '@/services/api';
 import SaveButton from '@/components/SaveButton';
+import { trackEvent } from '@/utils/analytics';
 
 const theme = createTheme({
   typography: {
@@ -194,6 +195,7 @@ export default function HomePage() {
   const [loadingFeatured, setLoadingFeatured] = useState(true);
 
   useEffect(() => {
+    trackEvent('landing-page-load', { page: 'homepage' });
     api.get('/properties?limit=6&status=published')
       .then((res) => {
         const data = res.data;
@@ -211,6 +213,14 @@ export default function HomePage() {
     if (city) params.set('city', city);
     if (fundingType) params.set('fundingType', fundingType);
     if (roomType) params.set('roomType', roomType);
+    trackEvent('cta-click', {
+      button: 'search-properties',
+      location: 'hero-search',
+      university: university || 'any',
+      city: city || 'any',
+      fundingType: fundingType || 'any',
+      roomType: roomType || 'any',
+    });
     router.push(`/browse?${params.toString()}`);
   };
 
@@ -337,6 +347,7 @@ export default function HomePage() {
                     component={Link}
                     href="/browse"
                     variant="contained"
+                    onClick={() => trackEvent('cta-click', { button: 'find-accommodation', location: 'hero' })}
                     sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, bgcolor: 'white', color: '#11508b', '&:hover': { bgcolor: '#f5f9ff' } }}
                   >
                     Find Accommodation
@@ -344,6 +355,7 @@ export default function HomePage() {
                   <Button
                     component={Link}
                     href="/for-landlords"
+                    onClick={() => trackEvent('cta-click', { button: 'list-property', location: 'hero' })}
                     variant="outlined"
                     sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, color: 'white', borderColor: 'rgba(255,255,255,0.6)', '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.08)' } }}
                   >
