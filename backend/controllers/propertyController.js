@@ -1,5 +1,8 @@
 const Property = require('../models/Property');
 const User = require('../models/User');
+const Conversation = require('../models/Conversation');
+const Message = require('../models/Message');
+const Notification = require('../models/Notification');
 
 const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const normalizeRoomTypeQuery = (value = '') => {
@@ -13,6 +16,95 @@ const normalizeRoomTypeQuery = (value = '') => {
 };
 
 const getLandlordIds = async () => User.find({ role: 'landlord' }).distinct('_id');
+
+const getIdString = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object' && value._id) return String(value._id);
+  return String(value);
+};
+
+const normalizeRoom = (value = '') => String(value).trim();
+
+const mapAllocationsByStudent = (allocations = []) => {
+  const map = new Map();
+  for (const allocation of allocations) {
+    const studentId = getIdString(allocation?.student);
+    if (!studentId) continue;
+
+    map.set(studentId, {
+      studentId,
+      roomNumber: normalizeRoom(allocation?.roomNumber),
+    });
+  }
+  return map;
+};
+
+const syncAllocationMessages = async ({ actorUserId, property, previousAllocations = [], nextAllocations = [] }) => {
+  const oldMap = mapAllocationsByStudent(previousAllocations);
+  const newMap = mapAllocationsByStudent(nextAllocations);
+
+  const affectedStudentIds = new Set([...oldMap.keys(), ...newMap.keys()]);
+  if (affectedStudentIds.size === 0) return;
+
+  const propertyId = property?._id || property;
+  const propertyName = property?.propertyName || 'your accommodation';
+  const now = new Date();
+
+  for (const studentId of affectedStudentIds) {
+    const previous = oldMap.get(studentId);
+    const next = newMap.get(studentId);
+
+    let messageText = '';
+    let notificationMessage = '';
+
+    if (!previous && next) {
+      messageText = `Your room allocation for ${propertyName} has been confirmed: ${next.roomNumber}. Please reply here if you have any move-in questions.`;
+      notificationMessage = `Your room allocation is confirmed: ${next.roomNumber}.`;
+    } else if (previous && next && previous.roomNumber !== next.roomNumber) {
+      messageText = `Your room allocation for ${propertyName} has changed from ${previous.roomNumber} to ${next.roomNumber}. Please reply here if you need help.`;
+      notificationMessage = `Your room allocation changed to ${next.roomNumber}.`;
+    } else if (previous && !next) {
+      messageText = `Your room allocation for ${propertyName} was removed and will be reassigned shortly. Please reply here if you need urgent support.`;
+      notificationMessage = 'Your room allocation was removed and will be reassigned.';
+    }
+
+    if (!messageText) continue;
+
+    let conversation = await Conversation.findOne({
+      participants: { $all: [actorUserId, studentId], $size: 2 },
+      property: propertyId,
+    });
+
+    if (!conversation) {
+      conversation = await Conversation.create({
+        participants: [actorUserId, studentId],
+        property: propertyId,
+      });
+    }
+
+    await Message.create({
+      conversation: conversation._id,
+      sender: actorUserId,
+      text: messageText,
+      isReadBy: [actorUserId],
+    });
+
+    conversation.lastMessage = messageText;
+    conversation.lastMessageAt = now;
+    await conversation.save();
+
+    await Notification.create({
+      recipient: studentId,
+      type: 'request_updated',
+      title: 'Room Allocation Updated',
+      message: notificationMessage,
+      link: '/messages',
+      refModel: 'Property',
+      refId: propertyId,
+    });
+  }
+};
 
 // @desc   Get properties shown in the landlord property management platform
 // @route  GET /api/properties/mine
@@ -167,6 +259,17 @@ const updateProperty = async (req, res, next) => {
       res.statusCode = 404;
       throw new Error('Property not found');
     }
+
+    if (String(existing.createdBy) !== String(req.user._id)) {
+      res.statusCode = 403;
+      throw new Error('Not authorized to update this property');
+    }
+
+    const hasAllocationUpdate = Array.isArray(req.body.roomAllocations);
+    const previousAllocations = hasAllocationUpdate
+      ? (existing.roomAllocations || []).map((item) => item.toObject ? item.toObject() : item)
+      : [];
+
     const property = await Property.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
@@ -175,6 +278,16 @@ const updateProperty = async (req, res, next) => {
       res.statusCode = 404;
       throw new Error('Property not found');
     }
+
+    if (hasAllocationUpdate) {
+      await syncAllocationMessages({
+        actorUserId: req.user._id,
+        property,
+        previousAllocations,
+        nextAllocations: property.roomAllocations || [],
+      });
+    }
+
     res.json(property);
   } catch (error) {
     next(error);
