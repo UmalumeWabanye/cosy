@@ -324,6 +324,10 @@ export default function EditLandlordPropertyPage() {
                       </Button>
                     </Stack>
 
+                    <Typography variant="caption" color="text.secondary">
+                      Add separate routes for weekday, weekend, or special service windows. Put holiday exceptions in transport notes.
+                    </Typography>
+
                     {transportSchedules.length === 0 ? (
                       <Typography variant="caption" color="text.secondary">No schedules yet. Add a route to show pickup/return times to students.</Typography>
                     ) : transportSchedules.map((schedule, index) => (

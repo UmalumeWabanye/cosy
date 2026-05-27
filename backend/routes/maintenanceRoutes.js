@@ -161,10 +161,19 @@ router.get('/landlord', protect, async (req, res) => {
       return res.status(403).json({ message: 'Landlords only' });
     }
 
-    const { status } = req.query;
+    const { status, propertyId, roomNumber, priority } = req.query;
     const filter = { landlord: req.user._id };
     if (typeof status === 'string' && ['open', 'in_progress', 'resolved', 'closed'].includes(status)) {
       filter.status = status;
+    }
+    if (typeof propertyId === 'string' && propertyId.trim()) {
+      filter.property = propertyId.trim();
+    }
+    if (typeof roomNumber === 'string' && roomNumber.trim()) {
+      filter.roomNumber = new RegExp(`^${roomNumber.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+    }
+    if (typeof priority === 'string' && ['low', 'medium', 'high', 'urgent'].includes(priority)) {
+      filter.priority = priority;
     }
 
     const tickets = await Maintenance.find(filter)

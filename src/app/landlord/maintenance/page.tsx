@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import LandlordLayout from '@/components/landlord/LandlordLayout';
@@ -27,6 +27,14 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import InputAdornment from '@mui/material/InputAdornment';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 
 import HandymanRoundedIcon from '@mui/icons-material/HandymanRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
@@ -35,6 +43,9 @@ import PauseCircleRoundedIcon from '@mui/icons-material/PauseCircleRounded';
 import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
+import RoomRoundedIcon from '@mui/icons-material/RoomRounded';
 
 const PRIORITY_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   low:    { label: 'Low',    color: '#2e7d32', bg: '#e8f5e9' },
@@ -49,6 +60,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; 
   resolved:    { label: 'Resolved',    color: '#2e7d32', bg: '#e8f5e9', Icon: CheckCircleRoundedIcon },
   closed:      { label: 'Closed',      color: '#616161', bg: '#f5f5f5', Icon: CancelRoundedIcon },
 };
+
+const PRIORITY_FILTERS = ['all', 'low', 'medium', 'high', 'urgent'] as const;
 
 type StatusFilter = 'all' | 'open' | 'in_progress' | 'resolved' | 'closed';
 
@@ -75,6 +88,9 @@ export default function LandlordMaintenancePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [priorityFilter, setPriorityFilter] = useState<'all' | 'low' | 'medium' | 'high' | 'urgent'>('all');
+  const [propertyFilter, setPropertyFilter] = useState('all');
+  const [roomFilter, setRoomFilter] = useState('');
   const [openCount, setOpenCount] = useState(0);
   const [inProgressCount, setInProgressCount] = useState(0);
 
@@ -91,7 +107,13 @@ export default function LandlordMaintenancePage() {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await api.get('/maintenance/landlord');
+      const params = new URLSearchParams();
+      if (statusFilter !== 'all') params.set('status', statusFilter);
+      if (priorityFilter !== 'all') params.set('priority', priorityFilter);
+      if (propertyFilter !== 'all') params.set('propertyId', propertyFilter);
+      if (roomFilter.trim()) params.set('roomNumber', roomFilter.trim());
+
+      const res = await api.get(`/maintenance/landlord?${params.toString()}`);
       setTickets(res.data?.data ?? []);
       setOpenCount(res.data?.openCount ?? 0);
       setInProgressCount(res.data?.inProgressCount ?? 0);
@@ -100,11 +122,24 @@ export default function LandlordMaintenancePage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [statusFilter, priorityFilter, propertyFilter, roomFilter]);
 
   useEffect(() => {
     if (isAuthenticated && user?.role === 'landlord') load();
   }, [isAuthenticated, user, load]);
+
+  const propertyOptions = useMemo(() => {
+    const map = new Map<string, NonNullable<Ticket['property']>>();
+    tickets.forEach((ticket) => {
+      if (ticket.property?._id) map.set(ticket.property._id, ticket.property);
+    });
+    return Array.from(map.values()).sort((a, b) => (a.propertyName || '').localeCompare(b.propertyName || ''));
+  }, [tickets]);
+
+  const roomCoverage = useMemo(() => {
+    if (tickets.length === 0) return 0;
+    return Math.round((tickets.filter((ticket) => Boolean(ticket.roomNumber)).length / tickets.length) * 100);
+  }, [tickets]);
 
   const openEdit = (ticket: Ticket) => {
     setEditTarget(ticket);
@@ -134,7 +169,13 @@ export default function LandlordMaintenancePage() {
     }
   };
 
-  const filtered = statusFilter === 'all' ? tickets : tickets.filter(t => t.status === statusFilter);
+  const filtered = tickets.filter((ticket) => {
+    if (statusFilter !== 'all' && ticket.status !== statusFilter) return false;
+    if (priorityFilter !== 'all' && ticket.priority !== priorityFilter) return false;
+    if (propertyFilter !== 'all' && ticket.property?._id !== propertyFilter) return false;
+    if (roomFilter.trim() && !(ticket.roomNumber || '').toLowerCase().includes(roomFilter.trim().toLowerCase())) return false;
+    return true;
+  });
 
   const counts: Record<StatusFilter, number> = {
     all: tickets.length,
@@ -157,15 +198,100 @@ export default function LandlordMaintenancePage() {
               Manage repair and maintenance requests submitted by your tenants.
             </Typography>
           </Box>
-          {(openCount + inProgressCount) > 0 && (
+          <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+            {(openCount + inProgressCount) > 0 && (
+              <Chip
+                icon={<HandymanRoundedIcon sx={{ fontSize: '16px !important' }} />}
+                label={`${openCount} open · ${inProgressCount} in progress`}
+                color="warning"
+                sx={{ fontWeight: 700 }}
+              />
+            )}
             <Chip
-              icon={<HandymanRoundedIcon sx={{ fontSize: '16px !important' }} />}
-              label={`${openCount} open · ${inProgressCount} in progress`}
-              color="warning"
+              icon={<RoomRoundedIcon sx={{ fontSize: '16px !important' }} />}
+              label={`${roomCoverage}% room-linked`}
+              variant="outlined"
               sx={{ fontWeight: 700 }}
             />
-          )}
+          </Stack>
         </Stack>
+
+        <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+          <Stack direction={{ xs: 'column', md: 'row' }} sx={{ gap: 1.5, alignItems: { md: 'center' } }}>
+            <TextField
+              select
+              size="small"
+              label="Property"
+              value={propertyFilter}
+              onChange={(event) => setPropertyFilter(event.target.value)}
+              sx={{ minWidth: 200 }}
+            >
+              <MenuItem value="all">All properties</MenuItem>
+              {propertyOptions.map((property) => (
+                <MenuItem key={property._id} value={property._id}>{property.propertyName || 'Property'}</MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              size="small"
+              label="Room"
+              placeholder="e.g. B12"
+              value={roomFilter}
+              onChange={(event) => setRoomFilter(event.target.value)}
+              sx={{ minWidth: 150 }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchRoundedIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>Priority</InputLabel>
+              <Select label="Priority" value={priorityFilter} onChange={(event) => setPriorityFilter(event.target.value as typeof priorityFilter)}>
+                {PRIORITY_FILTERS.map((priority) => (
+                  <MenuItem key={priority} value={priority}>{priority === 'all' ? 'All priorities' : priority}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setStatusFilter('all');
+                setPriorityFilter('all');
+                setPropertyFilter('all');
+                setRoomFilter('');
+              }}
+              sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
+            >
+              Clear filters
+            </Button>
+          </Stack>
+
+          <Grid container spacing={1.5} sx={{ mt: 1.5 }}>
+            {[
+              { label: 'Total', value: tickets.length, icon: <HomeRoundedIcon sx={{ fontSize: 18 }} />, color: '#1976d2' },
+              { label: 'Open', value: counts.open, icon: <PauseCircleRoundedIcon sx={{ fontSize: 18 }} />, color: '#1565c0' },
+              { label: 'In progress', value: counts.in_progress, icon: <AutorenewRoundedIcon sx={{ fontSize: 18 }} />, color: '#e65100' },
+              { label: 'Room-linked', value: tickets.filter((ticket) => Boolean(ticket.roomNumber)).length, icon: <RoomRoundedIcon sx={{ fontSize: 18 }} />, color: '#2e7d32' },
+            ].map((item) => (
+              <Grid key={item.label} size={{ xs: 6, md: 3 }}>
+                <Paper variant="outlined" sx={{ p: 1.5 }}>
+                  <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{item.label}</Typography>
+                    <Box sx={{ color: item.color }}>{item.icon}</Box>
+                  </Stack>
+                  <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.1 }}>{item.value}</Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Paper>
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
@@ -304,6 +430,24 @@ export default function LandlordMaintenancePage() {
                       </Box>
                     )}
 
+                    <Divider sx={{ my: 1.5 }} />
+                    <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 1.5, flexWrap: 'wrap' }}>
+                      <Box sx={{ minWidth: 120 }}>
+                        <Typography variant="caption" color="text.secondary">Room</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {ticket.roomNumber ? `Room ${ticket.roomNumber}` : 'Not assigned'}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ minWidth: 120 }}>
+                        <Typography variant="caption" color="text.secondary">Priority</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{ticket.priority}</Typography>
+                      </Box>
+                      <Box sx={{ minWidth: 120 }}>
+                        <Typography variant="caption" color="text.secondary">Status</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'capitalize' }}>{ticket.status.replace('_', ' ')}</Typography>
+                      </Box>
+                    </Stack>
+
                     <Typography variant="caption" color="text.secondary">
                       Submitted {new Date(ticket.createdAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </Typography>
@@ -326,6 +470,15 @@ export default function LandlordMaintenancePage() {
             </Typography>
           )}
           <Stack sx={{ gap: 2 }}>
+            {editTarget && (
+              <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'grey.50' }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>Room context</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {editTarget.property?.propertyName || 'Property'}
+                  {editTarget.roomNumber ? ` · Room ${editTarget.roomNumber}` : ' · No room assigned'}
+                </Typography>
+              </Paper>
+            )}
             <FormControl fullWidth size="small">
               <InputLabel>Status</InputLabel>
               <Select

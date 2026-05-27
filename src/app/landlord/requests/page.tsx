@@ -28,6 +28,13 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
+import InputAdornment from '@mui/material/InputAdornment';
+import Divider from '@mui/material/Divider';
+
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 
 interface RequestItem {
   _id: string;
@@ -57,12 +64,17 @@ export default function LandlordRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [fundingFilter, setFundingFilter] = useState<'all' | 'NSFAS' | 'Private' | 'Self-funded'>('all');
+  const [propertyFilter, setPropertyFilter] = useState('all');
+  const [search, setSearch] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [roomInputs, setRoomInputs] = useState<Record<string, string>>({});
 
   const [editTarget, setEditTarget] = useState<RequestItem | null>(null);
   const [editForm, setEditForm] = useState({ moveInDate: '', leaseDuration: '', fundingType: 'NSFAS', message: '', roomNumber: '' });
   const [savingEdit, setSavingEdit] = useState(false);
+
+  const [detailTarget, setDetailTarget] = useState<RequestItem | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<RequestItem | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -169,9 +181,39 @@ export default function LandlordRequestsPage() {
   };
 
   const filtered = useMemo(
-    () => (statusFilter === 'all' ? requests : requests.filter((request) => request.status === statusFilter)),
-    [requests, statusFilter]
+    () => requests.filter((request) => {
+      if (statusFilter !== 'all' && request.status !== statusFilter) return false;
+      if (fundingFilter !== 'all' && request.fundingType !== fundingFilter) return false;
+      if (propertyFilter !== 'all' && request.property?._id !== propertyFilter) return false;
+
+      const haystack = [
+        request.student?.name,
+        request.student?.email,
+        request.property?.propertyName,
+        request.property?.city,
+        request.roomNumber,
+        request.message,
+      ].filter(Boolean).join(' ').toLowerCase();
+
+      if (search.trim() && !haystack.includes(search.trim().toLowerCase())) return false;
+      return true;
+    }),
+    [requests, statusFilter, fundingFilter, propertyFilter, search]
   );
+
+  const propertyOptions = useMemo(
+    () => Array.from(new Map(requests.map((request) => [request.property?._id, request.property])).entries())
+      .filter(([id]) => Boolean(id))
+      .map(([, property]) => property as NonNullable<RequestItem['property']>),
+    [requests]
+  );
+
+  const stats = useMemo(() => ({
+    total: requests.length,
+    pending: requests.filter((request) => request.status === 'pending').length,
+    approved: requests.filter((request) => request.status === 'approved').length,
+    rejected: requests.filter((request) => request.status === 'rejected').length,
+  }), [requests]);
 
   if (isLoading) return null;
 
@@ -194,6 +236,70 @@ export default function LandlordRequestsPage() {
           <ToggleButton value="rejected">Rejected ({requests.filter((request) => request.status === 'rejected').length})</ToggleButton>
         </ToggleButtonGroup>
       </Box>
+
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} sx={{ gap: 1.5, alignItems: { md: 'center' } }}>
+          <TextField
+            size="small"
+            placeholder="Search student, property, room, or message"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            sx={{ flexGrow: 1, minWidth: { xs: '100%', md: 280 } }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRoundedIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+          <TextField select size="small" label="Property" value={propertyFilter} onChange={(e) => setPropertyFilter(e.target.value)} sx={{ minWidth: 180 }}>
+            <MenuItem value="all">All properties</MenuItem>
+            {propertyOptions.map((property) => (
+              <MenuItem key={property?._id} value={property?._id}>{property?.propertyName || 'Property'}</MenuItem>
+            ))}
+          </TextField>
+          <TextField select size="small" label="Funding" value={fundingFilter} onChange={(e) => setFundingFilter(e.target.value as typeof fundingFilter)} sx={{ minWidth: 160 }}>
+            <MenuItem value="all">All funding</MenuItem>
+            <MenuItem value="NSFAS">NSFAS</MenuItem>
+            <MenuItem value="Private">Private</MenuItem>
+            <MenuItem value="Self-funded">Self-funded</MenuItem>
+          </TextField>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setSearch('');
+              setPropertyFilter('all');
+              setFundingFilter('all');
+              setStatusFilter('all');
+            }}
+            sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
+          >
+            Clear filters
+          </Button>
+        </Stack>
+
+        <Grid container spacing={1.5} sx={{ mt: 1.5 }}>
+          {[
+            { label: 'Total', value: stats.total, icon: <ApartmentRoundedIcon fontSize="small" />, color: '#1976d2' },
+            { label: 'Pending', value: stats.pending, icon: <CalendarMonthRoundedIcon fontSize="small" />, color: '#ed6c02' },
+            { label: 'Approved', value: stats.approved, icon: <PersonRoundedIcon fontSize="small" />, color: '#2e7d32' },
+            { label: 'Rejected', value: stats.rejected, icon: <PersonRoundedIcon fontSize="small" />, color: '#d32f2f' },
+          ].map((item) => (
+            <Grid key={item.label} size={{ xs: 6, md: 3 }}>
+              <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'background.paper' }}>
+                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{item.label}</Typography>
+                  <Box sx={{ color: item.color }}>{item.icon}</Box>
+                </Stack>
+                <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.1 }}>{item.value}</Typography>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Paper>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
@@ -219,7 +325,7 @@ export default function LandlordRequestsPage() {
             </TableHead>
             <TableBody>
               {filtered.map((request) => (
-                <TableRow key={request._id} hover>
+                <TableRow key={request._id} hover sx={{ cursor: 'pointer' }} onClick={() => setDetailTarget(request)}>
                   <TableCell>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{request.student?.name || 'Student'}</Typography>
                     <Typography variant="caption" color="text.secondary">{request.student?.email || ''}</Typography>
@@ -324,6 +430,74 @@ export default function LandlordRequestsPage() {
         <DialogActions>
           <Button onClick={() => setEditTarget(null)} disabled={savingEdit}>Cancel</Button>
           <Button onClick={saveEdit} disabled={savingEdit} variant="contained">{savingEdit ? 'Saving…' : 'Save'}</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={!!detailTarget} onClose={() => setDetailTarget(null)} maxWidth="sm" fullWidth>
+        <DialogTitle>Application Details</DialogTitle>
+        <DialogContent>
+          {detailTarget ? (
+            <Stack sx={{ gap: 2, mt: 0.5 }}>
+              <Paper variant="outlined" sx={{ p: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>Student</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>{detailTarget.student?.name || 'Student'}</Typography>
+                <Typography variant="caption" color="text.secondary">{detailTarget.student?.email || ''}</Typography>
+              </Paper>
+
+              <Paper variant="outlined" sx={{ p: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>Property</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>{detailTarget.property?.propertyName || 'Property'}</Typography>
+                <Typography variant="caption" color="text.secondary">{detailTarget.property?.city || ''}</Typography>
+              </Paper>
+
+              <Grid container spacing={1.5}>
+                <Grid size={{ xs: 6 }}>
+                  <Paper variant="outlined" sx={{ p: 1.5 }}>
+                    <Typography variant="caption" color="text.secondary">Move-in</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {detailTarget.moveInDate ? new Date(detailTarget.moveInDate).toLocaleDateString('en-ZA') : '—'}
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid size={{ xs: 6 }}>
+                  <Paper variant="outlined" sx={{ p: 1.5 }}>
+                    <Typography variant="caption" color="text.secondary">Lease</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{detailTarget.leaseDuration} months</Typography>
+                  </Paper>
+                </Grid>
+                <Grid size={{ xs: 6 }}>
+                  <Paper variant="outlined" sx={{ p: 1.5 }}>
+                    <Typography variant="caption" color="text.secondary">Funding</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{detailTarget.fundingType}</Typography>
+                  </Paper>
+                </Grid>
+                <Grid size={{ xs: 6 }}>
+                  <Paper variant="outlined" sx={{ p: 1.5 }}>
+                    <Typography variant="caption" color="text.secondary">Room</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{detailTarget.roomNumber ? `Room ${detailTarget.roomNumber}` : 'Not assigned'}</Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
+
+              <Paper variant="outlined" sx={{ p: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>Student Message</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {detailTarget.message || 'No message provided.'}
+                </Typography>
+              </Paper>
+
+              <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+                <Chip size="small" label={detailTarget.status} color={statusColor(detailTarget.status)} sx={{ textTransform: 'capitalize' }} />
+                {detailTarget.roomNumber && <Chip size="small" label={`Room ${detailTarget.roomNumber}`} color="info" variant="outlined" />}
+              </Stack>
+            </Stack>
+          ) : null}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDetailTarget(null)}>Close</Button>
+          {detailTarget && detailTarget.status === 'pending' && (
+            <Button onClick={() => { setEditTarget(detailTarget); setDetailTarget(null); }} variant="outlined">Edit</Button>
+          )}
         </DialogActions>
       </Dialog>
 

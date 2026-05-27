@@ -212,6 +212,7 @@ export default function AdminTransportOversightPage() {
                       <TableCell sx={{ fontWeight: 700 }}>Landlord</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>Transport Type</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>Provider</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Notes</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>Schedule Quality</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>Routes</TableCell>
                     </TableRow>
@@ -241,6 +242,11 @@ export default function AdminTransportOversightPage() {
                           <TableCell>
                             <Typography variant="body2">{row.transport.providerName || 'Not set'}</Typography>
                             <Typography variant="caption" color="text.secondary">{row.transport.contact || 'No contact set'}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" sx={{ color: row.transport.notes ? 'text.primary' : 'text.secondary' }}>
+                              {row.transport.notes || 'No transport notes'}
+                            </Typography>
                           </TableCell>
                           <TableCell>
                             <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap' }}>

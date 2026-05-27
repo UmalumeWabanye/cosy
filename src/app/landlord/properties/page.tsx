@@ -29,6 +29,7 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 import MeetingRoomRoundedIcon from '@mui/icons-material/MeetingRoomRounded';
+import ViewModuleRoundedIcon from '@mui/icons-material/ViewModuleRounded';
 
 interface Property {
   _id: string;
@@ -228,6 +229,11 @@ function LandlordPropertiesPageContent() {
                       <Tooltip title="Allocate Rooms">
                         <IconButton size="small" color="secondary" onClick={() => router.push(`/landlord/properties/${property._id}/allocate`)}>
                           <MeetingRoomRoundedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Room Inventory">
+                        <IconButton size="small" color="info" onClick={() => router.push(`/landlord/properties/${property._id}/rooms`)}>
+                          <ViewModuleRoundedIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Delete">

@@ -323,7 +323,13 @@ export default function PropertyDetailsPage() {
                 <Card variant="outlined" sx={{ mb: 3 }}>
                   <CardContent>
                     <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Transportation Schedule</Typography>
-                    <Chip size="small" color="secondary" label={transportModeLabel} sx={{ mb: 1.5, fontWeight: 700 }} />
+                    <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
+                      <Chip size="small" color="secondary" label={transportModeLabel} sx={{ fontWeight: 700 }} />
+                      {property.transportation.schedules?.length ? (
+                        <Chip size="small" variant="outlined" label={`${property.transportation.schedules.length} route${property.transportation.schedules.length === 1 ? '' : 's'}`} />
+                      ) : null}
+                      <Chip size="small" variant="outlined" label="Visible after move-in" />
+                    </Stack>
 
                     {(property.transportation.providerName || property.transportation.contact) && (
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
@@ -336,6 +342,12 @@ export default function PropertyDetailsPage() {
                     {property.transportation.notes && (
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                         {property.transportation.notes}
+                      </Typography>
+                    )}
+
+                    {!property.transportation.notes && (
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                        Transport details are shown only after your approved move-in date is active.
                       </Typography>
                     )}
 

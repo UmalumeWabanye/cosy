@@ -38,6 +38,14 @@ interface PropertyItem {
   address?: string;
   price?: number;
   roomType?: string;
+  totalRooms?: number;
+  availableRooms?: number;
+  roomAllocations?: Array<{
+    roomNumber?: string;
+    student?: string | { _id?: string; name?: string; email?: string };
+    request?: string | { _id?: string };
+    allocatedAt?: string;
+  }>;
   isAvailable?: boolean;
   createdAt: string;
 }
@@ -49,6 +57,7 @@ interface RequestItem {
   property?: { _id: string; propertyName?: string; city?: string };
   moveInDate?: string;
   leaseDuration?: number;
+  roomNumber?: string;
   createdAt: string;
 }
 
@@ -92,6 +101,16 @@ function StatCard({
       </CardContent>
     </Card>
   );
+}
+
+function daysUntil(dateStr?: string) {
+  if (!dateStr) return null;
+  const target = new Date(dateStr);
+  if (Number.isNaN(target.getTime())) return null;
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const diff = Math.ceil((target.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  return diff;
 }
 
 export default function LandlordDashboardPage() {
@@ -158,6 +177,63 @@ export default function LandlordDashboardPage() {
   const approvedApplications = useMemo(() => requests.filter((request) => request.status === 'approved').length, [requests]);
   const pendingViewings = useMemo(() => viewings.filter((viewing) => viewing.status === 'pending').length, [viewings]);
 
+  const occupancyByProperty = useMemo(() => {
+    const now = new Date();
+
+    return properties.map((property) => {
+      const totalRooms = Number(property.totalRooms ?? property.roomAllocations?.length ?? 0);
+      const propertyRequests = requests.filter((request) => request.property?._id === property._id && request.status === 'approved');
+
+      const activeApprovedRequests = propertyRequests.filter((request) => {
+        if (!request.moveInDate) return false;
+        const moveInDate = new Date(request.moveInDate);
+        if (Number.isNaN(moveInDate.getTime())) return false;
+
+        const leaseMonths = Number(request.leaseDuration || 0);
+        const leaseEndDate = new Date(moveInDate);
+        leaseEndDate.setMonth(leaseEndDate.getMonth() + leaseMonths);
+
+        return moveInDate <= now && leaseEndDate >= now;
+      });
+
+      const occupiedFromAllocations = new Set(
+        (property.roomAllocations || [])
+          .filter((allocation) => allocation.roomNumber && (allocation.student || allocation.request))
+          .map((allocation) => String(allocation.roomNumber))
+      );
+
+      const occupiedRooms = Math.max(activeApprovedRequests.length, occupiedFromAllocations.size);
+      const vacantRooms = Math.max(0, totalRooms - occupiedRooms);
+      const occupancyRateForProperty = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+
+      const upcomingMoveIns = propertyRequests
+        .filter((request) => request.moveInDate && new Date(request.moveInDate) > now)
+        .sort((a, b) => +new Date(a.moveInDate || '') - +new Date(b.moveInDate || ''))
+        .slice(0, 2);
+
+      return {
+        property,
+        totalRooms,
+        occupiedRooms,
+        vacantRooms,
+        occupancyRateForProperty,
+        activeApprovedRequests,
+        upcomingMoveIns,
+      };
+    });
+  }, [properties, requests]);
+
+  const totalRooms = useMemo(
+    () => occupancyByProperty.reduce((sum, item) => sum + item.totalRooms, 0),
+    [occupancyByProperty]
+  );
+  const occupiedRooms = useMemo(
+    () => occupancyByProperty.reduce((sum, item) => sum + item.occupiedRooms, 0),
+    [occupancyByProperty]
+  );
+  const vacantRooms = Math.max(0, totalRooms - occupiedRooms);
+  const overallOccupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+
   const activeResidents = useMemo(() => {
     const now = new Date();
     const uniqueStudentIds = new Set<string>();
@@ -182,10 +258,17 @@ export default function LandlordDashboardPage() {
   }, [requests]);
 
   const occupancyRate = useMemo(() => {
-    if (properties.length === 0) return 0;
-    const rate = Math.round((approvedApplications / properties.length) * 100);
-    return Math.max(0, Math.min(rate, 100));
-  }, [approvedApplications, properties.length]);
+    return overallOccupancyRate;
+  }, [overallOccupancyRate]);
+
+  const upcomingMoveIns = useMemo(
+    () =>
+      requests
+        .filter((request) => request.status === 'approved' && request.moveInDate)
+        .sort((a, b) => +new Date(a.moveInDate || '') - +new Date(b.moveInDate || ''))
+        .slice(0, 6),
+    [requests]
+  );
 
   const profileVerified = Boolean(user?.profileComplete && user?.idNumber);
 
@@ -250,6 +333,12 @@ export default function LandlordDashboardPage() {
                 <StatCard title="Active Listings" value={activeListings} helper="Visible to students" icon={<CheckCircleRoundedIcon />} color="#2e7d32" />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard title="Rooms Occupied" value={occupiedRooms} helper={`Across ${totalRooms || 0} total rooms`} icon={<Diversity3RoundedIcon />} color="#0d9488" />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard title="Vacant Rooms" value={vacantRooms} helper={`${occupancyRate}% occupancy`} icon={<VerifiedRoundedIcon />} color={vacantRooms === 0 ? '#2e7d32' : '#ed6c02'} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                 <StatCard title="Pending Enquiries" value={pendingApplications} helper="Need your action" icon={<PendingActionsRoundedIcon />} color="#ed6c02" />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
@@ -259,7 +348,7 @@ export default function LandlordDashboardPage() {
                 <StatCard title="Students Living" value={activeResidents} helper="Active approved occupancies" icon={<InsightsRoundedIcon />} color="#0d9488" />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                <StatCard title="Occupancy Rate" value={`${occupancyRate}%`} helper="Approved vs total listings" icon={<VerifiedRoundedIcon />} color={occupancyRate >= 70 ? '#2e7d32' : occupancyRate >= 40 ? '#ed6c02' : '#d32f2f'} />
+                <StatCard title="Occupancy Rate" value={`${occupancyRate}%`} helper="Rooms occupied vs total rooms" icon={<VerifiedRoundedIcon />} color={occupancyRate >= 70 ? '#2e7d32' : occupancyRate >= 40 ? '#ed6c02' : '#d32f2f'} />
               </Grid>
             </Grid>
 
@@ -276,9 +365,9 @@ export default function LandlordDashboardPage() {
                       Approx. occupancy based on approved applications vs total listings.
                     </Typography>
                     <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
-                      <Chip size="small" color="success" label={`Approved: ${approvedApplications}`} />
-                      <Chip size="small" color="warning" label={`Pending: ${pendingApplications}`} />
-                      <Chip size="small" variant="outlined" label={`Listings: ${properties.length}`} />
+                      <Chip size="small" color="success" label={`Occupied: ${occupiedRooms}`} />
+                      <Chip size="small" color="warning" label={`Vacant: ${vacantRooms}`} />
+                      <Chip size="small" variant="outlined" label={`Rate: ${occupancyRate}%`} />
                     </Stack>
                   </CardContent>
                 </Card>
@@ -308,6 +397,93 @@ export default function LandlordDashboardPage() {
                     )}
                   </CardContent>
                 </Card>
+              </Grid>
+            </Grid>
+
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid size={{ xs: 12, lg: 7 }}>
+                <Paper variant="outlined" sx={{ p: 2.5, height: '100%' }}>
+                  <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Property Occupancy</Typography>
+                      <Typography variant="body2" color="text.secondary">Room-level occupancy by property</Typography>
+                    </Box>
+                    <Chip size="small" color="primary" label={`${overallOccupancyRate}% overall`} />
+                  </Stack>
+
+                  {occupancyByProperty.length === 0 ? (
+                    <Typography color="text.secondary" variant="body2">No properties yet.</Typography>
+                  ) : (
+                    <Box sx={{ overflowX: 'auto' }}>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 700 }}>Property</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Rooms</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Occupied</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Vacant</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Rate</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {occupancyByProperty.map((item) => (
+                            <TableRow key={item.property._id} hover>
+                              <TableCell>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>{item.property.propertyName}</Typography>
+                                <Typography variant="caption" color="text.secondary">{item.property.city || '—'}</Typography>
+                              </TableCell>
+                              <TableCell>{item.totalRooms}</TableCell>
+                              <TableCell>{item.occupiedRooms}</TableCell>
+                              <TableCell>{item.vacantRooms}</TableCell>
+                              <TableCell>
+                                <Chip
+                                  size="small"
+                                  label={`${item.occupancyRateForProperty}%`}
+                                  color={item.occupancyRateForProperty >= 80 ? 'success' : item.occupancyRateForProperty >= 50 ? 'warning' : 'error'}
+                                />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </Box>
+                  )}
+                </Paper>
+              </Grid>
+
+              <Grid size={{ xs: 12, lg: 5 }}>
+                <Paper variant="outlined" sx={{ p: 2.5, height: '100%' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>Upcoming Move-ins</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>Approved students whose move-in date is coming up or has just started.</Typography>
+
+                  {upcomingMoveIns.length === 0 ? (
+                    <Typography color="text.secondary" variant="body2">No upcoming move-ins yet.</Typography>
+                  ) : (
+                    <Stack sx={{ gap: 1 }}>
+                      {upcomingMoveIns.map((request) => {
+                        const days = daysUntil(request.moveInDate);
+                        return (
+                          <Box key={request._id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 1.5 }}>
+                            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+                              <Box>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>{request.student?.name || 'Student'}</Typography>
+                                <Typography variant="caption" color="text.secondary">{request.property?.propertyName || 'Property'} · {request.moveInDate ? new Date(request.moveInDate).toLocaleDateString('en-ZA') : 'No date'}</Typography>
+                              </Box>
+                              <Chip
+                                size="small"
+                                label={days === 0 ? 'Today' : days !== null && days > 0 ? `${days} days` : 'Due'}
+                                color={days !== null && days <= 3 ? 'warning' : 'default'}
+                              />
+                            </Stack>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                              Room {request.roomNumber || 'pending assignment'}
+                            </Typography>
+                          </Box>
+                        );
+                      })}
+                    </Stack>
+                  )}
+                </Paper>
               </Grid>
             </Grid>
 
