@@ -59,6 +59,10 @@ const maintenanceSchema = new mongoose.Schema(
     expectedDate: {
       type: Date,
     },
+    // Set when the landlord first responds in a meaningful way
+    acknowledgedAt: {
+      type: Date,
+    },
     // Optional note from the landlord (e.g. "Plumber booked for Thursday")
     landlordNote: {
       type: String,

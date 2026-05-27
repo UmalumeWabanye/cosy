@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/services/api';
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -128,6 +128,7 @@ function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label:
 
 export default function AdminUsersPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user: authUser, isAuthenticated, isLoading } = useAuth();
 
   const [users, setUsers] = useState<LandlordUser[]>([]);
@@ -212,6 +213,12 @@ export default function AdminUsersPage() {
   useEffect(() => {
     fetchFilterOptions();
   }, [fetchFilterOptions]);
+
+  useEffect(() => {
+    const landlordId = searchParams.get('landlordId');
+    if (!landlordId) return;
+    fetchOverview(landlordId);
+  }, [searchParams, fetchOverview]);
 
   const setFilter = (key: string, value: string | number) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));

@@ -205,6 +205,8 @@ export default function LandlordDashboardPage() {
       const occupiedRooms = Math.max(activeApprovedRequests.length, occupiedFromAllocations.size);
       const vacantRooms = Math.max(0, totalRooms - occupiedRooms);
       const occupancyRateForProperty = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+      const pressureLabel = occupancyRateForProperty >= 90 ? 'Critical' : occupancyRateForProperty >= 75 ? 'High' : vacantRooms <= 2 ? 'Watch' : 'Healthy';
+      const pressureColor = occupancyRateForProperty >= 90 ? 'error' : occupancyRateForProperty >= 75 ? 'warning' : vacantRooms <= 2 ? 'info' : 'success';
 
       const upcomingMoveIns = propertyRequests
         .filter((request) => request.moveInDate && new Date(request.moveInDate) > now)
@@ -217,6 +219,8 @@ export default function LandlordDashboardPage() {
         occupiedRooms,
         vacantRooms,
         occupancyRateForProperty,
+        pressureLabel,
+        pressureColor,
         activeApprovedRequests,
         upcomingMoveIns,
       };
@@ -268,6 +272,16 @@ export default function LandlordDashboardPage() {
         .sort((a, b) => +new Date(a.moveInDate || '') - +new Date(b.moveInDate || ''))
         .slice(0, 6),
     [requests]
+  );
+
+  const pressureWatchCount = useMemo(
+    () => occupancyByProperty.filter((item) => item.occupancyRateForProperty >= 75 || item.vacantRooms <= 2).length,
+    [occupancyByProperty]
+  );
+
+  const criticalPressureCount = useMemo(
+    () => occupancyByProperty.filter((item) => item.occupancyRateForProperty >= 90).length,
+    [occupancyByProperty]
   );
 
   const profileVerified = Boolean(user?.profileComplete && user?.idNumber);
@@ -353,7 +367,7 @@ export default function LandlordDashboardPage() {
             </Grid>
 
             <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid size={{ xs: 12, md: 6 }}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Card variant="outlined" sx={{ height: '100%' }}>
                   <CardContent>
                     <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
@@ -373,7 +387,7 @@ export default function LandlordDashboardPage() {
                 </Card>
               </Grid>
 
-              <Grid size={{ xs: 12, md: 6 }}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Card variant="outlined" sx={{ height: '100%' }}>
                   <CardContent>
                     <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
@@ -395,6 +409,25 @@ export default function LandlordDashboardPage() {
                         Complete Verification
                       </Button>
                     )}
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 4 }}>
+                <Card variant="outlined" sx={{ height: '100%' }}>
+                  <CardContent>
+                    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Room Pressure</Typography>
+                      <ApartmentRoundedIcon sx={{ color: criticalPressureCount > 0 ? 'error.main' : 'warning.main' }} />
+                    </Stack>
+                    <Typography variant="h3" sx={{ fontWeight: 700 }}>{pressureWatchCount}</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                      Properties at or above 75% occupancy, or with two or fewer vacant rooms.
+                    </Typography>
+                    <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+                      <Chip size="small" color="warning" label={`Watch: ${pressureWatchCount}`} />
+                      <Chip size="small" color="error" label={`Critical: ${criticalPressureCount}`} />
+                    </Stack>
                   </CardContent>
                 </Card>
               </Grid>
@@ -423,6 +456,8 @@ export default function LandlordDashboardPage() {
                             <TableCell sx={{ fontWeight: 700 }}>Occupied</TableCell>
                             <TableCell sx={{ fontWeight: 700 }}>Vacant</TableCell>
                             <TableCell sx={{ fontWeight: 700 }}>Rate</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Pressure</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Action</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
@@ -441,6 +476,19 @@ export default function LandlordDashboardPage() {
                                   label={`${item.occupancyRateForProperty}%`}
                                   color={item.occupancyRateForProperty >= 80 ? 'success' : item.occupancyRateForProperty >= 50 ? 'warning' : 'error'}
                                 />
+                              </TableCell>
+                              <TableCell>
+                                <Chip size="small" label={item.pressureLabel} color={item.pressureColor} sx={{ fontWeight: 600 }} />
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  sx={{ textTransform: 'none' }}
+                                  onClick={() => router.push(`/landlord/properties/${item.property._id}/rooms`)}
+                                >
+                                  Rooms
+                                </Button>
                               </TableCell>
                             </TableRow>
                           ))}

@@ -12,6 +12,7 @@ const {
   deleteUser,
   getReports,
   getTransportOversight,
+  getMaintenanceOversight,
   getCollectionReport,
 } = require('../controllers/adminController');
 const {
@@ -55,6 +56,7 @@ router.delete('/users/:id', deleteUser);
 router.use('/reports', adminOnly);
 router.get('/reports', getReports);
 router.get('/reports/transport', getTransportOversight);
+router.get('/reports/maintenance', getMaintenanceOversight);
 router.get('/reports/collection', getCollectionReport);
 
 // Notifications are admin-only in this namespace

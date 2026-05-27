@@ -212,9 +212,17 @@ router.patch(
       if (!ticket) return res.status(404).json({ message: 'Maintenance request not found' });
 
       const { status, expectedDate, landlordNote } = req.body;
+      const hasResponseUpdate =
+        (status !== undefined && status !== ticket.status && status !== 'open') ||
+        expectedDate !== undefined ||
+        (landlordNote !== undefined && landlordNote.trim());
+
       if (status !== undefined) ticket.status = status;
       if (expectedDate !== undefined) ticket.expectedDate = new Date(expectedDate);
       if (landlordNote !== undefined) ticket.landlordNote = landlordNote.trim() || undefined;
+      if (hasResponseUpdate && !ticket.acknowledgedAt) {
+        ticket.acknowledgedAt = new Date();
+      }
 
       await ticket.save();
       await ticket.populate([

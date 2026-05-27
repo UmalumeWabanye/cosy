@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Property = require('../models/Property');
 const Request = require('../models/Request');
 const Viewing = require('../models/Viewing');
+const Maintenance = require('../models/Maintenance');
 
 // ── Users ──────────────────────────────────────────────────────────────────────
 
@@ -415,6 +416,171 @@ const getTransportOversight = async (req, res, next) => {
   }
 };
 
+// @desc   Maintenance oversight report for admin
+// @route  GET /api/admin/reports/maintenance
+// @access Admin
+const getMaintenanceOversight = async (req, res, next) => {
+  try {
+    const tickets = await Maintenance.find({})
+      .populate('student', 'name email university fundingType')
+      .populate('landlord', 'name email')
+      .populate('property', 'propertyName city universityNearby address')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const now = new Date();
+    const statusCounts = { open: 0, in_progress: 0, resolved: 0, closed: 0 };
+    const priorityCounts = { low: 0, medium: 0, high: 0, urgent: 0 };
+
+    const landlordMap = new Map();
+    const propertyMap = new Map();
+
+    const rows = tickets.map((ticket) => {
+      const status = ticket.status || 'open';
+      const priority = ticket.priority || 'medium';
+      if (statusCounts[status] !== undefined) statusCounts[status] += 1;
+      if (priorityCounts[priority] !== undefined) priorityCounts[priority] += 1;
+
+      const ageMs = now.getTime() - new Date(ticket.createdAt).getTime();
+      const ageDays = Math.max(0, Math.floor(ageMs / (1000 * 60 * 60 * 24)));
+      const unresolved = ['open', 'in_progress'].includes(status);
+      const overdue = unresolved && ageDays >= 7;
+      const awaitingFollowUp = unresolved && ageDays >= 3;
+      const acknowledged = Boolean(ticket.acknowledgedAt || ticket.expectedDate || ticket.landlordNote);
+      const acknowledgementHours = ticket.acknowledgedAt
+        ? Math.max(0, Math.round((new Date(ticket.acknowledgedAt).getTime() - new Date(ticket.createdAt).getTime()) / (1000 * 60 * 60)))
+        : null;
+
+      if (ticket.landlord?._id) {
+        const landlordId = String(ticket.landlord._id);
+        const group = landlordMap.get(landlordId) || {
+          landlord: ticket.landlord,
+          total: 0,
+          open: 0,
+          inProgress: 0,
+          resolved: 0,
+          acknowledged: 0,
+          overdue: 0,
+          ackHours: [],
+        };
+        group.total += 1;
+        if (status === 'open') group.open += 1;
+        if (status === 'in_progress') group.inProgress += 1;
+        if (status === 'resolved') group.resolved += 1;
+        if (acknowledged) group.acknowledged += 1;
+        if (overdue) group.overdue += 1;
+        if (acknowledgementHours !== null) group.ackHours.push(acknowledgementHours);
+        landlordMap.set(landlordId, group);
+      }
+
+      if (ticket.property?._id) {
+        const propertyId = String(ticket.property._id);
+        const group = propertyMap.get(propertyId) || {
+          property: ticket.property,
+          total: 0,
+          open: 0,
+          inProgress: 0,
+          resolved: 0,
+          overdue: 0,
+        };
+        group.total += 1;
+        if (status === 'open') group.open += 1;
+        if (status === 'in_progress') group.inProgress += 1;
+        if (status === 'resolved') group.resolved += 1;
+        if (overdue) group.overdue += 1;
+        propertyMap.set(propertyId, group);
+      }
+
+      return {
+        maintenanceId: ticket._id,
+        property: ticket.property,
+        landlord: ticket.landlord,
+        student: ticket.student,
+        roomNumber: ticket.roomNumber || '',
+        category: ticket.category,
+        priority,
+        status,
+        description: ticket.description,
+        expectedDate: ticket.expectedDate,
+        landlordNote: ticket.landlordNote || '',
+        acknowledgedAt: ticket.acknowledgedAt || null,
+        createdAt: ticket.createdAt,
+        updatedAt: ticket.updatedAt,
+        ageDays,
+        unresolved,
+        overdue,
+        awaitingFollowUp,
+        acknowledged,
+        acknowledgementHours,
+      };
+    });
+
+    const landlordRows = Array.from(landlordMap.values())
+      .map((entry) => {
+        const ackHours = entry.ackHours.filter((value) => Number.isFinite(value));
+        const averageAckHours = ackHours.length
+          ? Math.round(ackHours.reduce((sum, value) => sum + value, 0) / ackHours.length)
+          : null;
+        return {
+          landlord: entry.landlord,
+          total: entry.total,
+          open: entry.open,
+          inProgress: entry.inProgress,
+          resolved: entry.resolved,
+          acknowledged: entry.acknowledged,
+          overdue: entry.overdue,
+          averageAckHours,
+        };
+      })
+      .sort((a, b) => b.total - a.total);
+
+    const propertyRows = Array.from(propertyMap.values())
+      .sort((a, b) => b.total - a.total)
+      .map((entry) => ({
+        property: entry.property,
+        total: entry.total,
+        open: entry.open,
+        inProgress: entry.inProgress,
+        resolved: entry.resolved,
+        overdue: entry.overdue,
+      }));
+
+    const unresolvedCount = rows.filter((row) => row.unresolved).length;
+    const overdueCount = rows.filter((row) => row.overdue).length;
+    const awaitingFollowUpCount = rows.filter((row) => row.awaitingFollowUp).length;
+    const acknowledgedCount = rows.filter((row) => row.acknowledged).length;
+    const acknowledgedWithin24h = rows.filter((row) => row.acknowledgementHours !== null && row.acknowledgementHours <= 24).length;
+    const acknowledgedWithin72h = rows.filter((row) => row.acknowledgementHours !== null && row.acknowledgementHours <= 72).length;
+    const averageAcknowledgementHours = (() => {
+      const values = rows.map((row) => row.acknowledgementHours).filter((value) => value !== null);
+      if (!values.length) return null;
+      return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+    })();
+
+    res.json({
+      data: {
+        summary: {
+          totalTickets: rows.length,
+          unresolvedCount,
+          overdueCount,
+          awaitingFollowUpCount,
+          acknowledgedCount,
+          acknowledgedWithin24h,
+          acknowledgedWithin72h,
+          averageAcknowledgementHours,
+          statusCounts,
+          priorityCounts,
+        },
+        rows,
+        landlordRows,
+        propertyRows,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc   Monthly collection report — approved requests with payment breakdown
 // @route  GET /api/admin/reports/collection
 // @access Admin
@@ -492,5 +658,6 @@ module.exports = {
   deleteUser,
   getReports,
   getTransportOversight,
+  getMaintenanceOversight,
   getCollectionReport,
 };
