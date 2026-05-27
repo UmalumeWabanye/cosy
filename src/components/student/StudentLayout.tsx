@@ -79,12 +79,17 @@ function getBreadcrumb(pathname: string): string[] {
 interface SideMenuProps {
   user: { name?: string; email?: string; fundingType?: string; isVerified?: boolean } | null;
   unreadCount: number;
+  canAccessMaintenance: boolean;
   pathname: string;
   onNavigate: (path: string) => void;
   onLogout: () => void;
 }
 
-function SideMenu({ user, unreadCount, pathname, onNavigate, onLogout }: SideMenuProps) {
+function SideMenu({ user, unreadCount, canAccessMaintenance, pathname, onNavigate, onLogout }: SideMenuProps) {
+  const navItems = canAccessMaintenance
+    ? NAV_ITEMS
+    : NAV_ITEMS.filter((item) => item.path !== '/maintenance');
+
   return (
     <>
       {/* Brand */}
@@ -110,7 +115,7 @@ function SideMenu({ user, unreadCount, pathname, onNavigate, onLogout }: SideMen
       {/* Nav */}
       <Box sx={{ pt: 1, flexGrow: 1 }}>
         <List dense disablePadding>
-          {NAV_ITEMS.map(({ label, icon, path, badge }) => {
+          {navItems.map(({ label, icon, path, badge }) => {
             const selected = pathname === path || (path !== '/dashboard' && path !== '/browse' && pathname.startsWith(path));
             const count = badge ? unreadCount : 0;
             return (
@@ -209,19 +214,42 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
   const { user, logout } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [canAccessMaintenance, setCanAccessMaintenance] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
         const token = localStorage.getItem('token');
-        if (!token) return;
-        const res = await fetch(`${API}/student/notifications?limit=1`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!cancelled) setUnreadCount(data.unreadCount ?? 0);
+        if (!token) {
+          if (!cancelled) {
+            setUnreadCount(0);
+            setCanAccessMaintenance(false);
+          }
+          return;
+        }
+
+        const [notificationsRes, activePropertiesRes] = await Promise.all([
+          fetch(`${API}/student/notifications?limit=1`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API}/maintenance/active-properties`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        if (notificationsRes.ok) {
+          const notificationData = await notificationsRes.json();
+          if (!cancelled) setUnreadCount(notificationData.unreadCount ?? 0);
+        }
+
+        if (activePropertiesRes.ok) {
+          const activePropertiesData = await activePropertiesRes.json();
+          const hasActiveMoveIn = Array.isArray(activePropertiesData.data) && activePropertiesData.data.length > 0;
+          if (!cancelled) setCanAccessMaintenance(hasActiveMoveIn);
+        } else if (!cancelled) {
+          setCanAccessMaintenance(false);
+        }
       } catch { /* silent */ }
     };
     load();
@@ -252,7 +280,7 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
           },
         }}
       >
-        <SideMenu user={user} unreadCount={unreadCount} pathname={pathname} onNavigate={handleNavigate} onLogout={handleLogout} />
+        <SideMenu user={user} unreadCount={unreadCount} canAccessMaintenance={canAccessMaintenance} pathname={pathname} onNavigate={handleNavigate} onLogout={handleLogout} />
       </MuiDrawer>
 
       {/* Mobile drawer */}
@@ -266,7 +294,7 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
           [`& .${drawerClasses.paper}`]: { width: DRAWER_WIDTH, display: 'flex', flexDirection: 'column' },
         }}
       >
-        <SideMenu user={user} unreadCount={unreadCount} pathname={pathname} onNavigate={handleNavigate} onLogout={handleLogout} />
+        <SideMenu user={user} unreadCount={unreadCount} canAccessMaintenance={canAccessMaintenance} pathname={pathname} onNavigate={handleNavigate} onLogout={handleLogout} />
       </MuiDrawer>
 
       {/* Main content */}

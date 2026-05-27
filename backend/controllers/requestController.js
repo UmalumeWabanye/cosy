@@ -1,10 +1,44 @@
 const Request = require('../models/Request');
 const Notification = require('../models/Notification');
 const Property = require('../models/Property');
+const Conversation = require('../models/Conversation');
+const Message = require('../models/Message');
 
 const isAdmin = (user) => user?.role === 'admin';
 const isLandlord = (user) => user?.role === 'landlord';
 const normalizeRoomNumber = (value = '') => String(value).trim();
+
+const sendApprovalRoomMessage = async ({ actorUserId, requestDoc }) => {
+  if (!actorUserId || !requestDoc?.student || !requestDoc?.property) return;
+
+  const conversationFilter = {
+    participants: { $all: [actorUserId, requestDoc.student], $size: 2 },
+    property: requestDoc.property._id || requestDoc.property,
+  };
+
+  let conversation = await Conversation.findOne(conversationFilter);
+  if (!conversation) {
+    conversation = await Conversation.create({
+      participants: [actorUserId, requestDoc.student],
+      property: requestDoc.property._id || requestDoc.property,
+    });
+  }
+
+  const roomLabel = normalizeRoomNumber(requestDoc.roomNumber) || 'TBD';
+  const propertyName = requestDoc.property?.propertyName || 'your accommodation';
+  const messageText = `Your application for ${propertyName} has been approved. Your allocated room number is ${roomLabel}. Please reply here if you need any help with your move-in details.`;
+
+  await Message.create({
+    conversation: conversation._id,
+    sender: actorUserId,
+    text: messageText,
+    isReadBy: [actorUserId],
+  });
+
+  conversation.lastMessage = messageText;
+  conversation.lastMessageAt = new Date();
+  await conversation.save();
+};
 
 const ensureRequestAccess = async ({ requestId, user }) => {
   const existing = await Request.findById(requestId).populate('property', 'createdBy propertyName');
@@ -155,6 +189,7 @@ const updateRequestStatus = async (req, res, next) => {
   try {
     const { status, roomNumber } = req.body;
     const currentRequest = await ensureRequestAccess({ requestId: req.params.id, user: req.user });
+    const wasApproved = currentRequest.status === 'approved';
 
     let nextRoomNumber = currentRequest.roomNumber || '';
     if (status === 'approved' || currentRequest.status === 'approved') {
@@ -176,6 +211,13 @@ const updateRequestStatus = async (req, res, next) => {
       const error = new Error('Request not found');
       error.statusCode = 404;
       throw error;
+    }
+
+    if (status === 'approved' && !wasApproved) {
+      await sendApprovalRoomMessage({
+        actorUserId: req.user._id,
+        requestDoc: request,
+      });
     }
 
     // Notify admin of status change
