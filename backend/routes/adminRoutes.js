@@ -13,6 +13,7 @@ const {
   getReports,
   getTransportOversight,
   getMaintenanceOversight,
+  getPropertyHealth,
   getCollectionReport,
 } = require('../controllers/adminController');
 const {
@@ -55,6 +56,7 @@ router.delete('/users/:id', deleteUser);
 
 router.use('/reports', adminOnly);
 router.get('/reports', getReports);
+router.get('/reports/property-health', getPropertyHealth);
 router.get('/reports/transport', getTransportOversight);
 router.get('/reports/maintenance', getMaintenanceOversight);
 router.get('/reports/collection', getCollectionReport);

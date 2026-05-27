@@ -40,6 +40,7 @@ import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
 import AltRouteRoundedIcon from '@mui/icons-material/AltRouteRounded';
 import BuildRoundedIcon from '@mui/icons-material/BuildRounded';
+import FactCheckRoundedIcon from '@mui/icons-material/FactCheckRounded';
 import Collapse from '@mui/material/Collapse';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
@@ -64,6 +65,7 @@ function getBreadcrumb(pathname: string): string[] {
   if (pathname.startsWith('/admin/users')) return ['Admin', 'Users'];
   if (pathname.startsWith('/admin/notifications')) return ['Admin', 'Notifications'];
   if (pathname.startsWith('/admin/reports/analytics')) return ['Admin', 'Reports', 'Analytics'];
+  if (pathname.startsWith('/admin/reports/property-health')) return ['Admin', 'Reports', 'Property Health'];
   if (pathname.startsWith('/admin/reports/transport')) return ['Admin', 'Reports', 'Transport Oversight'];
   if (pathname.startsWith('/admin/reports/maintenance')) return ['Admin', 'Reports', 'Maintenance Oversight'];
   if (pathname.startsWith('/admin/reports/collection')) return ['Admin', 'Reports', 'Monthly Collection'];
@@ -242,6 +244,7 @@ const NAV_ITEMS = [
 
 const REPORT_SUB_ITEMS = [
   { label: 'Analytics', icon: <InsightsRoundedIcon />, path: '/admin/reports/analytics' },
+  { label: 'Property Health', icon: <FactCheckRoundedIcon />, path: '/admin/reports/property-health' },
   { label: 'Transport Oversight', icon: <AltRouteRoundedIcon />, path: '/admin/reports/transport' },
   { label: 'Maintenance Oversight', icon: <BuildRoundedIcon />, path: '/admin/reports/maintenance' },
   { label: 'Monthly Collection', icon: <ReceiptLongRoundedIcon />, path: '/admin/reports/collection' },

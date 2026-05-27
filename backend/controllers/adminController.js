@@ -581,6 +581,176 @@ const getMaintenanceOversight = async (req, res, next) => {
   }
 };
 
+// @desc   Property health report for admin
+// @route  GET /api/admin/reports/property-health
+// @access Admin
+const getPropertyHealth = async (req, res, next) => {
+  try {
+    const [properties, maintenanceTickets] = await Promise.all([
+      Property.find({ createdBy: { $exists: true, $ne: null } })
+        .populate('createdBy', 'name email')
+        .sort({ createdAt: -1 })
+        .lean(),
+      Maintenance.find({})
+        .select('property status priority')
+        .lean(),
+    ]);
+
+    const maintenanceByProperty = new Map();
+    for (const ticket of maintenanceTickets) {
+      const propertyId = String(ticket.property);
+      const group = maintenanceByProperty.get(propertyId) || {
+        total: 0,
+        open: 0,
+        inProgress: 0,
+        urgent: 0,
+      };
+      group.total += 1;
+      if (ticket.status === 'open') group.open += 1;
+      if (ticket.status === 'in_progress') group.inProgress += 1;
+      if (ticket.priority === 'urgent' && ['open', 'in_progress'].includes(ticket.status)) group.urgent += 1;
+      maintenanceByProperty.set(propertyId, group);
+    }
+
+    const now = new Date();
+
+    const rows = properties.map((property) => {
+      const roomAllocations = Array.isArray(property.roomAllocations) ? property.roomAllocations : [];
+      const totalRooms = Number(property.totalRooms || 0);
+      const occupiedRooms = roomAllocations.filter((allocation) => allocation.roomNumber && (allocation.student || allocation.request)).length;
+      const availableRooms = property.availableRooms != null ? Number(property.availableRooms) : null;
+      const vacancyGap = totalRooms > 0 ? Math.max(0, totalRooms - occupiedRooms) : null;
+      const occupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : null;
+      const transport = property.transportation || {};
+      const schedules = Array.isArray(transport.schedules) ? transport.schedules : [];
+      const completeScheduleCount = schedules.filter((schedule) => {
+        const days = Array.isArray(schedule.days) ? schedule.days.filter(Boolean) : [];
+        return Boolean(
+          schedule.routeName &&
+          schedule.pickupFromResidence &&
+          schedule.departureToCampus &&
+          schedule.returnPickupFromCampus &&
+          schedule.arrivalAtResidence &&
+          days.length
+        );
+      }).length;
+
+      const propertyMaintenance = maintenanceByProperty.get(String(property._id)) || {
+        total: 0,
+        open: 0,
+        inProgress: 0,
+        urgent: 0,
+      };
+
+      const missingImages = !Array.isArray(property.images) || property.images.length === 0;
+      const missingDescription = !String(property.description || '').trim();
+      const missingAmenities = !Array.isArray(property.amenities) || property.amenities.length === 0;
+      const missingRules = !Array.isArray(property.rules) || property.rules.length === 0;
+      const missingRoomTotals = !totalRooms;
+      const roomCountMismatch = availableRooms !== null && totalRooms > 0 ? availableRooms !== vacancyGap : false;
+      const transportIncomplete = Boolean(
+        transport.enabled && (
+          (['private', 'both'].includes(transport.mode) && (!transport.providerName || !transport.contact)) ||
+          schedules.length === 0 ||
+          completeScheduleCount < schedules.length
+        )
+      );
+      const hasOpenMaintenance = propertyMaintenance.open > 0;
+      const hasUrgentMaintenance = propertyMaintenance.urgent > 0;
+      const lowOccupancy = occupancyRate !== null && totalRooms > 0 && occupancyRate < 50;
+
+      let healthScore = 100;
+      if (missingImages) healthScore -= 15;
+      if (missingDescription) healthScore -= 10;
+      if (missingAmenities) healthScore -= 10;
+      if (missingRules) healthScore -= 5;
+      if (missingRoomTotals) healthScore -= 20;
+      if (roomCountMismatch) healthScore -= 15;
+      if (transportIncomplete) healthScore -= 15;
+      if (hasOpenMaintenance) healthScore -= 10;
+      if (hasUrgentMaintenance) healthScore -= 10;
+      if (lowOccupancy) healthScore -= 10;
+      healthScore = Math.max(0, Math.min(100, healthScore));
+
+      const healthStatus = healthScore >= 80 ? 'healthy' : healthScore >= 55 ? 'review' : 'critical';
+
+      return {
+        propertyId: property._id,
+        propertyName: property.propertyName,
+        city: property.city,
+        universityNearby: property.universityNearby,
+        landlord: property.createdBy
+          ? {
+              id: property.createdBy._id,
+              name: property.createdBy.name,
+              email: property.createdBy.email,
+            }
+          : null,
+        availability: {
+          isAvailable: Boolean(property.isAvailable),
+          publishedAgeDays: Math.max(0, Math.floor((now.getTime() - new Date(property.createdAt).getTime()) / (1000 * 60 * 60 * 24))),
+        },
+        inventory: {
+          roomType: property.roomType,
+          totalRooms,
+          occupiedRooms,
+          availableRooms,
+          vacancyGap,
+          occupancyRate,
+          roomCountMismatch,
+          lowOccupancy,
+        },
+        content: {
+          missingImages,
+          missingDescription,
+          missingAmenities,
+          missingRules,
+        },
+        transport: {
+          enabled: Boolean(transport.enabled),
+          mode: transport.mode || 'none',
+          scheduleCount: schedules.length,
+          completeScheduleCount,
+          incomplete: transportIncomplete,
+        },
+        maintenance: {
+          total: propertyMaintenance.total,
+          open: propertyMaintenance.open,
+          inProgress: propertyMaintenance.inProgress,
+          urgent: propertyMaintenance.urgent,
+        },
+        health: {
+          score: healthScore,
+          status: healthStatus,
+        },
+      };
+    });
+
+    const summary = {
+      totalProperties: rows.length,
+      healthyCount: rows.filter((row) => row.health.status === 'healthy').length,
+      reviewCount: rows.filter((row) => row.health.status === 'review').length,
+      criticalCount: rows.filter((row) => row.health.status === 'critical').length,
+      missingRoomTotalsCount: rows.filter((row) => !row.inventory.totalRooms).length,
+      roomCountMismatchCount: rows.filter((row) => row.inventory.roomCountMismatch).length,
+      lowOccupancyCount: rows.filter((row) => row.inventory.lowOccupancy).length,
+      transportIncompleteCount: rows.filter((row) => row.transport.incomplete).length,
+      maintenanceOpenCount: rows.filter((row) => row.maintenance.open > 0).length,
+      urgentMaintenanceCount: rows.filter((row) => row.maintenance.urgent > 0).length,
+      incompleteContentCount: rows.filter((row) => row.content.missingImages || row.content.missingDescription || row.content.missingAmenities || row.content.missingRules).length,
+    };
+
+    res.json({
+      data: {
+        summary,
+        rows,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc   Monthly collection report — approved requests with payment breakdown
 // @route  GET /api/admin/reports/collection
 // @access Admin
@@ -659,5 +829,6 @@ module.exports = {
   getReports,
   getTransportOversight,
   getMaintenanceOversight,
+  getPropertyHealth,
   getCollectionReport,
 };
