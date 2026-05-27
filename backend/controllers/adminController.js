@@ -334,6 +334,87 @@ const getReports = async (req, res, next) => {
   }
 };
 
+// @desc   Transport oversight report for admin
+// @route  GET /api/admin/reports/transport
+// @access Admin
+const getTransportOversight = async (req, res, next) => {
+  try {
+    const properties = await Property.find({ 'transportation.enabled': true })
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const modeCounts = { private: 0, campus_route: 0, both: 0 };
+    const rows = properties.map((property) => {
+      const transportation = property.transportation || {};
+      const mode = transportation.mode || 'none';
+      if (modeCounts[mode] !== undefined) modeCounts[mode] += 1;
+
+      const schedules = Array.isArray(transportation.schedules) ? transportation.schedules : [];
+      const completeScheduleCount = schedules.filter((schedule) => {
+        const days = Array.isArray(schedule.days) ? schedule.days.filter(Boolean) : [];
+        return Boolean(
+          schedule.routeName &&
+          schedule.pickupFromResidence &&
+          schedule.departureToCampus &&
+          schedule.returnPickupFromCampus &&
+          schedule.arrivalAtResidence &&
+          days.length
+        );
+      }).length;
+
+      return {
+        propertyId: property._id,
+        propertyName: property.propertyName,
+        city: property.city,
+        universityNearby: property.universityNearby,
+        landlord: property.createdBy
+          ? {
+              id: property.createdBy._id,
+              name: property.createdBy.name,
+              email: property.createdBy.email,
+            }
+          : null,
+        transport: {
+          mode,
+          providerName: transportation.providerName || '',
+          contact: transportation.contact || '',
+          notes: transportation.notes || '',
+          scheduleCount: schedules.length,
+          completeScheduleCount,
+          schedules,
+        },
+      };
+    });
+
+    const propertiesWithMissingProviderInfo = rows.filter((row) => {
+      const mode = row.transport.mode;
+      if (!['private', 'both'].includes(mode)) return false;
+      return !row.transport.providerName || !row.transport.contact;
+    }).length;
+
+    const propertiesWithNoSchedules = rows.filter((row) => row.transport.scheduleCount === 0).length;
+    const propertiesWithIncompleteSchedules = rows.filter(
+      (row) => row.transport.scheduleCount > 0 && row.transport.completeScheduleCount < row.transport.scheduleCount
+    ).length;
+
+    res.json({
+      data: {
+        summary: {
+          totalTransportEnabledProperties: rows.length,
+          modeCounts,
+          propertiesWithNoSchedules,
+          propertiesWithIncompleteSchedules,
+          propertiesWithMissingProviderInfo,
+        },
+        rows,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc   Monthly collection report — approved requests with payment breakdown
 // @route  GET /api/admin/reports/collection
 // @access Admin
@@ -410,5 +491,6 @@ module.exports = {
   toggleUser,
   deleteUser,
   getReports,
+  getTransportOversight,
   getCollectionReport,
 };

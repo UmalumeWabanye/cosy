@@ -84,6 +84,12 @@ interface Review {
   student: { name?: string };
 }
 
+interface StudentRequest {
+  status?: string;
+  moveInDate?: string;
+  property?: { _id?: string };
+}
+
 export default function PropertyDetailsPage() {
   const router = useRouter();
   const params = useParams();
@@ -95,6 +101,7 @@ export default function PropertyDetailsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [avgRating, setAvgRating] = useState<number | null>(null);
   const [reviewsTotal, setReviewsTotal] = useState(0);
+  const [canViewTransportationSchedule, setCanViewTransportationSchedule] = useState(false);
 
   const propertyId = params.id as string;
 
@@ -125,6 +132,38 @@ export default function PropertyDetailsPage() {
     };
     if (propertyId) fetchProperty();
   }, [propertyId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadTransportEligibility = async () => {
+      if (!isAuthenticated || !propertyId) {
+        if (!cancelled) setCanViewTransportationSchedule(false);
+        return;
+      }
+
+      try {
+        const res = await api.get('/requests/my');
+        const requests: StudentRequest[] = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+        const now = new Date();
+        const canView = requests.some((request) => {
+          if (request.status !== 'approved') return false;
+          if (request.property?._id !== propertyId) return false;
+          if (!request.moveInDate) return false;
+          const moveIn = new Date(request.moveInDate);
+          if (Number.isNaN(moveIn.getTime())) return false;
+          return moveIn <= now;
+        });
+
+        if (!cancelled) setCanViewTransportationSchedule(canView);
+      } catch {
+        if (!cancelled) setCanViewTransportationSchedule(false);
+      }
+    };
+
+    loadTransportEligibility();
+    return () => { cancelled = true; };
+  }, [isAuthenticated, propertyId]);
 
   if (loading) {
     return (
@@ -280,7 +319,7 @@ export default function PropertyDetailsPage() {
                 </Card>
               )}
 
-              {property.transportation?.enabled && (
+              {property.transportation?.enabled && canViewTransportationSchedule && (
                 <Card variant="outlined" sx={{ mb: 3 }}>
                   <CardContent>
                     <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Transportation Schedule</Typography>

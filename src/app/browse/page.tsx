@@ -22,6 +22,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import StudentLayout from '@/components/student/StudentLayout';
 import SaveButton from '@/components/SaveButton';
+import { useAuth } from '@/hooks/useAuth';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -64,6 +65,12 @@ interface Property {
   };
 }
 
+interface StudentRequest {
+  status?: string;
+  moveInDate?: string;
+  property?: { _id?: string };
+}
+
 interface PropertyMapProps {
   properties: Property[];
   hoveredId?: string | null;
@@ -85,12 +92,14 @@ type FilterState = {
 };
 
 export default function BrowsePage() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [showMap, setShowMap] = useState(true);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [transportVisiblePropertyIds, setTransportVisiblePropertyIds] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState<FilterState>({
     search: '', city: '', university: '', minPrice: '', maxPrice: '',
     roomType: '', nsfas: false, sortBy: 'newest',
@@ -107,6 +116,40 @@ export default function BrowsePage() {
       nsfas: params.get('fundingType') === 'nsfas',
     }));
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadTransportEligibility = async () => {
+      if (authLoading || !isAuthenticated) {
+        if (!cancelled) setTransportVisiblePropertyIds(new Set());
+        return;
+      }
+
+      try {
+        const res = await api.get('/requests/my');
+        const requests: StudentRequest[] = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+        const now = new Date();
+        const eligible = new Set<string>();
+
+        requests.forEach((request) => {
+          if (request.status !== 'approved') return;
+          if (!request.moveInDate) return;
+          const moveIn = new Date(request.moveInDate);
+          if (Number.isNaN(moveIn.getTime()) || moveIn > now) return;
+          const propertyId = request.property?._id;
+          if (propertyId) eligible.add(propertyId);
+        });
+
+        if (!cancelled) setTransportVisiblePropertyIds(eligible);
+      } catch {
+        if (!cancelled) setTransportVisiblePropertyIds(new Set());
+      }
+    };
+
+    loadTransportEligibility();
+    return () => { cancelled = true; };
+  }, [isAuthenticated, authLoading]);
 
   const fetchProperties = useCallback(async () => {
     try {
@@ -154,6 +197,7 @@ export default function BrowsePage() {
   const isNsfas = (p: Property) => p.fundingType === 'nsfas' || p.nsfasAccreditation || p.nsfasAccredited;
   const getTransportLabel = (p: Property) => {
     if (!p.transportation?.enabled) return '';
+    if (!transportVisiblePropertyIds.has(p._id)) return '';
     if (p.transportation.mode === 'private') return 'Private Transport';
     if (p.transportation.mode === 'campus_route') return 'Campus Route';
     if (p.transportation.mode === 'both') return 'Private + Campus';
