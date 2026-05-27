@@ -40,6 +40,14 @@ const requestSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    moveInReminderSentAt: {
+      type: Date,
+      default: null,
+    },
+    allocationReminderSentAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

@@ -3,6 +3,9 @@ const Notification = require('../models/Notification');
 const Property = require('../models/Property');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
+const User = require('../models/User');
+const sendEventEmail = require('../utils/sendEventEmail');
+const { canSendEmail, canSendPush } = require('../utils/notificationPreferences');
 
 const isAdmin = (user) => user?.role === 'admin';
 const isLandlord = (user) => user?.role === 'landlord';
@@ -220,16 +223,36 @@ const updateRequestStatus = async (req, res, next) => {
       });
     }
 
-    // Notify admin of status change
-    await Notification.create({
-      recipient: request.student?._id || null,
-      type: 'request_updated',
-      title: 'Request Status Updated',
-      message: `An accommodation request has been marked as "${status}".`,
-      link: `/applications?requestId=${request._id}`,
-      refModel: 'Request',
-      refId: request._id,
-    });
+    const studentUser = request.student?._id
+      ? await User.findById(request.student._id).select('name email notificationPreferences')
+      : null;
+
+    if (studentUser && canSendPush(studentUser, 'pushApplicationUpdates')) {
+      await Notification.create({
+        recipient: request.student?._id || null,
+        type: 'request_updated',
+        title: 'Request Status Updated',
+        message: `An accommodation request has been marked as "${status}".`,
+        link: `/applications?requestId=${request._id}`,
+        refModel: 'Request',
+        refId: request._id,
+      });
+    }
+
+    if (studentUser && canSendEmail(studentUser, 'emailApplicationUpdates')) {
+      try {
+        await sendEventEmail({
+          to: studentUser.email,
+          subject: 'Your application status was updated',
+          heading: 'Application status update',
+          body: `Your request for ${request.property?.propertyName || 'your selected property'} is now marked as ${status}.`,
+          ctaUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/applications?requestId=${request._id}`,
+          ctaLabel: 'View Application',
+        });
+      } catch (emailError) {
+        console.error('Status update email failed:', emailError?.message || emailError);
+      }
+    }
 
     res.json(request);
   } catch (error) {

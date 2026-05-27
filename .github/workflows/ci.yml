@@ -35,3 +35,26 @@ jobs:
 
       - name: Run production build
         run: npm run build
+
+  backend-checks:
+    name: Backend Install and Syntax Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run backend syntax checks
+        working-directory: backend
+        run: npm run test:ci

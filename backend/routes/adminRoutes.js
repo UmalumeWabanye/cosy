@@ -22,6 +22,7 @@ const {
   markAllRead,
   deleteNotification,
 } = require('../controllers/notificationController');
+const { runReminderJobs } = require('../utils/runReminderJobs');
 
 // All routes require authentication
 router.use(protect);
@@ -60,6 +61,15 @@ router.get('/reports/property-health', getPropertyHealth);
 router.get('/reports/transport', getTransportOversight);
 router.get('/reports/maintenance', getMaintenanceOversight);
 router.get('/reports/collection', getCollectionReport);
+
+router.post('/jobs/reminders/run', adminOnly, async (req, res, next) => {
+  try {
+    const result = await runReminderJobs();
+    res.json({ success: true, result });
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Notifications are admin-only in this namespace
 router.use('/notifications', adminOnly);

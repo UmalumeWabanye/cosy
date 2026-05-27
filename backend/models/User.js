@@ -67,6 +67,16 @@ const userSchema = new mongoose.Schema(
     inviteTokenExpiry: { type: Date },
     isInvited: { type: Boolean, default: false },
     passwordSet: { type: Boolean, default: false },
+    notificationPreferences: {
+      emailApplicationUpdates: { type: Boolean, default: true },
+      emailAllocationUpdates: { type: Boolean, default: true },
+      emailMoveInReminders: { type: Boolean, default: true },
+      emailLandlordAlerts: { type: Boolean, default: true },
+      emailNewListings: { type: Boolean, default: false },
+      pushApplicationUpdates: { type: Boolean, default: true },
+      pushMessages: { type: Boolean, default: true },
+      pushAllocationUpdates: { type: Boolean, default: true },
+    },
   },
   { timestamps: true }
 );

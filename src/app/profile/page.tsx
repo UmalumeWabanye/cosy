@@ -82,6 +82,9 @@ export default function ProfilePage() {
     pushApplicationUpdates: true,
     pushMessages: true,
   });
+  const [notifSaving, setNotifSaving] = useState(false);
+  const [notifSuccess, setNotifSuccess] = useState('');
+  const [notifError, setNotifError] = useState('');
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [prefRemember, setPrefRemember] = useState(true);
   const [prefNsfasFirst, setPrefNsfasFirst] = useState(false);
@@ -110,6 +113,17 @@ export default function ProfilePage() {
     if (user && (user as any).livingPreference) {
       setLivingPreference((user as any).livingPreference);
     }
+  }, [user]);
+
+  useEffect(() => {
+    const prefs = (user as any)?.notificationPreferences;
+    if (!prefs) return;
+    setNotifPrefs({
+      emailApplicationUpdates: prefs.emailApplicationUpdates ?? true,
+      emailNewListings: prefs.emailNewListings ?? false,
+      pushApplicationUpdates: prefs.pushApplicationUpdates ?? true,
+      pushMessages: prefs.pushMessages ?? true,
+    });
   }, [user]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,6 +162,29 @@ export default function ProfilePage() {
   };
 
   const handleLogout = () => { logout(); router.push('/'); };
+
+  const handleSaveNotificationPrefs = async () => {
+    setNotifSaving(true);
+    setNotifError('');
+    setNotifSuccess('');
+    try {
+      const existingPrefs = ((user as any)?.notificationPreferences || {}) as Record<string, boolean>;
+      const payload = {
+        notificationPreferences: {
+          ...existingPrefs,
+          ...notifPrefs,
+        },
+      };
+
+      const res = await api.patch('/auth/me', payload);
+      if (res.data?.user && setUser) setUser(res.data.user);
+      setNotifSuccess('Notification preferences saved.');
+    } catch (e: any) {
+      setNotifError(e.response?.data?.message ?? 'Failed to save notification preferences.');
+    } finally {
+      setNotifSaving(false);
+    }
+  };
 
   if (isLoading) return null;
 
@@ -268,6 +305,8 @@ export default function ProfilePage() {
 
             {/* Notifications */}
             <TabPanel value={tab} index={2}>
+              {notifSuccess && <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>{notifSuccess}</Alert>}
+              {notifError && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{notifError}</Alert>}
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>Email Notifications</Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>Choose what updates you receive by email.</Typography>
               <Stack sx={{ gap: 1.5, mb: 3 }}>
@@ -294,6 +333,15 @@ export default function ProfilePage() {
                   </Box>
                 ))}
               </Stack>
+              <Button
+                variant="contained"
+                startIcon={notifSaving ? <CircularProgress size={16} color="inherit" /> : <SaveRoundedIcon />}
+                onClick={handleSaveNotificationPrefs}
+                disabled={notifSaving}
+                sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
+              >
+                {notifSaving ? 'Saving…' : 'Save Notification Settings'}
+              </Button>
             </TabPanel>
 
             {/* Preferences */}

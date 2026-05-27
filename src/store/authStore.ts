@@ -20,6 +20,16 @@ export interface User {
   numberOfProperties?: string;
   isVerified?: boolean;
   profileComplete?: boolean;
+  notificationPreferences?: {
+    emailApplicationUpdates?: boolean;
+    emailAllocationUpdates?: boolean;
+    emailMoveInReminders?: boolean;
+    emailLandlordAlerts?: boolean;
+    emailNewListings?: boolean;
+    pushApplicationUpdates?: boolean;
+    pushMessages?: boolean;
+    pushAllocationUpdates?: boolean;
+  };
 }
 
 interface AuthStore {

@@ -47,6 +47,7 @@ router.post('/login', [
         fundingType: user.fundingType,
         avatar: user.avatar,
         idNumber: user.idNumber,
+        notificationPreferences: user.notificationPreferences,
       },
     });
   } catch (error) {
@@ -97,6 +98,7 @@ router.post('/register', [
         fundingType: user.fundingType,
         avatar: user.avatar,
         idNumber: user.idNumber,
+        notificationPreferences: user.notificationPreferences,
       },
     });
   } catch (err) {
@@ -123,10 +125,20 @@ router.patch('/me', [
   body('avatar').optional().isString().withMessage('Avatar is invalid'),
   body('idNumber').optional().isString().trim().isLength({ max: 30 }).withMessage('ID number is invalid'),
   body('profileComplete').optional().isBoolean().withMessage('Profile complete must be true or false'),
+  body('livingPreference').optional().isIn(['individual', 'shared', 'noPreference']).withMessage('Living preference is invalid'),
+  body('notificationPreferences').optional().isObject().withMessage('Notification preferences are invalid'),
+  body('notificationPreferences.emailApplicationUpdates').optional().isBoolean().withMessage('Invalid emailApplicationUpdates value'),
+  body('notificationPreferences.emailAllocationUpdates').optional().isBoolean().withMessage('Invalid emailAllocationUpdates value'),
+  body('notificationPreferences.emailMoveInReminders').optional().isBoolean().withMessage('Invalid emailMoveInReminders value'),
+  body('notificationPreferences.emailLandlordAlerts').optional().isBoolean().withMessage('Invalid emailLandlordAlerts value'),
+  body('notificationPreferences.emailNewListings').optional().isBoolean().withMessage('Invalid emailNewListings value'),
+  body('notificationPreferences.pushApplicationUpdates').optional().isBoolean().withMessage('Invalid pushApplicationUpdates value'),
+  body('notificationPreferences.pushMessages').optional().isBoolean().withMessage('Invalid pushMessages value'),
+  body('notificationPreferences.pushAllocationUpdates').optional().isBoolean().withMessage('Invalid pushAllocationUpdates value'),
   handleValidation,
 ], async (req, res) => {
   try {
-    const allowed = ['name', 'phone', 'university', 'course', 'yearOfStudy', 'fundingType', 'avatar', 'idNumber', 'profileComplete'];
+    const allowed = ['name', 'phone', 'university', 'course', 'yearOfStudy', 'fundingType', 'avatar', 'idNumber', 'profileComplete', 'livingPreference', 'notificationPreferences'];
     const updates = {};
     allowed.forEach(field => { if (req.body[field] !== undefined) updates[field] = req.body[field]; });
 

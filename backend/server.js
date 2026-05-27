@@ -18,6 +18,7 @@ const messageRoutes = require('./routes/messageRoutes');
 const viewingRoutes = require('./routes/viewingRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
+const { runReminderJobs } = require('./utils/runReminderJobs');
 
 // Connect to MongoDB
 connectDB();
@@ -107,6 +108,23 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/viewings', viewingRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
+
+const reminderJobsEnabled = process.env.ENABLE_REMINDER_JOBS !== 'false';
+if (reminderJobsEnabled) {
+  const reminderIntervalMs = Number(process.env.REMINDER_JOBS_INTERVAL_MS || 6 * 60 * 60 * 1000);
+
+  setTimeout(() => {
+    runReminderJobs().catch((error) => {
+      console.error('Initial reminder job failed:', error.message || error);
+    });
+  }, 30 * 1000);
+
+  setInterval(() => {
+    runReminderJobs().catch((error) => {
+      console.error('Scheduled reminder job failed:', error.message || error);
+    });
+  }, reminderIntervalMs);
+}
 
 // Backwards-compatible admin-prefixed routes (some frontends call /api/admin/...)
 app.use('/api/admin/properties', propertyRoutes);

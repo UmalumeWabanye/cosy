@@ -3,6 +3,8 @@ const User = require('../models/User');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const Notification = require('../models/Notification');
+const sendEventEmail = require('../utils/sendEventEmail');
+const { canSendEmail, canSendPush } = require('../utils/notificationPreferences');
 
 const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const normalizeRoomTypeQuery = (value = '') => {
@@ -71,6 +73,9 @@ const syncAllocationMessages = async ({ actorUserId, property, previousAllocatio
 
     if (!messageText) continue;
 
+    const studentUser = await User.findById(studentId).select('name email notificationPreferences').lean();
+    if (!studentUser) continue;
+
     let conversation = await Conversation.findOne({
       participants: { $all: [actorUserId, studentId], $size: 2 },
       property: propertyId,
@@ -94,15 +99,32 @@ const syncAllocationMessages = async ({ actorUserId, property, previousAllocatio
     conversation.lastMessageAt = now;
     await conversation.save();
 
-    await Notification.create({
-      recipient: studentId,
-      type: 'request_updated',
-      title: 'Room Allocation Updated',
-      message: notificationMessage,
-      link: '/messages',
-      refModel: 'Property',
-      refId: propertyId,
-    });
+    if (canSendPush(studentUser, 'pushAllocationUpdates')) {
+      await Notification.create({
+        recipient: studentId,
+        type: 'request_updated',
+        title: 'Room Allocation Updated',
+        message: notificationMessage,
+        link: '/messages',
+        refModel: 'Property',
+        refId: propertyId,
+      });
+    }
+
+    if (canSendEmail(studentUser, 'emailAllocationUpdates')) {
+      try {
+        await sendEventEmail({
+          to: studentUser.email,
+          subject: 'Your room allocation was updated',
+          heading: 'Room allocation update',
+          body: notificationMessage,
+          ctaUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/messages`,
+          ctaLabel: 'Open Messages',
+        });
+      } catch (emailError) {
+        console.error('Allocation email failed:', emailError?.message || emailError);
+      }
+    }
   }
 };
 
