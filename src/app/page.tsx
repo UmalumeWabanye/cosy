@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Script from 'next/script';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -113,6 +114,34 @@ const FEATURES = [
   },
 ];
 
+const TRUST_PILLS = [
+  'Verified Listings',
+  'NSFAS-Friendly Options',
+  'Secure Student-Landlord Chat',
+  'Fast Application Reviews',
+];
+
+const JOURNEY_LINKS = [
+  {
+    title: 'For Students',
+    href: '/for-students',
+    description: 'Find accommodation faster with personalized search, filters, and support.',
+    cta: 'Start Student Journey',
+  },
+  {
+    title: 'For Landlords',
+    href: '/for-landlords',
+    description: 'List rooms, manage allocations, and communicate with tenants in one platform.',
+    cta: 'Start Listing Rooms',
+  },
+  {
+    title: 'For NSFAS Students',
+    href: '/nsfas',
+    description: 'Browse accredited options and focus on affordable, funding-aligned properties.',
+    cta: 'Explore NSFAS Options',
+  },
+];
+
 const TESTIMONIALS = [
   {
     name: 'Amahle Dlamini',
@@ -195,9 +224,33 @@ export default function HomePage() {
   };
   const isNsfasProperty = (property: Property) => property.fundingType === 'nsfas' || property.nsfasAccredited;
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Can I find NSFAS accredited accommodation on Cosy?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. Cosy allows you to filter and discover NSFAS-friendly student accommodation options near campus.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Can landlords list multiple properties?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. Landlords can list and manage multiple properties, room allocations, and student communications.',
+        },
+      },
+    ],
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Box className="cinema-reveal" sx={{ bgcolor: 'transparent', minHeight: '100vh' }}>
+        <Script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
         {/* ─── HERO ─────────────────────────────────────────────── */}
         <Box
@@ -262,6 +315,41 @@ export default function HomePage() {
                 >
                   Browse verified, NSFAS-accredited student accommodation near your university. Apply online in minutes.
                 </Typography>
+
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 3.5 }}>
+                  {TRUST_PILLS.map((pill) => (
+                    <Chip
+                      key={pill}
+                      size="small"
+                      label={pill}
+                      sx={{
+                        bgcolor: 'rgba(255,255,255,0.14)',
+                        color: 'white',
+                        border: '1px solid rgba(255,255,255,0.25)',
+                        fontWeight: 600,
+                      }}
+                    />
+                  ))}
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 3 }}>
+                  <Button
+                    component={Link}
+                    href="/browse"
+                    variant="contained"
+                    sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, bgcolor: 'white', color: '#11508b', '&:hover': { bgcolor: '#f5f9ff' } }}
+                  >
+                    Find Accommodation
+                  </Button>
+                  <Button
+                    component={Link}
+                    href="/for-landlords"
+                    variant="outlined"
+                    sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, color: 'white', borderColor: 'rgba(255,255,255,0.6)', '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.08)' } }}
+                  >
+                    List My Property
+                  </Button>
+                </Box>
 
                 {/* Search Form */}
                 <Paper
@@ -396,6 +484,37 @@ export default function HomePage() {
             </Grid>
           </Container>
         </Box>
+
+        {/* ─── JOURNEY SPLIT ───────────────────────────────────── */}
+        <Container maxWidth="lg" sx={{ py: { xs: 6, md: 9 } }}>
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
+            <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 2 }}>
+              Choose Your Path
+            </Typography>
+            <Typography variant="h4" sx={{ fontWeight: 800, mt: 1, fontSize: { xs: '1.7rem', md: '2.1rem' } }}>
+              Built For Every Housing Journey
+            </Typography>
+          </Box>
+          <Grid container spacing={2.5}>
+            {JOURNEY_LINKS.map((item) => (
+              <Grid key={item.title} size={{ xs: 12, md: 4 }}>
+                <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', mb: 1 }}>{item.title}</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.75, mb: 2.5 }}>{item.description}</Typography>
+                  <Button
+                    component={Link}
+                    href={item.href}
+                    variant="text"
+                    endIcon={<ArrowForwardRoundedIcon />}
+                    sx={{ mt: 'auto', alignSelf: 'flex-start', textTransform: 'none', fontWeight: 700 }}
+                  >
+                    {item.cta}
+                  </Button>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
 
         {/* ─── STATS BAR ────────────────────────────────────────── */}
         <Box sx={{ bgcolor: 'white', borderBottom: '1px solid', borderColor: 'divider' }}>
@@ -612,6 +731,23 @@ export default function HomePage() {
           </Container>
         </Box>
 
+        {/* ─── COMPARE TEASER ─────────────────────────────────── */}
+        <Box sx={{ bgcolor: '#f8fbff', py: { xs: 6, md: 8 } }}>
+          <Container maxWidth="lg">
+            <Paper variant="outlined" sx={{ borderRadius: 3, p: { xs: 2.5, md: 3.5 }, display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, gap: 2, flexDirection: { xs: 'column', md: 'row' } }}>
+              <Box>
+                <Typography sx={{ fontWeight: 800, fontSize: { xs: '1.1rem', md: '1.35rem' }, mb: 0.6 }}>Compare Properties By Real Monthly Cost</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 640 }}>
+                  Use our compare flow to evaluate rent, estimated utilities, and commute impact before you apply.
+                </Typography>
+              </Box>
+              <Button component={Link} href="/browse" variant="contained" endIcon={<ArrowForwardRoundedIcon />} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}>
+                Compare Listings
+              </Button>
+            </Paper>
+          </Container>
+        </Box>
+
         {/* ─── WHY COSY ─────────────────────────────────────────── */}
         <Box sx={{ bgcolor: '#f0f4f8', py: { xs: 8, md: 12 } }}>
           <Container maxWidth="lg">
@@ -805,7 +941,9 @@ export default function HomePage() {
                 {[
                   { label: 'Get Cosy', href: '/browse', primary: true },
                   { label: 'About Us', href: '/about' },
-                  { label: 'Landlord Resources', href: '/landlord' },
+                  { label: 'Landlord Resources', href: '/for-landlords' },
+                  { label: 'Student Hub', href: '/for-students' },
+                  { label: 'NSFAS Hub', href: '/nsfas' },
                   { label: 'Safety on Cosy', href: '/' },
                 ].map((l) => (
                   <Typography key={l.label} component={Link} href={l.href} variant="body2"
