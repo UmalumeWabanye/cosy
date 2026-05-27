@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/services/api';
@@ -126,7 +126,7 @@ function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label:
   );
 }
 
-export default function AdminUsersPage() {
+function AdminUsersPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user: authUser, isAuthenticated, isLoading } = useAuth();
@@ -675,5 +675,21 @@ export default function AdminUsersPage() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       />
     </AdminLayout>
+  );
+}
+
+export default function AdminUsersPage() {
+  return (
+    <Suspense
+      fallback={
+        <AdminLayout>
+          <Box sx={{ p: { xs: 2, md: 4 }, display: 'flex', justifyContent: 'center', py: 10 }}>
+            <CircularProgress />
+          </Box>
+        </AdminLayout>
+      }
+    >
+      <AdminUsersPageContent />
+    </Suspense>
   );
 }
