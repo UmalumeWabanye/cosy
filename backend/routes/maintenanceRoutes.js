@@ -59,6 +59,12 @@ router.post(
         roomNumber = (allocation?.roomNumber || '').trim();
       }
 
+      if (!roomNumber) {
+        return res.status(403).json({
+          message: 'Maintenance requests are only available after your room has been assigned',
+        });
+      }
+
       const ticket = await Maintenance.create({
         student: req.user._id,
         property: propertyId,
@@ -139,7 +145,7 @@ router.get('/active-properties', protect, async (req, res) => {
         moveInDate: r.moveInDate,
         roomNumber,
       };
-    });
+    }).filter((item) => item.property && item.roomNumber);
 
     return res.json({ data });
   } catch {

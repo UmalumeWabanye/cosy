@@ -195,7 +195,7 @@ export default function MaintenancePage() {
             <HandymanRoundedIcon sx={{ fontSize: 52, color: 'text.disabled', mb: 1.5 }} />
             <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>No active tenancy found</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Maintenance requests are only available once your application is approved and your move-in date has passed.
+              Maintenance requests are only available once your application is approved, your move-in date has passed, and your room has been assigned.
             </Typography>
             <Button variant="outlined" onClick={() => router.push('/applications')} sx={{ textTransform: 'none' }}>
               View My Applications

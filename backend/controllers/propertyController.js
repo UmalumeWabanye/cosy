@@ -2,6 +2,15 @@ const Property = require('../models/Property');
 const User = require('../models/User');
 
 const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const normalizeRoomTypeQuery = (value = '') => {
+  const normalized = String(value).trim().toLowerCase().replace(/[-_\s]+/g, '');
+  if (!normalized) return '';
+  if (normalized === 'single' || normalized === 'singleroom') return 'Single';
+  if (normalized === 'sharing' || normalized === 'shared' || normalized === 'sharedroom') return 'Sharing';
+  if (normalized === 'ensuite' || normalized === 'en-suite' || normalized === 'ensuiteroom') return 'Ensuite';
+  if (normalized === 'bachelor' || normalized === 'studio' || normalized === 'bachelorflat') return 'Bachelor';
+  return '';
+};
 
 const getLandlordIds = async () => User.find({ role: 'landlord' }).distinct('_id');
 
@@ -74,7 +83,12 @@ const getProperties = async (req, res, next) => {
     if (fundingType === 'nsfas') filter.nsfasAccredited = true;
     if (nsfasAccredited !== undefined) filter.nsfasAccredited = nsfasAccredited === 'true';
     if (roomType) {
-      filter.roomType = new RegExp(`^${escapeRegex(roomType)}$`, 'i');
+      const canonicalRoomType = normalizeRoomTypeQuery(roomType);
+      if (canonicalRoomType) {
+        filter.roomType = canonicalRoomType;
+      } else {
+        filter.roomType = new RegExp(`^${escapeRegex(String(roomType).trim())}$`, 'i');
+      }
     }
     if (minPrice || maxPrice) {
       filter.price = {};
