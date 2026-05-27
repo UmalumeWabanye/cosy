@@ -14,6 +14,13 @@ import Chip from '@mui/material/Chip';
 import Avatar from '@mui/material/Avatar';
 import Skeleton from '@mui/material/Skeleton';
 import Divider from '@mui/material/Divider';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Alert from '@mui/material/Alert';
 
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
@@ -43,12 +50,34 @@ interface RecentRequest {
   property?: { propertyName?: string; city?: string; images?: Array<string | { url?: string }> };
 }
 
+interface Recommendation {
+  _id: string;
+  propertyName?: string;
+  city?: string;
+  price?: number;
+  roomType?: string;
+  universityNearby?: string;
+  nsfasAccredited?: boolean;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
   const [stats, setStats] = useState<Stats>({ totalApplications: 0, pending: 0, approved: 0, saved: 0 });
   const [recent, setRecent] = useState<RecentRequest[]>([]);
   const [activeTenancy, setActiveTenancy] = useState<RecentRequest | null>(null);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [onboardingSaving, setOnboardingSaving] = useState(false);
+  const [onboardingError, setOnboardingError] = useState('');
+  const [onboarding, setOnboarding] = useState({
+    budgetMin: '',
+    budgetMax: '',
+    campus: '',
+    commutePreference: 'any',
+    moveInDate: '',
+    roomPreference: 'Any',
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -73,11 +102,64 @@ export default function DashboardPage() {
         });
         setRecent(reqs.slice(0, 5));
         setActiveTenancy(reqs.find((r) => r.status === 'approved' && r.roomNumber) || reqs.find((r) => r.status === 'approved') || null);
+
+        const onboardingData = (user as any)?.studentOnboarding;
+        if (!onboardingData?.completed) {
+          setOnboardingOpen(true);
+        } else {
+          setOnboarding({
+            budgetMin: onboardingData?.budgetMin ? String(onboardingData.budgetMin) : '',
+            budgetMax: onboardingData?.budgetMax ? String(onboardingData.budgetMax) : '',
+            campus: onboardingData?.campus || '',
+            commutePreference: onboardingData?.commutePreference || 'any',
+            moveInDate: onboardingData?.moveInDate ? String(onboardingData.moveInDate).slice(0, 10) : '',
+            roomPreference: onboardingData?.roomPreference || 'Any',
+          });
+
+          const params = new URLSearchParams();
+          if (onboardingData?.campus) params.set('university', onboardingData.campus);
+          if (onboardingData?.budgetMin) params.set('minPrice', String(onboardingData.budgetMin));
+          if (onboardingData?.budgetMax) params.set('maxPrice', String(onboardingData.budgetMax));
+          if (onboardingData?.roomPreference && onboardingData.roomPreference !== 'Any') params.set('roomType', onboardingData.roomPreference);
+          if (user?.fundingType === 'NSFAS') params.set('fundingType', 'nsfas');
+
+          const recommendationRes = await api.get(`/properties?${params.toString()}`);
+          const recommendationList = Array.isArray(recommendationRes.data)
+            ? recommendationRes.data
+            : (recommendationRes.data.properties || recommendationRes.data.data || []);
+          setRecommendations(recommendationList.slice(0, 4));
+        }
+
+        await api.post('/student/saved-searches/alerts/run').catch(() => null);
       } catch { /* silent */ }
       finally { setLoading(false); }
     };
     load();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
+
+  const saveOnboarding = async () => {
+    setOnboardingSaving(true);
+    setOnboardingError('');
+    try {
+      await api.patch('/auth/me', {
+        studentOnboarding: {
+          completed: true,
+          budgetMin: onboarding.budgetMin ? Number(onboarding.budgetMin) : null,
+          budgetMax: onboarding.budgetMax ? Number(onboarding.budgetMax) : null,
+          campus: onboarding.campus,
+          commutePreference: onboarding.commutePreference,
+          moveInDate: onboarding.moveInDate || null,
+          roomPreference: onboarding.roomPreference,
+        },
+      });
+      setOnboardingOpen(false);
+      window.location.reload();
+    } catch (e: any) {
+      setOnboardingError(e?.response?.data?.message || 'Failed to save onboarding preferences.');
+    } finally {
+      setOnboardingSaving(false);
+    }
+  };
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -365,7 +447,59 @@ export default function DashboardPage() {
             )}
           </Paper>
         </Box>
+
+        <Paper elevation={0} sx={{ p: 2.5, mt: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Personalized For You</Typography>
+            <Button size="small" sx={{ textTransform: 'none' }} onClick={() => setOnboardingOpen(true)}>Update Preferences</Button>
+          </Stack>
+          {recommendations.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">Complete onboarding preferences to unlock personalized property recommendations.</Typography>
+          ) : (
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1.5 }}>
+              {recommendations.map((item) => (
+                <Paper key={item._id} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>{item.propertyName || 'Property'}</Typography>
+                  <Typography variant="caption" color="text.secondary">{item.city || 'Unknown city'}{item.universityNearby ? ` · Near ${item.universityNearby}` : ''}</Typography>
+                  <Stack direction="row" sx={{ mt: 1, gap: 0.75, flexWrap: 'wrap', alignItems: 'center' }}>
+                    {item.price ? <Chip size="small" label={`R${item.price.toLocaleString()}/mo`} /> : null}
+                    {item.roomType ? <Chip size="small" variant="outlined" label={item.roomType} /> : null}
+                    {item.nsfasAccredited ? <Chip size="small" color="info" label="NSFAS" /> : null}
+                    <Button size="small" sx={{ textTransform: 'none' }} onClick={() => router.push(`/browse/${item._id}`)}>View</Button>
+                  </Stack>
+                </Paper>
+              ))}
+            </Box>
+          )}
+        </Paper>
       </Box>
+
+      <Dialog open={onboardingOpen} onClose={() => !onboardingSaving && setOnboardingOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700 }}>Student Onboarding Assistant</DialogTitle>
+        <DialogContent sx={{ display: 'grid', gap: 1.5, pt: '12px !important' }}>
+          {onboardingError ? <Alert severity="error">{onboardingError}</Alert> : null}
+          <TextField label="Budget Minimum (R)" type="number" value={onboarding.budgetMin} onChange={(e) => setOnboarding((p) => ({ ...p, budgetMin: e.target.value }))} />
+          <TextField label="Budget Maximum (R)" type="number" value={onboarding.budgetMax} onChange={(e) => setOnboarding((p) => ({ ...p, budgetMax: e.target.value }))} />
+          <TextField label="Preferred Campus / University" value={onboarding.campus} onChange={(e) => setOnboarding((p) => ({ ...p, campus: e.target.value }))} />
+          <TextField select label="Commute Preference" value={onboarding.commutePreference} onChange={(e) => setOnboarding((p) => ({ ...p, commutePreference: e.target.value }))}>
+            <MenuItem value="any">Any</MenuItem>
+            <MenuItem value="walk">Walking distance preferred</MenuItem>
+            <MenuItem value="shuttle">Shuttle/transport preferred</MenuItem>
+          </TextField>
+          <TextField label="Preferred Move-In Date" type="date" value={onboarding.moveInDate} onChange={(e) => setOnboarding((p) => ({ ...p, moveInDate: e.target.value }))} slotProps={{ inputLabel: { shrink: true } }} />
+          <TextField select label="Room Preference" value={onboarding.roomPreference} onChange={(e) => setOnboarding((p) => ({ ...p, roomPreference: e.target.value }))}>
+            <MenuItem value="Any">Any</MenuItem>
+            <MenuItem value="Single">Single</MenuItem>
+            <MenuItem value="Sharing">Sharing</MenuItem>
+            <MenuItem value="Ensuite">Ensuite</MenuItem>
+            <MenuItem value="Bachelor">Bachelor</MenuItem>
+          </TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOnboardingOpen(false)} disabled={onboardingSaving}>Cancel</Button>
+          <Button variant="contained" onClick={saveOnboarding} disabled={onboardingSaving}>{onboardingSaving ? 'Saving…' : 'Save Preferences'}</Button>
+        </DialogActions>
+      </Dialog>
     </StudentLayout>
   );
 }

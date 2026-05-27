@@ -135,10 +135,18 @@ router.patch('/me', [
   body('notificationPreferences.pushApplicationUpdates').optional().isBoolean().withMessage('Invalid pushApplicationUpdates value'),
   body('notificationPreferences.pushMessages').optional().isBoolean().withMessage('Invalid pushMessages value'),
   body('notificationPreferences.pushAllocationUpdates').optional().isBoolean().withMessage('Invalid pushAllocationUpdates value'),
+  body('studentOnboarding').optional().isObject().withMessage('Student onboarding settings are invalid'),
+  body('studentOnboarding.completed').optional().isBoolean().withMessage('Invalid onboarding completion value'),
+  body('studentOnboarding.budgetMin').optional({ nullable: true }).isFloat({ min: 0 }).withMessage('Invalid minimum budget'),
+  body('studentOnboarding.budgetMax').optional({ nullable: true }).isFloat({ min: 0 }).withMessage('Invalid maximum budget'),
+  body('studentOnboarding.campus').optional().isString().trim().isLength({ max: 150 }).withMessage('Invalid campus value'),
+  body('studentOnboarding.commutePreference').optional().isIn(['walk', 'shuttle', 'any']).withMessage('Invalid commute preference'),
+  body('studentOnboarding.moveInDate').optional({ nullable: true }).isISO8601().withMessage('Invalid move-in date'),
+  body('studentOnboarding.roomPreference').optional().isIn(['Single', 'Sharing', 'Ensuite', 'Bachelor', 'Any']).withMessage('Invalid room preference'),
   handleValidation,
 ], async (req, res) => {
   try {
-    const allowed = ['name', 'phone', 'university', 'course', 'yearOfStudy', 'fundingType', 'avatar', 'idNumber', 'profileComplete', 'livingPreference', 'notificationPreferences'];
+    const allowed = ['name', 'phone', 'university', 'course', 'yearOfStudy', 'fundingType', 'avatar', 'idNumber', 'profileComplete', 'livingPreference', 'notificationPreferences', 'studentOnboarding'];
     const updates = {};
     allowed.forEach(field => { if (req.body[field] !== undefined) updates[field] = req.body[field]; });
 

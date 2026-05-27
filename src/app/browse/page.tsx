@@ -20,6 +20,7 @@ import Skeleton from '@mui/material/Skeleton';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import Alert from '@mui/material/Alert';
 import StudentLayout from '@/components/student/StudentLayout';
 import SaveButton from '@/components/SaveButton';
 import { useAuth } from '@/hooks/useAuth';
@@ -92,7 +93,7 @@ type FilterState = {
 };
 
 export default function BrowsePage() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -100,6 +101,11 @@ export default function BrowsePage() {
   const [showMap, setShowMap] = useState(true);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [transportVisiblePropertyIds, setTransportVisiblePropertyIds] = useState<Set<string>>(new Set());
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [savedSearches, setSavedSearches] = useState<Array<{ _id: string; name: string; filters: any }>>([]);
+  const [savedSearchName, setSavedSearchName] = useState('');
+  const [savedSearchMessage, setSavedSearchMessage] = useState('');
+  const [savedSearchError, setSavedSearchError] = useState('');
   const [filters, setFilters] = useState<FilterState>({
     search: '', city: '', university: '', minPrice: '', maxPrice: '',
     roomType: '', nsfas: false, sortBy: 'newest',
@@ -176,9 +182,20 @@ export default function BrowsePage() {
 
   useEffect(() => { fetchProperties(); }, [fetchProperties]);
 
+  useEffect(() => {
+    if (!isAuthenticated || authLoading) return;
+    api.get('/student/saved-searches')
+      .then((res) => setSavedSearches(Array.isArray(res.data?.data) ? res.data.data : []))
+      .catch(() => null);
+  }, [isAuthenticated, authLoading]);
+
   const set = (key: keyof FilterState, value: string | boolean) => setFilters((p) => ({ ...p, [key]: value }));
   const clearFilters = () => setFilters({ search: '', city: '', university: '', minPrice: '', maxPrice: '', roomType: '', nsfas: false, sortBy: 'newest' });
   const hasActiveFilters = !!(filters.city || filters.university || filters.minPrice || filters.maxPrice || filters.roomType || filters.nsfas);
+
+  const onboarding = (user as any)?.studentOnboarding || {};
+  const budgetMin = Number(onboarding.budgetMin || 0);
+  const budgetMax = Number(onboarding.budgetMax || 0);
 
   const getImage = (p: Property, i: number) => {
     const image = p.images?.[0];
@@ -202,6 +219,72 @@ export default function BrowsePage() {
     if (p.transportation.mode === 'campus_route') return 'Campus Route';
     if (p.transportation.mode === 'both') return 'Private + Campus';
     return 'Transport Available';
+  };
+
+  const toggleCompare = (propertyId: string) => {
+    setCompareIds((prev) => {
+      if (prev.includes(propertyId)) return prev.filter((id) => id !== propertyId);
+      if (prev.length >= 3) return prev;
+      return [...prev, propertyId];
+    });
+  };
+
+  const compareProperties = properties.filter((p) => compareIds.includes(p._id));
+
+  const estimateTotalMonthly = (p: Property) => {
+    const base = Number(p.price || 0);
+    const utilities = Math.round(base * 0.08);
+    const transport = p.transportation?.enabled ? 600 : 850;
+    return base + utilities + transport;
+  };
+
+  const affordabilityLabel = (p: Property) => {
+    const total = estimateTotalMonthly(p);
+    if (!budgetMax) return 'No budget set';
+    if (total <= budgetMax && (!budgetMin || total >= budgetMin)) return 'Great fit';
+    if (total <= budgetMax * 1.15) return 'Stretch';
+    return 'Over budget';
+  };
+
+  const saveCurrentSearch = async () => {
+    setSavedSearchMessage('');
+    setSavedSearchError('');
+    try {
+      const name = savedSearchName.trim() || `Search ${new Date().toLocaleDateString('en-ZA')}`;
+      const payload = {
+        name,
+        filters: {
+          search: filters.search,
+          city: filters.city,
+          university: filters.university,
+          minPrice: filters.minPrice ? Number(filters.minPrice) : null,
+          maxPrice: filters.maxPrice ? Number(filters.maxPrice) : null,
+          roomType: filters.roomType,
+          nsfas: filters.nsfas,
+        },
+      };
+      const res = await api.post('/student/saved-searches', payload);
+      if (res.data?.data) {
+        setSavedSearches((prev) => [res.data.data, ...prev]);
+      }
+      setSavedSearchName('');
+      setSavedSearchMessage('Search saved. You will receive digest alerts when matches increase.');
+    } catch (e: any) {
+      setSavedSearchError(e?.response?.data?.message || 'Failed to save this search.');
+    }
+  };
+
+  const applySavedSearch = (filtersFromSaved: any) => {
+    setFilters((prev) => ({
+      ...prev,
+      search: filtersFromSaved?.search || '',
+      city: filtersFromSaved?.city || '',
+      university: filtersFromSaved?.university || '',
+      minPrice: filtersFromSaved?.minPrice ? String(filtersFromSaved.minPrice) : '',
+      maxPrice: filtersFromSaved?.maxPrice ? String(filtersFromSaved.maxPrice) : '',
+      roomType: filtersFromSaved?.roomType || '',
+      nsfas: Boolean(filtersFromSaved?.nsfas),
+    }));
   };
 
   const FilterPanel = () => (
@@ -286,6 +369,14 @@ export default function BrowsePage() {
               {hasActiveFilters && <Chip label="Clear all" size="small" clickable onClick={clearFilters} onDelete={clearFilters} sx={{ fontWeight: 600, color: 'error.main', border: '1px solid', borderColor: 'error.light' }} />}
             </Box>
             <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+              <TextField
+                size="small"
+                placeholder="Saved search name"
+                value={savedSearchName}
+                onChange={(e) => setSavedSearchName(e.target.value)}
+                sx={{ display: { xs: 'none', md: 'block' }, width: 170 }}
+              />
+              <Button size="small" variant="outlined" onClick={saveCurrentSearch} sx={{ borderRadius: 2, display: { xs: 'none', md: 'inline-flex' } }}>Save Search</Button>
               <Typography variant="body2" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' }, whiteSpace: 'nowrap' }}>
                 {loading ? '…' : `${properties.length} found`}
               </Typography>
@@ -330,6 +421,45 @@ export default function BrowsePage() {
                   {(filters.minPrice || filters.maxPrice) && <Chip label={`R${filters.minPrice || '0'} – R${filters.maxPrice || '∞'}`} size="small" onDelete={() => { set('minPrice', ''); set('maxPrice', ''); }} />}
                 </Box>
               )}
+
+              {savedSearchMessage ? <Alert severity="success" sx={{ mb: 1.5 }}>{savedSearchMessage}</Alert> : null}
+              {savedSearchError ? <Alert severity="error" sx={{ mb: 1.5 }}>{savedSearchError}</Alert> : null}
+
+              {savedSearches.length > 0 ? (
+                <Box sx={{ mb: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {savedSearches.slice(0, 4).map((search) => (
+                    <Chip
+                      key={search._id}
+                      label={`Use: ${search.name}`}
+                      size="small"
+                      clickable
+                      onClick={() => applySavedSearch(search.filters)}
+                    />
+                  ))}
+                </Box>
+              ) : null}
+
+              {compareProperties.length > 0 ? (
+                <Paper variant="outlined" sx={{ p: 1.25, mb: 2, borderRadius: 2 }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: '0.86rem', mb: 1 }}>Affordability Compare ({compareProperties.length}/3)</Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: `repeat(${compareProperties.length}, 1fr)` }, gap: 1 }}>
+                    {compareProperties.map((item) => (
+                      <Paper key={item._id} variant="outlined" sx={{ p: 1, borderRadius: 1.5 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>{getTitle(item)}</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{item.city || 'Unknown city'}</Typography>
+                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>Rent: R{Number(item.price || 0).toLocaleString()}</Typography>
+                        <Typography variant="caption" sx={{ display: 'block' }}>Est. total monthly: R{estimateTotalMonthly(item).toLocaleString()}</Typography>
+                        <Chip
+                          size="small"
+                          label={affordabilityLabel(item)}
+                          color={affordabilityLabel(item) === 'Great fit' ? 'success' : affordabilityLabel(item) === 'Stretch' ? 'warning' : 'default'}
+                          sx={{ mt: 0.5 }}
+                        />
+                      </Paper>
+                    ))}
+                  </Box>
+                </Paper>
+              ) : null}
 
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                 <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: 'text.primary' }}>
@@ -397,6 +527,17 @@ export default function BrowsePage() {
                             {prop.roomType && (
                               <Chip label={prop.roomType} size="small" sx={{ fontSize: '0.66rem', fontWeight: 600, textTransform: 'capitalize', bgcolor: '#f0f4f8', color: 'text.secondary', height: 20 }} />
                             )}
+                            <Chip
+                              label={compareIds.includes(prop._id) ? 'Comparing' : 'Compare'}
+                              size="small"
+                              clickable
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                toggleCompare(prop._id);
+                              }}
+                              sx={{ fontSize: '0.66rem', height: 20 }}
+                            />
                             <SaveButton propertyId={prop._id} size="small" />
                           </Box>
                         </Box>

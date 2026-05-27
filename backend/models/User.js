@@ -51,6 +51,15 @@ const userSchema = new mongoose.Schema(
       enum: ['individual', 'shared', 'noPreference'],
       default: 'noPreference',
     },
+    studentOnboarding: {
+      completed: { type: Boolean, default: false },
+      budgetMin: { type: Number, min: 0, default: null },
+      budgetMax: { type: Number, min: 0, default: null },
+      campus: { type: String, trim: true, default: '' },
+      commutePreference: { type: String, enum: ['walk', 'shuttle', 'any'], default: 'any' },
+      moveInDate: { type: Date, default: null },
+      roomPreference: { type: String, enum: ['Single', 'Sharing', 'Ensuite', 'Bachelor', 'Any'], default: 'Any' },
+    },
     // Landlord profile fields (captured via onboarding wizard)
     phone: { type: String, trim: true },
     whatsapp: { type: String, trim: true },

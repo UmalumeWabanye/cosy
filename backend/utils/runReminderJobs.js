@@ -3,6 +3,8 @@ const Notification = require('../models/Notification');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const User = require('../models/User');
+const Property = require('../models/Property');
+const SavedSearch = require('../models/SavedSearch');
 const sendEventEmail = require('./sendEventEmail');
 const { canSendEmail, canSendPush } = require('./notificationPreferences');
 
@@ -40,6 +42,35 @@ const sendConversationMessage = async ({ senderId, recipientId, propertyId, text
   conversation.lastMessage = text;
   conversation.lastMessageAt = new Date();
   await conversation.save();
+};
+
+const buildSavedSearchFilter = (filters = {}) => {
+  const query = {};
+  if (filters.city) query.city = new RegExp(filters.city, 'i');
+  if (filters.university) query.universityNearby = new RegExp(filters.university, 'i');
+  if (filters.search) {
+    query.$or = [
+      { propertyName: new RegExp(filters.search, 'i') },
+      { city: new RegExp(filters.search, 'i') },
+      { address: new RegExp(filters.search, 'i') },
+      { universityNearby: new RegExp(filters.search, 'i') },
+    ];
+  }
+  if (filters.roomType) query.roomType = new RegExp(`^${filters.roomType}$`, 'i');
+  if (filters.nsfas) query.nsfasAccredited = true;
+
+  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+    query.price = {};
+    if (filters.minPrice !== undefined && filters.minPrice !== null && filters.minPrice !== '') {
+      query.price.$gte = Number(filters.minPrice);
+    }
+    if (filters.maxPrice !== undefined && filters.maxPrice !== null && filters.maxPrice !== '') {
+      query.price.$lte = Number(filters.maxPrice);
+    }
+    if (!Object.keys(query.price).length) delete query.price;
+  }
+
+  return query;
 };
 
 const runReminderJobs = async () => {
@@ -163,10 +194,62 @@ const runReminderJobs = async () => {
       allocationAlertCount += 1;
     }
 
+    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const searches = await SavedSearch.find({
+      $or: [{ lastAlertSentAt: null }, { lastAlertSentAt: { $lte: dayAgo } }],
+    }).lean();
+
+    const userCache = new Map();
+    let savedSearchDigestCount = 0;
+
+    for (const search of searches) {
+      const studentId = String(search.student);
+      if (!userCache.has(studentId)) {
+        const student = await User.findById(studentId).select('name email notificationPreferences').lean();
+        userCache.set(studentId, student || null);
+      }
+      const student = userCache.get(studentId);
+      if (!student) continue;
+
+      const matchCount = await Property.countDocuments(buildSavedSearchFilter(search.filters));
+      const isIncrease = matchCount > Number(search.lastMatchedCount || 0);
+
+      if (isIncrease && canSendPush(student, 'pushApplicationUpdates')) {
+        await Notification.create({
+          recipient: student._id,
+          type: 'request_updated',
+          title: 'Saved Search Digest',
+          message: `${search.name}: ${matchCount} properties currently match your saved search.`,
+          link: '/browse',
+          refModel: 'User',
+          refId: student._id,
+        });
+      }
+
+      if (isIncrease && canSendEmail(student, 'emailNewListings')) {
+        await sendEventEmail({
+          to: student.email,
+          subject: 'New matching properties are available',
+          heading: 'Saved search digest',
+          body: `${search.name}: ${matchCount} properties currently match your search preferences.`,
+          ctaUrl: `${FRONTEND_URL}/browse`,
+          ctaLabel: 'Browse Matches',
+        });
+      }
+
+      await SavedSearch.updateOne(
+        { _id: search._id },
+        { $set: { lastMatchedCount: matchCount, lastAlertSentAt: now } }
+      );
+
+      if (isIncrease) savedSearchDigestCount += 1;
+    }
+
     return {
       skipped: false,
       moveInReminderCount,
       allocationAlertCount,
+      savedSearchDigestCount,
     };
   } finally {
     isRunning = false;

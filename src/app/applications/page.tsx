@@ -63,6 +63,28 @@ const STATUS_CONFIG = {
 
 type Filter = 'all' | 'pending' | 'approved' | 'rejected';
 
+const timelineSteps = ['Submitted', 'Under Review', 'Approved', 'Room Assigned', 'Move-In Ready'];
+
+const getApplicationProgress = (req: Req) => {
+  const hasRoom = Boolean((req as any).roomNumber);
+  const moveInDate = req.moveInDate ? new Date(req.moveInDate) : null;
+  const hasMovedIn = Boolean(moveInDate && !Number.isNaN(moveInDate.getTime()) && moveInDate <= new Date());
+
+  if (req.status === 'rejected') {
+    return { step: 1, blocker: 'This application was rejected. You can apply to another listing right away.' };
+  }
+  if (req.status === 'pending') {
+    return { step: 1, blocker: 'Waiting for landlord review.' };
+  }
+  if (req.status === 'approved' && !hasRoom) {
+    return { step: 2, blocker: 'Approved, but room allocation is still pending.' };
+  }
+  if (req.status === 'approved' && hasRoom && !hasMovedIn) {
+    return { step: 3, blocker: 'Room assigned. Waiting for your move-in date.' };
+  }
+  return { step: 4, blocker: '' };
+};
+
 export default function ApplicationsPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -287,6 +309,31 @@ export default function ApplicationsPage() {
                           {req.status === 'rejected' ? 'Rejected' : req.status === 'approved' ? 'Approved' : 'Under Review'}
                         </Typography>
                       </Stack>
+
+                      {(() => {
+                        const progress = getApplicationProgress(req);
+                        return (
+                          <Box sx={{ mb: 1.5 }}>
+                            <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap', mb: 0.75 }}>
+                              {timelineSteps.map((step, index) => (
+                                <Chip
+                                  key={`${req._id}-${step}`}
+                                  size="small"
+                                  label={step}
+                                  color={index <= progress.step ? 'primary' : 'default'}
+                                  variant={index <= progress.step ? 'filled' : 'outlined'}
+                                  sx={{ height: 22, fontSize: 10, fontWeight: 700 }}
+                                />
+                              ))}
+                            </Stack>
+                            {progress.blocker ? (
+                              <Typography variant="caption" sx={{ color: 'warning.dark', fontWeight: 600 }}>
+                                Blocker: {progress.blocker}
+                              </Typography>
+                            ) : null}
+                          </Box>
+                        );
+                      })()}
 
                       {/* Actions */}
                       <Stack sx={{ flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}>

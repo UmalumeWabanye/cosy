@@ -15,6 +15,7 @@ import IconButton from '@mui/material/IconButton';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 
 interface Participant {
@@ -53,6 +54,7 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
+  const [contextLabel, setContextLabel] = useState('');
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) router.push('/');
@@ -100,7 +102,18 @@ export default function MessagesPage() {
     const qs = new URLSearchParams(window.location.search);
     const conversationId = qs.get('conversationId');
     if (conversationId) setSelectedId(conversationId);
+    const context = qs.get('context');
+    if (context === 'allocation') setContextLabel('Room allocation update thread');
+    if (context === 'move-in') setContextLabel('Move-in coordination thread');
+    if (context === 'application') setContextLabel('Application update thread');
   }, []);
+
+  const quickTemplates = [
+    'Hi, can you confirm the next step for my application?',
+    'Could you share move-in checklist details?',
+    'Can you confirm room allocation and key handover timing?',
+    'Please share lease copy and payment instructions.',
+  ];
 
   const selectedConversation = useMemo(
     () => conversations.find((c) => c._id === selectedId) || null,
@@ -187,6 +200,9 @@ export default function MessagesPage() {
                   <Typography variant="caption" color="text.secondary">
                     {selectedConversation.property?.propertyName ? `Property: ${selectedConversation.property.propertyName}` : 'Direct message'}
                   </Typography>
+                  {contextLabel ? (
+                    <Alert severity="info" sx={{ mt: 1, py: 0 }}>{contextLabel}</Alert>
+                  ) : null}
                 </Box>
 
                 <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5, bgcolor: '#f8fafc' }}>
@@ -216,6 +232,16 @@ export default function MessagesPage() {
                 </Box>
 
                 <Stack direction="row" sx={{ gap: 1, p: 1.25, borderTop: '1px solid', borderColor: 'divider' }}>
+                  <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap', alignItems: 'center', mr: 1, display: { xs: 'none', md: 'flex' } }}>
+                    {quickTemplates.map((template) => (
+                      <Chip
+                        key={template}
+                        size="small"
+                        label={template.length > 28 ? `${template.slice(0, 28)}...` : template}
+                        onClick={() => setDraft(template)}
+                      />
+                    ))}
+                  </Stack>
                   <TextField
                     size="small"
                     fullWidth

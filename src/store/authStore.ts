@@ -30,6 +30,15 @@ export interface User {
     pushMessages?: boolean;
     pushAllocationUpdates?: boolean;
   };
+  studentOnboarding?: {
+    completed?: boolean;
+    budgetMin?: number | null;
+    budgetMax?: number | null;
+    campus?: string;
+    commutePreference?: 'walk' | 'shuttle' | 'any';
+    moveInDate?: string | null;
+    roomPreference?: 'Single' | 'Sharing' | 'Ensuite' | 'Bachelor' | 'Any';
+  };
 }
 
 interface AuthStore {

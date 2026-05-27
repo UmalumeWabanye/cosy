@@ -2,8 +2,126 @@ const express = require('express');
 const { protect } = require('../middleware/auth');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const Property = require('../models/Property');
+const SavedSearch = require('../models/SavedSearch');
 
 const router = express.Router();
+
+const buildSavedSearchFilter = (filters = {}) => {
+  const query = {};
+  if (filters.city) query.city = new RegExp(filters.city, 'i');
+  if (filters.university) query.universityNearby = new RegExp(filters.university, 'i');
+  if (filters.search) {
+    query.$or = [
+      { propertyName: new RegExp(filters.search, 'i') },
+      { city: new RegExp(filters.search, 'i') },
+      { address: new RegExp(filters.search, 'i') },
+      { universityNearby: new RegExp(filters.search, 'i') },
+    ];
+  }
+  if (filters.roomType) query.roomType = new RegExp(`^${filters.roomType}$`, 'i');
+  if (filters.nsfas) query.nsfasAccredited = true;
+
+  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+    query.price = {};
+    if (filters.minPrice !== undefined && filters.minPrice !== null && filters.minPrice !== '') {
+      query.price.$gte = Number(filters.minPrice);
+    }
+    if (filters.maxPrice !== undefined && filters.maxPrice !== null && filters.maxPrice !== '') {
+      query.price.$lte = Number(filters.maxPrice);
+    }
+    if (!Object.keys(query.price).length) delete query.price;
+  }
+
+  return query;
+};
+
+// GET /api/student/saved-searches
+router.get('/saved-searches', protect, async (req, res) => {
+  try {
+    const data = await SavedSearch.find({ student: req.user._id }).sort({ createdAt: -1 }).lean();
+    res.json({ data });
+  } catch (err) {
+    res.status(500).json({ message: err.message || 'Failed to load saved searches' });
+  }
+});
+
+// POST /api/student/saved-searches
+router.post('/saved-searches', protect, async (req, res) => {
+  try {
+    const { name, filters } = req.body || {};
+    if (!name || typeof name !== 'string') {
+      return res.status(400).json({ message: 'Search name is required' });
+    }
+
+    const saved = await SavedSearch.create({
+      student: req.user._id,
+      name: name.trim(),
+      filters: {
+        search: filters?.search || '',
+        city: filters?.city || '',
+        university: filters?.university || '',
+        minPrice: filters?.minPrice ?? null,
+        maxPrice: filters?.maxPrice ?? null,
+        roomType: filters?.roomType || '',
+        nsfas: Boolean(filters?.nsfas),
+      },
+    });
+
+    res.status(201).json({ data: saved });
+  } catch (err) {
+    if (err?.code === 11000) {
+      return res.status(409).json({ message: 'You already have a saved search with that name' });
+    }
+    res.status(500).json({ message: err.message || 'Failed to save search' });
+  }
+});
+
+// DELETE /api/student/saved-searches/:id
+router.delete('/saved-searches/:id', protect, async (req, res) => {
+  try {
+    const deleted = await SavedSearch.findOneAndDelete({ _id: req.params.id, student: req.user._id });
+    if (!deleted) return res.status(404).json({ message: 'Saved search not found' });
+    res.json({ message: 'Saved search deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message || 'Failed to delete saved search' });
+  }
+});
+
+// POST /api/student/saved-searches/alerts/run
+router.post('/saved-searches/alerts/run', protect, async (req, res) => {
+  try {
+    const searches = await SavedSearch.find({ student: req.user._id }).lean();
+    let alertsCreated = 0;
+
+    for (const search of searches) {
+      const matchCount = await Property.countDocuments(buildSavedSearchFilter(search.filters));
+      const isIncrease = matchCount > Number(search.lastMatchedCount || 0);
+
+      if (isIncrease) {
+        await Notification.create({
+          recipient: req.user._id,
+          type: 'request_updated',
+          title: 'Saved Search Update',
+          message: `${search.name}: ${matchCount} matching properties are currently available.`,
+          link: '/browse',
+          refModel: 'User',
+          refId: req.user._id,
+        });
+        alertsCreated += 1;
+      }
+
+      await SavedSearch.updateOne(
+        { _id: search._id },
+        { $set: { lastMatchedCount: matchCount, lastAlertSentAt: new Date() } }
+      );
+    }
+
+    res.json({ success: true, alertsCreated, totalSearches: searches.length });
+  } catch (err) {
+    res.status(500).json({ message: err.message || 'Failed to run saved-search alerts' });
+  }
+});
 
 // GET /api/student/notifications
 router.get('/notifications', protect, async (req, res) => {
