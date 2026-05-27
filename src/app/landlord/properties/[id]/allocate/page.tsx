@@ -49,6 +49,13 @@ interface PropertyItem {
   roomAllocations?: AllocationItem[];
 }
 
+interface AutoSuggestion {
+  requestId: string;
+  studentId: string;
+  studentName: string;
+  roomNumber: string;
+}
+
 export default function AllocatePropertyRoomsPage() {
   const router = useRouter();
   const params = useParams();
@@ -95,12 +102,50 @@ export default function AllocatePropertyRoomsPage() {
   }, [isAuthenticated, user, propertyId]);
 
   const allocations = property?.roomAllocations || [];
+  const normalizeRoomNumber = (value: string) => value.trim().toLowerCase();
   const allocatedStudentIds = useMemo(() => new Set(allocations.map((allocation) => allocation.student?._id)), [allocations]);
+  const allocatedRoomNumbers = useMemo(
+    () => new Set(allocations.map((allocation) => normalizeRoomNumber(allocation.roomNumber || '')).filter(Boolean)),
+    [allocations]
+  );
   const remainingRooms = Math.max(0, Number(property?.totalRooms || 0) - allocations.length);
+
+  const unallocatedRequests = useMemo(
+    () => requests.filter((request) => request.student?._id && !allocatedStudentIds.has(request.student._id)),
+    [requests, allocatedStudentIds]
+  );
+
+  const autoSuggestions = useMemo<AutoSuggestion[]>(() => {
+    const totalRooms = Number(property?.totalRooms || 0);
+    if (totalRooms <= 0 || unallocatedRequests.length === 0) return [];
+
+    const candidateRooms = Array.from({ length: totalRooms }, (_, index) => `Room ${index + 1}`);
+    const availableRoomsForSuggestion = candidateRooms.filter(
+      (label) => !allocatedRoomNumbers.has(normalizeRoomNumber(label))
+    );
+
+    return unallocatedRequests.slice(0, availableRoomsForSuggestion.length).map((request, index) => ({
+      requestId: request._id,
+      studentId: request.student!._id,
+      studentName: request.student?.name || request.student?.email || 'Student',
+      roomNumber: availableRoomsForSuggestion[index],
+    }));
+  }, [property?.totalRooms, unallocatedRequests, allocatedRoomNumbers]);
 
   const addAllocation = () => {
     if (!roomNumber.trim() || !selectedRequestId) {
       setError('Choose a room number and a student request.');
+      return;
+    }
+
+    const normalizedRoomNumber = normalizeRoomNumber(roomNumber);
+    if (allocatedRoomNumbers.has(normalizedRoomNumber)) {
+      setError('This room is already allocated. Choose another room number.');
+      return;
+    }
+
+    if (Number(property?.totalRooms || 0) > 0 && allocations.length >= Number(property?.totalRooms || 0)) {
+      setError('All rooms are already allocated for this property.');
       return;
     }
 
@@ -117,8 +162,9 @@ export default function AllocatePropertyRoomsPage() {
 
     setProperty((prev) => {
       if (!prev) return prev;
+      const currentAllocations = prev.roomAllocations || [];
       const nextAllocations = [
-        ...allocations,
+        ...currentAllocations,
         {
           roomNumber: roomNumber.trim(),
           student: request.student as { _id: string; name?: string; email?: string },
@@ -143,13 +189,62 @@ export default function AllocatePropertyRoomsPage() {
   const removeAllocation = (roomNumberToRemove: string) => {
     setProperty((prev) => {
       if (!prev) return prev;
-      const nextAllocations = allocations.filter((allocation) => allocation.roomNumber !== roomNumberToRemove);
+      const currentAllocations = prev.roomAllocations || [];
+      const nextAllocations = currentAllocations.filter((allocation) => allocation.roomNumber !== roomNumberToRemove);
       return {
         ...prev,
         roomAllocations: nextAllocations,
         availableRooms: Math.max(0, Number(prev.totalRooms || 0) - nextAllocations.length),
       };
     });
+  };
+
+  const autoAllocateRooms = () => {
+    if (!property) return;
+    if (autoSuggestions.length === 0) {
+      setError('No suggestions available. Ensure total rooms are set and there are unallocated approved requests.');
+      return;
+    }
+
+    setProperty((prev) => {
+      if (!prev) return prev;
+
+      const existingAllocations = prev.roomAllocations || [];
+      const existingStudentIds = new Set(existingAllocations.map((allocation) => allocation.student?._id).filter(Boolean));
+      const existingRoomIds = new Set(existingAllocations.map((allocation) => normalizeRoomNumber(allocation.roomNumber || '')).filter(Boolean));
+
+      const additions: AllocationItem[] = [];
+
+      for (const suggestion of autoSuggestions) {
+        if (existingStudentIds.has(suggestion.studentId)) continue;
+        if (existingRoomIds.has(normalizeRoomNumber(suggestion.roomNumber))) continue;
+
+        const request = requests.find((item) => item._id === suggestion.requestId);
+        if (!request?.student) continue;
+
+        additions.push({
+          roomNumber: suggestion.roomNumber,
+          student: request.student as { _id: string; name?: string; email?: string },
+          request: { _id: request._id },
+          notes: 'Auto-suggested assignment',
+          allocatedAt: new Date().toISOString(),
+        });
+
+        existingStudentIds.add(suggestion.studentId);
+        existingRoomIds.add(normalizeRoomNumber(suggestion.roomNumber));
+      }
+
+      if (additions.length === 0) return prev;
+
+      const nextAllocations = [...existingAllocations, ...additions];
+      return {
+        ...prev,
+        roomAllocations: nextAllocations,
+        availableRooms: Math.max(0, Number(prev.totalRooms || 0) - nextAllocations.length),
+      };
+    });
+
+    setError('');
   };
 
   const saveAllocations = async () => {
@@ -217,7 +312,17 @@ export default function AllocatePropertyRoomsPage() {
                 sx={{ mt: 2 }}
               />
               <Stack direction="row" sx={{ justifyContent: 'flex-end', mt: 2 }}>
-                <Button variant="outlined" onClick={addAllocation} sx={{ textTransform: 'none' }}>Add Allocation</Button>
+                <Stack direction="row" sx={{ gap: 1 }}>
+                  <Button
+                    variant="outlined"
+                    onClick={autoAllocateRooms}
+                    disabled={!property || autoSuggestions.length === 0}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Auto-fill Suggestions ({autoSuggestions.length})
+                  </Button>
+                  <Button variant="outlined" onClick={addAllocation} sx={{ textTransform: 'none' }}>Add Allocation</Button>
+                </Stack>
               </Stack>
             </Paper>
 
@@ -293,7 +398,17 @@ export default function AllocatePropertyRoomsPage() {
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>{request.student?.name || 'Student'}</Typography>
                         <Typography variant="caption" color="text.secondary">{request.student?.email || ''}</Typography>
                       </Box>
-                      <Chip size="small" label="Approved" color="success" />
+                      <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
+                        <Chip size="small" label="Approved" color="success" />
+                        {request.student?._id && allocatedStudentIds.has(request.student._id) ? (
+                          <Chip size="small" label="Allocated" color="primary" variant="outlined" />
+                        ) : (
+                          (() => {
+                            const suggestion = autoSuggestions.find((item) => item.requestId === request._id);
+                            return suggestion ? <Chip size="small" label={`Suggested: ${suggestion.roomNumber}`} color="info" variant="outlined" /> : null;
+                          })()
+                        )}
+                      </Stack>
                     </Stack>
                   ))}
                 </Stack>
