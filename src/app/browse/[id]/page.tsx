@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import StudentLayout from '@/components/student/StudentLayout';
@@ -35,6 +35,7 @@ import ChatRoundedIcon from '@mui/icons-material/ChatRounded';
 import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import api from '@/services/api';
+import { trackEvent } from '@/utils/analytics';
 
 const amenityIcons: Record<string, React.ReactNode> = {
   WiFi: <WifiIcon />, Parking: <LocalParkingIcon />, Gym: <FitnessCenterIcon />,
@@ -93,6 +94,7 @@ interface StudentRequest {
 export default function PropertyDetailsPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const [property, setProperty] = useState<Property | null>(null);
@@ -104,6 +106,7 @@ export default function PropertyDetailsPage() {
   const [canViewTransportationSchedule, setCanViewTransportationSchedule] = useState(false);
 
   const propertyId = params.id as string;
+  const source = searchParams.get('source') || 'direct';
 
   const fetchReviews = async (id: string) => {
     try {
@@ -132,6 +135,15 @@ export default function PropertyDetailsPage() {
     };
     if (propertyId) fetchProperty();
   }, [propertyId]);
+
+  useEffect(() => {
+    if (!property?._id) return;
+    trackEvent('cta-click', {
+      button: 'listing-detail-load',
+      propertyId: property._id,
+      source,
+    });
+  }, [property?._id, source]);
 
   useEffect(() => {
     let cancelled = false;
@@ -194,8 +206,13 @@ export default function PropertyDetailsPage() {
   }
 
   const handleApplyClick = () => {
+    trackEvent('cta-click', {
+      button: 'apply-now',
+      propertyId,
+      source,
+    });
     if (!isAuthenticated) { router.push('/login'); return; }
-    router.push(`/browse/${propertyId}/request`);
+    router.push(`/browse/${propertyId}/request?source=${encodeURIComponent(source)}`);
   };
 
   const handleMessageOwner = async () => {

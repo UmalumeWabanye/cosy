@@ -18,6 +18,7 @@ const messageRoutes = require('./routes/messageRoutes');
 const viewingRoutes = require('./routes/viewingRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 const { runReminderJobs } = require('./utils/runReminderJobs');
 
 // Connect to MongoDB
@@ -108,6 +109,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/viewings', viewingRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 const reminderJobsEnabled = process.env.ENABLE_REMINDER_JOBS !== 'false';
 if (reminderJobsEnabled) {

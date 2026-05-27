@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import StudentLayout from '@/components/student/StudentLayout';
 import api from '@/services/api';
@@ -19,6 +19,7 @@ import Chip from '@mui/material/Chip';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import { trackEvent } from '@/utils/analytics';
 
 interface Property {
   _id: string;
@@ -36,8 +37,10 @@ interface Property {
 export default function RequestPropertyPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const { user, isAuthenticated, isLoading } = useAuth();
   const propertyId = params.id as string;
+  const source = searchParams.get('source') || 'direct';
 
   const [property, setProperty] = useState<Property | null>(null);
   const [loadingProperty, setLoadingProperty] = useState(true);
@@ -89,6 +92,11 @@ export default function RequestPropertyPage() {
         leaseDuration: Number(form.leaseDuration),
         fundingType: form.fundingType,
         message: form.message,
+      });
+      trackEvent('application-submit', {
+        propertyId,
+        source,
+        fundingType: form.fundingType,
       });
       setSubmitted(true);
     } catch (err: any) {

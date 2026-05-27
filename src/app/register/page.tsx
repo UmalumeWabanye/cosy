@@ -84,6 +84,7 @@ function RegisterForm() {
   const { setUser, setToken } = useAuthStore();
 
   const isLandlord = searchParams.get('role') === 'landlord';
+  const source = searchParams.get('source') || 'direct';
   const redirect = searchParams.get('redirect') || '';
 
   const getSafeRedirect = () => {
@@ -170,6 +171,7 @@ function RegisterForm() {
 
     trackEvent('signup-attempt', {
       role: isLandlord ? 'landlord' : 'student',
+      source,
       fundingType: payload.fundingType || 'na',
       hasRedirect: Boolean(redirect),
     });
@@ -198,6 +200,7 @@ function RegisterForm() {
       setUser(user);
       trackEvent('signup-confirm', {
         role: user.role || (isLandlord ? 'landlord' : 'student'),
+        source,
       });
       
       if (isLandlord) {

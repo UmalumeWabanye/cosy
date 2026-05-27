@@ -107,6 +107,7 @@ export default function BrowsePage() {
   const [savedSearchName, setSavedSearchName] = useState('');
   const [savedSearchMessage, setSavedSearchMessage] = useState('');
   const [savedSearchError, setSavedSearchError] = useState('');
+  const [sourceTag, setSourceTag] = useState('direct');
   const [filters, setFilters] = useState<FilterState>({
     search: '', city: '', university: '', minPrice: '', maxPrice: '',
     roomType: '', nsfas: false, sortBy: 'newest',
@@ -114,6 +115,8 @@ export default function BrowsePage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const source = params.get('source') || 'direct';
+    setSourceTag(source);
     setFilters((prev) => ({
       ...prev,
       search: params.get('search') || '',
@@ -123,7 +126,7 @@ export default function BrowsePage() {
       nsfas: params.get('fundingType') === 'nsfas',
     }));
     trackEvent('browse-visit', {
-      source: params.get('source') || 'direct',
+      source,
       university: params.get('university') || 'any',
       city: params.get('city') || 'any',
       fundingType: params.get('fundingType') || 'any',
@@ -282,6 +285,7 @@ export default function BrowsePage() {
       setSavedSearchName('');
       setSavedSearchMessage('Search saved. You will receive digest alerts when matches increase.');
       trackEvent('save-search', {
+        source: sourceTag,
         hasCity: Boolean(filters.city),
         hasUniversity: Boolean(filters.university),
         hasBudget: Boolean(filters.minPrice || filters.maxPrice),
@@ -517,9 +521,10 @@ export default function BrowsePage() {
                   <Paper
                     key={prop._id}
                     component={Link}
-                    href={`/browse/${prop._id}`}
+                    href={`/browse/${prop._id}?source=${encodeURIComponent(sourceTag)}`}
                     onClick={() => trackEvent('listing-view', {
                       propertyId: prop._id,
+                      source: sourceTag,
                       city: getCity(prop),
                       university: getUniversity(prop) || 'unknown',
                       nsfas: isNsfas(prop),

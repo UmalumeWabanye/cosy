@@ -27,7 +27,7 @@ export default function NsfasPage() {
           Use Cosy to identify funding-aligned housing options near your university, compare costs, and apply faster.
         </p>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <Link href="/browse?fundingType=nsfas" style={{ background: '#1565c0', color: 'white', fontWeight: 700, padding: '12px 18px', borderRadius: 10, textDecoration: 'none' }}>
+          <Link href="/browse?fundingType=nsfas&source=nsfas-landing" style={{ background: '#1565c0', color: 'white', fontWeight: 700, padding: '12px 18px', borderRadius: 10, textDecoration: 'none' }}>
             Browse NSFAS Listings
           </Link>
           <Link href="/for-students" style={{ border: '1px solid #c8d7e6', color: '#0f2237', fontWeight: 700, padding: '12px 18px', borderRadius: 10, textDecoration: 'none' }}>

@@ -27,10 +27,10 @@ export default function ForStudentsPage() {
           Cosy helps students move from browsing to approved move-in with better filters, verified options, and transparent application progress.
         </p>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <Link href="/browse" style={{ background: '#1565c0', color: 'white', fontWeight: 700, padding: '12px 18px', borderRadius: 10, textDecoration: 'none' }}>
+          <Link href="/browse?source=for-students" style={{ background: '#1565c0', color: 'white', fontWeight: 700, padding: '12px 18px', borderRadius: 10, textDecoration: 'none' }}>
             Start Searching
           </Link>
-          <Link href="/register" style={{ border: '1px solid #c8d7e6', color: '#0f2237', fontWeight: 700, padding: '12px 18px', borderRadius: 10, textDecoration: 'none' }}>
+          <Link href="/register?source=for-students" style={{ border: '1px solid #c8d7e6', color: '#0f2237', fontWeight: 700, padding: '12px 18px', borderRadius: 10, textDecoration: 'none' }}>
             Create Free Account
           </Link>
         </div>

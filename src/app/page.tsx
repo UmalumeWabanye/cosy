@@ -213,6 +213,7 @@ export default function HomePage() {
     if (city) params.set('city', city);
     if (fundingType) params.set('fundingType', fundingType);
     if (roomType) params.set('roomType', roomType);
+    params.set('source', 'homepage-search');
     trackEvent('cta-click', {
       button: 'search-properties',
       location: 'hero-search',
@@ -345,7 +346,7 @@ export default function HomePage() {
                 <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 3 }}>
                   <Button
                     component={Link}
-                    href="/browse"
+                    href="/browse?source=homepage-hero"
                     variant="contained"
                     onClick={() => trackEvent('cta-click', { button: 'find-accommodation', location: 'hero' })}
                     sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, bgcolor: 'white', color: '#11508b', '&:hover': { bgcolor: '#f5f9ff' } }}
@@ -655,8 +656,9 @@ export default function HomePage() {
                 </Typography>
               </Box>
               <Button
-                component={Link} href="/browse"
+                component={Link} href="/browse?source=homepage-featured"
                 variant="outlined" endIcon={<ArrowForwardRoundedIcon />}
+                onClick={() => trackEvent('cta-click', { button: 'view-all-featured', location: 'featured-section' })}
                 sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
               >
                 View All
@@ -682,7 +684,8 @@ export default function HomePage() {
                       <Grid key={prop._id} size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex' }}>
                         <Card
                           component={Link}
-                          href={`/browse/${prop._id}`}
+                          href={`/browse/${prop._id}?source=homepage-featured-card`}
+                          onClick={() => trackEvent('listing-view', { propertyId: prop._id, source: 'homepage-featured-card' })}
                           variant="outlined"
                           sx={{
                             borderRadius: 3, overflow: 'hidden', textDecoration: 'none', display: 'flex', flexDirection: 'column', width: '100%',
@@ -753,7 +756,7 @@ export default function HomePage() {
                   Use our compare flow to evaluate rent, estimated utilities, and commute impact before you apply.
                 </Typography>
               </Box>
-              <Button component={Link} href="/browse" variant="contained" endIcon={<ArrowForwardRoundedIcon />} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}>
+              <Button component={Link} href="/browse?source=homepage-compare" variant="contained" endIcon={<ArrowForwardRoundedIcon />} onClick={() => trackEvent('cta-click', { button: 'compare-listings', location: 'compare-teaser' })} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}>
                 Compare Listings
               </Button>
             </Paper>
@@ -870,8 +873,9 @@ export default function HomePage() {
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Button
-                component={Link} href="/browse" variant="contained" size="large"
+                component={Link} href="/browse?source=homepage-bottom-cta" variant="contained" size="large"
                 endIcon={<ArrowForwardRoundedIcon />}
+                onClick={() => trackEvent('cta-click', { button: 'browse-properties', location: 'bottom-cta' })}
                 sx={{
                   bgcolor: 'white', color: '#1565c0', fontWeight: 700,
                   textTransform: 'none', px: 4, borderRadius: 2,
@@ -882,7 +886,8 @@ export default function HomePage() {
                 Browse Properties
               </Button>
               <Button
-                component={Link} href="/register" variant="outlined" size="large"
+                component={Link} href="/register?source=homepage-bottom-cta" variant="outlined" size="large"
+                onClick={() => trackEvent('cta-click', { button: 'create-free-account', location: 'bottom-cta' })}
                 sx={{
                   borderColor: 'rgba(255,255,255,0.6)', color: 'white',
                   fontWeight: 700, textTransform: 'none', px: 4, borderRadius: 2,

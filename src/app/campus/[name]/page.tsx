@@ -216,7 +216,7 @@ export default function CampusPage({ params }: PageProps) {
             <Typography variant="h5" fontWeight="bold">
               Ready to find your perfect home at {universityData.acronym}?
             </Typography>
-            <Link href={`/browse?university=${universityName}`}>
+            <Link href={`/browse?university=${universityName}&source=campus-${slug}`}>
               <Button
                 variant="contained"
                 size="large"

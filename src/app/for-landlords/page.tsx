@@ -27,7 +27,7 @@ export default function ForLandlordsPage() {
           Cosy helps landlords move from listing to allocation and ongoing tenant communication with fewer manual steps.
         </p>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <Link href="/register?role=landlord" style={{ background: '#1565c0', color: 'white', fontWeight: 700, padding: '12px 18px', borderRadius: 10, textDecoration: 'none' }}>
+          <Link href="/register?role=landlord&source=for-landlords" style={{ background: '#1565c0', color: 'white', fontWeight: 700, padding: '12px 18px', borderRadius: 10, textDecoration: 'none' }}>
             Create Landlord Account
           </Link>
           <Link href="/landlord" style={{ border: '1px solid #c8d7e6', color: '#0f2237', fontWeight: 700, padding: '12px 18px', borderRadius: 10, textDecoration: 'none' }}>

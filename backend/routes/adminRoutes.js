@@ -23,6 +23,7 @@ const {
   deleteNotification,
 } = require('../controllers/notificationController');
 const { runReminderJobs } = require('../utils/runReminderJobs');
+const AnalyticsEvent = require('../models/AnalyticsEvent');
 
 // All routes require authentication
 router.use(protect);
@@ -61,6 +62,60 @@ router.get('/reports/property-health', getPropertyHealth);
 router.get('/reports/transport', getTransportOversight);
 router.get('/reports/maintenance', getMaintenanceOversight);
 router.get('/reports/collection', getCollectionReport);
+router.get('/reports/funnel-summary', async (req, res, next) => {
+  try {
+    const days = Math.max(1, Math.min(90, Number(req.query.days || 30)));
+    const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const rows = await AnalyticsEvent.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: from },
+          event: {
+            $in: [
+              'landing-page-load',
+              'browse-visit',
+              'listing-view',
+              'signup-attempt',
+              'signup-confirm',
+              'application-submit',
+            ],
+          },
+        },
+      },
+      { $group: { _id: '$event', count: { $sum: 1 } } },
+    ]);
+
+    const counts = rows.reduce((acc, row) => {
+      acc[row._id] = row.count;
+      return acc;
+    }, {
+      'landing-page-load': 0,
+      'browse-visit': 0,
+      'listing-view': 0,
+      'signup-attempt': 0,
+      'signup-confirm': 0,
+      'application-submit': 0,
+    });
+
+    const toPct = (num, den) => (den > 0 ? Number(((num / den) * 100).toFixed(2)) : 0);
+
+    return res.json({
+      success: true,
+      window: { days, from: from.toISOString(), to: new Date().toISOString() },
+      funnel: counts,
+      conversion: {
+        landingToBrowsePct: toPct(counts['browse-visit'], counts['landing-page-load']),
+        browseToListingPct: toPct(counts['listing-view'], counts['browse-visit']),
+        listingToSignupAttemptPct: toPct(counts['signup-attempt'], counts['listing-view']),
+        signupAttemptToConfirmPct: toPct(counts['signup-confirm'], counts['signup-attempt']),
+        signupConfirmToApplicationPct: toPct(counts['application-submit'], counts['signup-confirm']),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.post('/jobs/reminders/run', adminOnly, async (req, res, next) => {
   try {
