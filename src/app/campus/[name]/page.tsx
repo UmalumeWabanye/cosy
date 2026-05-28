@@ -1,19 +1,14 @@
-'use client';
-
-import { useEffect } from 'react';
 import Link from 'next/link';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
-import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
-import { trackEvent } from '@/utils/analytics';
+import { CampusBrowseButton, CampusPageViewTracker } from './CampusPageClientBits';
 
 // University metadata for 25+ South African universities
 const UNIVERSITIES_MAP: Record<string, { city: string; province: string; studentBase: number; acronym: string }> = {
@@ -49,13 +44,6 @@ export default function CampusPage({ params }: PageProps) {
   const universityData = UNIVERSITIES_MAP[slug];
   const universityName = slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
-  useEffect(() => {
-    trackEvent('campus-page-view', {
-      university: universityName,
-      city: universityData?.city,
-    });
-  }, [universityName, universityData?.city]);
-
   if (!universityData) {
     return (
       <Container maxWidth="lg" sx={{ py: 8 }}>
@@ -64,15 +52,9 @@ export default function CampusPage({ params }: PageProps) {
     );
   }
 
-  const handleBrowseClick = () => {
-    trackEvent('cta-click', {
-      button: 'browse-campus-listings',
-      university: universityName,
-    });
-  };
-
   return (
     <Box sx={{ minHeight: '100vh', bg: '#f5f7fa' }}>
+      <CampusPageViewTracker universityName={universityName} city={universityData.city} />
       {/* Hero Section */}
       <Box
         sx={{
@@ -83,8 +65,8 @@ export default function CampusPage({ params }: PageProps) {
         }}
       >
         <Container maxWidth="lg">
-          <Stack spacing={3} alignItems="center" textAlign="center">
-            <Typography variant="h3" fontWeight="bold">
+          <Stack spacing={3} sx={{ alignItems: 'center', textAlign: 'center' }}>
+            <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
               Student Housing at {universityName}
             </Typography>
             <Typography variant="h6" sx={{ opacity: 0.9 }}>
@@ -98,78 +80,97 @@ export default function CampusPage({ params }: PageProps) {
       <Container maxWidth="lg" sx={{ mb: 8 }}>
         {/* Local Housing Market Insights */}
         <Box sx={{ mb: 8 }}>
-          <Typography variant="h5" fontWeight="bold" sx={{ mb: 4 }}>
+          <Typography variant="h5" sx={{ mb: 4, fontWeight: 'bold' }}>
             Housing Market at {universityData.acronym}
           </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={3}>
+          <Box
+            sx={{
+              display: 'grid',
+              gap: 3,
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, minmax(0, 1fr))',
+                md: 'repeat(4, minmax(0, 1fr))',
+              },
+            }}
+          >
+            <Box>
               <Card>
                 <CardContent>
                   <Typography color="textSecondary" gutterBottom>
                     Average Monthly Rent
                   </Typography>
-                  <Typography variant="h5" fontWeight="bold">
+                  <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                     R{(3000 + Math.random() * 4000).toFixed(0)}
                   </Typography>
                 </CardContent>
               </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            </Box>
+            <Box>
               <Card>
                 <CardContent>
                   <Typography color="textSecondary" gutterBottom>
                     Active Listings
                   </Typography>
-                  <Typography variant="h5" fontWeight="bold">
+                  <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                     {(50 + Math.floor(Math.random() * 150))}+
                   </Typography>
                 </CardContent>
               </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            </Box>
+            <Box>
               <Card>
                 <CardContent>
                   <Typography color="textSecondary" gutterBottom>
                     NSFAS-Friendly
                   </Typography>
-                  <Typography variant="h5" fontWeight="bold">
+                  <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                     {(40 + Math.floor(Math.random() * 30))}%
                   </Typography>
                 </CardContent>
               </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            </Box>
+            <Box>
               <Card>
                 <CardContent>
                   <Typography color="textSecondary" gutterBottom>
                     Avg Review Score
                   </Typography>
-                  <Typography variant="h5" fontWeight="bold">
+                  <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                     4.{(2 + Math.floor(Math.random() * 8))}/5
                   </Typography>
                 </CardContent>
               </Card>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Box>
 
         {/* Why Choose Cosy for {University} */}
         <Box sx={{ mb: 8 }}>
-          <Typography variant="h5" fontWeight="bold" sx={{ mb: 4 }}>
+          <Typography variant="h5" sx={{ mb: 4, fontWeight: 'bold' }}>
             Why Choose Cosy for {universityData.acronym}
           </Typography>
-          <Grid container spacing={3}>
+          <Box
+            sx={{
+              display: 'grid',
+              gap: 3,
+              gridTemplateColumns: {
+                xs: '1fr',
+                md: 'repeat(2, minmax(0, 1fr))',
+              },
+            }}
+          >
             {[
               { title: 'Campus-Verified Landlords', description: 'All landlords verified and rated by students at this campus' },
               { title: 'Transparent Pricing', description: 'No hidden fees—all utilities and transport costs included upfront' },
               { title: 'NSFAS-Friendly Filters', description: 'Browse only NSFAS-accredited properties that accept government funding' },
               { title: 'Local Community', description: 'Connect with other {university} students in secure messaging' },
             ].map((item, idx) => (
-              <Grid item xs={12} md={6} key={idx}>
+              <Box key={idx}>
                 <Stack direction="row" spacing={2}>
                   <CheckCircleRoundedIcon sx={{ color: '#667eea', fontSize: 28, flexShrink: 0, mt: 0.5 }} />
                   <Stack>
-                    <Typography variant="subtitle1" fontWeight="bold">
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                       {item.title}
                     </Typography>
                     <Typography variant="body2" color="textSecondary">
@@ -177,19 +178,29 @@ export default function CampusPage({ params }: PageProps) {
                     </Typography>
                   </Stack>
                 </Stack>
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         </Box>
 
         {/* Popular Areas */}
         <Box sx={{ mb: 8 }}>
-          <Typography variant="h5" fontWeight="bold" sx={{ mb: 4 }}>
+          <Typography variant="h5" sx={{ mb: 4, fontWeight: 'bold' }}>
             Popular Areas in {universityData.city}
           </Typography>
-          <Grid container spacing={2}>
+          <Box
+            sx={{
+              display: 'grid',
+              gap: 2,
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, minmax(0, 1fr))',
+                md: 'repeat(3, minmax(0, 1fr))',
+              },
+            }}
+          >
             {['Campus area', 'City center', 'Waterfront', 'Business district', 'Student village', 'Nearby suburbs'].map((area) => (
-              <Grid item xs={12} sm={6} md={4} key={area}>
+              <Box key={area}>
                 <Link href={`/browse?city=${universityData.city}&area=${area}`} style={{ textDecoration: 'none' }}>
                   <Button
                     fullWidth
@@ -205,34 +216,22 @@ export default function CampusPage({ params }: PageProps) {
                     {area}
                   </Button>
                 </Link>
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         </Box>
 
         {/* Call-to-Action */}
         <Box sx={{ textAlign: 'center', mb: 8 }}>
-          <Stack spacing={2} alignItems="center">
-            <Typography variant="h5" fontWeight="bold">
+          <Stack spacing={2} sx={{ alignItems: 'center' }}>
+            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
               Ready to find your perfect home at {universityData.acronym}?
             </Typography>
-            <Link href={`/browse?university=${universityName}&source=campus-${slug}`}>
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={<SchoolRoundedIcon />}
-                onClick={handleBrowseClick}
-                sx={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  py: 1.5,
-                  px: 4,
-                  fontSize: '1.1rem',
-                  textTransform: 'none',
-                }}
-              >
-                Browse {universityData.acronym} Listings
-              </Button>
-            </Link>
+            <CampusBrowseButton
+              href={`/browse?university=${universityName}&source=campus-${slug}`}
+              universityName={universityName}
+              acronym={universityData.acronym}
+            />
           </Stack>
         </Box>
       </Container>
