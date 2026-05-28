@@ -123,6 +123,12 @@ const EMPTY_SESSION_TELEMETRY: QueueSessionTelemetry = {
 
 const SEVERITY_PRESETS = ['low', 'medium', 'high', 'critical'];
 const SCOPE_PRESETS = ['notifications', 'email', 'queue processing', 'admin ui'];
+const COMBINED_PRESETS: Array<{ label: string; severity: string; scope: string }> = [
+  { label: 'Critical Queue', severity: 'critical', scope: 'queue processing' },
+  { label: 'High Notifications', severity: 'high', scope: 'notifications' },
+  { label: 'High Email', severity: 'high', scope: 'email' },
+  { label: 'Medium Admin UI', severity: 'medium', scope: 'admin ui' },
+];
 
 type TelemetryExportFormat = 'json' | 'csv';
 
@@ -638,6 +644,12 @@ export default function AdminQueuePage() {
       return `${prev}\n${replacement}`;
     });
     showToast('Applied severity/scope helper to handoff draft.', 'info');
+  };
+
+  const applyCombinedPreset = (severity: string, scope: string) => {
+    setHandoffSeverity(severity);
+    setHandoffScope(scope);
+    showToast(`Applied preset: ${severity} + ${scope}.`, 'info');
   };
 
   const copyHandoffDraft = async () => {
@@ -1521,6 +1533,23 @@ export default function AdminQueuePage() {
                       variant={selected ? 'filled' : 'outlined'}
                       onClick={() => setHandoffScope(preset)}
                       sx={{ textTransform: 'capitalize' }}
+                    />
+                  );
+                })}
+              </Stack>
+              <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap' }}>
+                {COMBINED_PRESETS.map((preset) => {
+                  const selected = handoffSeverity.trim().toLowerCase() === preset.severity
+                    && handoffScope.trim().toLowerCase() === preset.scope;
+                  return (
+                    <Chip
+                      key={`${preset.severity}-${preset.scope}`}
+                      size="small"
+                      label={preset.label}
+                      clickable
+                      color={selected ? 'primary' : 'default'}
+                      variant={selected ? 'filled' : 'outlined'}
+                      onClick={() => applyCombinedPreset(preset.severity, preset.scope)}
                     />
                   );
                 })}
