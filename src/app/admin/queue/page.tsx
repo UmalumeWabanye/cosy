@@ -58,6 +58,14 @@ interface QueueJobDetail extends QueueJob {
   }>;
 }
 
+interface IncidentTimelineItem {
+  correlationId: string;
+  totalJobs: number;
+  failedJobs: number;
+  latestUpdateAt?: string;
+  latestCreatedAt?: string;
+}
+
 const statusColor = (status: QueueJob['status']) => {
   if (status === 'completed') return 'success';
   if (status === 'failed') return 'error';
@@ -77,9 +85,12 @@ export default function AdminQueuePage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [correlationFilter, setCorrelationFilter] = useState('');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [pagination, setPagination] = useState({ total: 0, pages: 1, currentPage: 1 });
+  const [timeline, setTimeline] = useState<IncidentTimelineItem[]>([]);
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -101,6 +112,8 @@ export default function AdminQueuePage() {
       if (statusFilter) params.set('status', statusFilter);
       if (typeFilter) params.set('type', typeFilter);
       if (correlationFilter.trim()) params.set('correlationId', correlationFilter.trim());
+      params.set('sortBy', sortBy);
+      params.set('sortDir', sortDir);
       params.set('page', String(page));
       params.set('limit', String(limit));
 
@@ -113,6 +126,9 @@ export default function AdminQueuePage() {
         currentPage: Number(res.data?.currentPage || page),
       });
       setSelectedIds((prev) => prev.filter((id) => list.some((item: QueueJob) => item._id === id)));
+
+      const timelineRes = await api.get('/admin/jobs/side-effects/timeline?limit=12');
+      setTimeline(Array.isArray(timelineRes.data?.data) ? timelineRes.data.data : []);
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Failed to load queue jobs');
     } finally {
@@ -125,7 +141,7 @@ export default function AdminQueuePage() {
       fetchJobs();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, user, page, limit, statusFilter, typeFilter]);
+  }, [isAuthenticated, user, page, limit, statusFilter, typeFilter, sortBy, sortDir]);
 
   const failedSelectedIds = useMemo(
     () => items.filter((item) => selectedIds.includes(item._id) && item.status === 'failed').map((item) => item._id),
@@ -173,6 +189,47 @@ export default function AdminQueuePage() {
     }
   };
 
+  const exportCsv = async () => {
+    try {
+      setActionBusy(true);
+      setError('');
+      const params = new URLSearchParams();
+      if (statusFilter) params.set('status', statusFilter);
+      if (typeFilter) params.set('type', typeFilter);
+      if (correlationFilter.trim()) params.set('correlationId', correlationFilter.trim());
+      params.set('sortBy', sortBy);
+      params.set('sortDir', sortDir);
+      params.set('page', String(page));
+      params.set('limit', String(limit));
+      params.set('format', 'csv');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/jobs/side-effects?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          'x-correlation-id': `web-${Date.now()}-csv`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to export CSV');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `queue-jobs-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e: any) {
+      setError(e?.message || 'Failed to export CSV');
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
   const requeueSelectedFailed = async () => {
     if (!failedSelectedIds.length) return;
     try {
@@ -202,6 +259,9 @@ export default function AdminQueuePage() {
           <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
             <Button size="small" variant="outlined" disabled={actionBusy} onClick={runQueueNow} sx={{ textTransform: 'none' }}>
               Run Queue Now
+            </Button>
+            <Button size="small" variant="outlined" disabled={actionBusy || loading} onClick={exportCsv} sx={{ textTransform: 'none' }}>
+              Export CSV
             </Button>
             <Button
               size="small"
@@ -252,7 +312,28 @@ export default function AdminQueuePage() {
               </Select>
             </FormControl>
           </Grid>
-          <Grid size={{ xs: 12, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Sort By</InputLabel>
+              <Select label="Sort By" value={sortBy} onChange={(e) => { setSortBy(String(e.target.value)); setPage(1); }}>
+                <MenuItem value="createdAt">Created</MenuItem>
+                <MenuItem value="updatedAt">Updated</MenuItem>
+                <MenuItem value="status">Status</MenuItem>
+                <MenuItem value="type">Type</MenuItem>
+                <MenuItem value="attempts">Attempts</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Sort Dir</InputLabel>
+              <Select label="Sort Dir" value={sortDir} onChange={(e) => { setSortDir((String(e.target.value) === 'asc' ? 'asc' : 'desc')); setPage(1); }}>
+                <MenuItem value="desc">Desc</MenuItem>
+                <MenuItem value="asc">Asc</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               size="small"
               fullWidth
@@ -343,6 +424,53 @@ export default function AdminQueuePage() {
                   />
                 </Stack>
               </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card variant="outlined" sx={{ mt: 2 }}>
+          <CardContent>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>Incident Timeline (By Correlation ID)</Typography>
+            {timeline.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">No correlation timeline data available.</Typography>
+            ) : (
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 700 }}>Correlation ID</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Jobs</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Failures</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Latest Update</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {timeline.map((entry) => (
+                    <TableRow key={entry.correlationId} hover>
+                      <TableCell>
+                        <Typography variant="caption" color="text.secondary">{entry.correlationId}</Typography>
+                      </TableCell>
+                      <TableCell>{entry.totalJobs}</TableCell>
+                      <TableCell>
+                        <Chip size="small" color={entry.failedJobs > 0 ? 'error' : 'default'} label={entry.failedJobs} />
+                      </TableCell>
+                      <TableCell>{entry.latestUpdateAt ? new Date(entry.latestUpdateAt).toLocaleString('en-ZA') : '-'}</TableCell>
+                      <TableCell>
+                        <Button
+                          size="small"
+                          sx={{ textTransform: 'none' }}
+                          onClick={() => {
+                            setCorrelationFilter(entry.correlationId);
+                            setPage(1);
+                          }}
+                        >
+                          Filter
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>

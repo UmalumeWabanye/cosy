@@ -169,8 +169,15 @@ router.get('/jobs/side-effects', adminOnly, async (req, res, next) => {
     const status = String(req.query.status || '').trim();
     const type = String(req.query.type || '').trim();
     const correlationId = String(req.query.correlationId || '').trim();
+    const format = String(req.query.format || '').trim().toLowerCase();
+    const sortBy = String(req.query.sortBy || 'createdAt').trim();
+    const sortDirRaw = String(req.query.sortDir || 'desc').trim().toLowerCase();
+    const sortDir = sortDirRaw === 'asc' ? 1 : -1;
     const page = Math.max(1, Number(req.query.page || 1));
     const limit = Math.max(1, Math.min(100, Number(req.query.limit || 20)));
+
+    const allowedSortBy = new Set(['createdAt', 'updatedAt', 'status', 'type', 'attempts']);
+    const sortField = allowedSortBy.has(sortBy) ? sortBy : 'createdAt';
 
     const query = {};
     if (status && ['pending', 'processing', 'completed', 'failed'].includes(status)) {
@@ -187,12 +194,44 @@ router.get('/jobs/side-effects', adminOnly, async (req, res, next) => {
     const [total, jobs] = await Promise.all([
       SideEffectJob.countDocuments(query),
       SideEffectJob.find(query)
-        .sort({ createdAt: -1 })
+        .sort({ [sortField]: sortDir, createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .select('type status attempts maxAttempts runAfter lastError correlationId lockedAt completedAt createdAt updatedAt')
         .lean(),
     ]);
+
+    if (format === 'csv') {
+      const escapeCsv = (value) => {
+        const str = value === null || value === undefined ? '' : String(value);
+        if (/[,"\n]/.test(str)) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      };
+
+      const headers = ['id', 'type', 'status', 'attempts', 'maxAttempts', 'correlationId', 'lastError', 'runAfter', 'createdAt', 'updatedAt'];
+      const lines = [headers.join(',')];
+
+      for (const job of jobs) {
+        lines.push([
+          escapeCsv(job._id),
+          escapeCsv(job.type),
+          escapeCsv(job.status),
+          escapeCsv(job.attempts),
+          escapeCsv(job.maxAttempts),
+          escapeCsv(job.correlationId || ''),
+          escapeCsv(job.lastError || ''),
+          escapeCsv(job.runAfter || ''),
+          escapeCsv(job.createdAt || ''),
+          escapeCsv(job.updatedAt || ''),
+        ].join(','));
+      }
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="queue-jobs-${Date.now()}.csv"`);
+      return res.status(200).send(lines.join('\n'));
+    }
 
     res.json({
       success: true,
@@ -201,6 +240,44 @@ router.get('/jobs/side-effects', adminOnly, async (req, res, next) => {
       pages: Math.ceil(total / limit),
       currentPage: page,
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/jobs/side-effects/timeline', adminOnly, async (req, res, next) => {
+  try {
+    const limit = Math.max(1, Math.min(50, Number(req.query.limit || 20)));
+    const rows = await SideEffectJob.aggregate([
+      {
+        $match: {
+          correlationId: { $exists: true, $ne: '' },
+        },
+      },
+      {
+        $group: {
+          _id: '$correlationId',
+          totalJobs: { $sum: 1 },
+          failedJobs: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'failed'] }, 1, 0],
+            },
+          },
+          latestUpdateAt: { $max: '$updatedAt' },
+          latestCreatedAt: { $max: '$createdAt' },
+        },
+      },
+      { $sort: { latestUpdateAt: -1 } },
+      { $limit: limit },
+    ]);
+
+    res.json({ success: true, data: rows.map((row) => ({
+      correlationId: row._id,
+      totalJobs: row.totalJobs,
+      failedJobs: row.failedJobs,
+      latestUpdateAt: row.latestUpdateAt,
+      latestCreatedAt: row.latestCreatedAt,
+    })) });
   } catch (error) {
     next(error);
   }
