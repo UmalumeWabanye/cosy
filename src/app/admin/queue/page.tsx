@@ -121,6 +121,8 @@ const EMPTY_SESSION_TELEMETRY: QueueSessionTelemetry = {
   manualRefreshes: 0,
 };
 
+type TelemetryExportFormat = 'json' | 'csv';
+
 export default function AdminQueuePage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -434,6 +436,79 @@ export default function AdminQueuePage() {
     showToast('Reset session telemetry counters.', 'info');
   };
 
+  const exportSessionTelemetry = (format: TelemetryExportFormat) => {
+    try {
+      const snapshot = {
+        exportedAt: new Date().toISOString(),
+        exportedAtLocal: new Date().toLocaleString('en-ZA'),
+        activeFlowCorrelationId: activeFlowCorrelationId || '',
+        lastRefreshedAt: lastRefreshedAt ? lastRefreshedAt.toISOString() : '',
+        lastAction,
+        counters: sessionTelemetry,
+      };
+
+      let content = '';
+      let mimeType = '';
+      let extension = '';
+
+      if (format === 'json') {
+        content = JSON.stringify(snapshot, null, 2);
+        mimeType = 'application/json; charset=utf-8';
+        extension = 'json';
+      } else {
+        const headers = [
+          'exportedAt',
+          'activeFlowCorrelationId',
+          'lastRefreshedAt',
+          'lastActionAt',
+          'lastActionSeverity',
+          'lastActionMessage',
+          'flowOpens',
+          'singleRequeues',
+          'bulkRequeues',
+          'manualRuns',
+          'manualRefreshes',
+        ];
+        const escapeCsv = (value: unknown) => {
+          const text = value === null || value === undefined ? '' : String(value);
+          if (/[,"\n]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+          return text;
+        };
+        const row = [
+          snapshot.exportedAt,
+          snapshot.activeFlowCorrelationId,
+          snapshot.lastRefreshedAt,
+          snapshot.lastAction?.at || '',
+          snapshot.lastAction?.severity || '',
+          snapshot.lastAction?.message || '',
+          snapshot.counters.flowOpens,
+          snapshot.counters.singleRequeues,
+          snapshot.counters.bulkRequeues,
+          snapshot.counters.manualRuns,
+          snapshot.counters.manualRefreshes,
+        ];
+
+        content = `${headers.join(',')}\n${row.map(escapeCsv).join(',')}`;
+        mimeType = 'text/csv; charset=utf-8';
+        extension = 'csv';
+      }
+
+      const blob = new Blob([content], { type: mimeType });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `queue-session-telemetry-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.${extension}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      showToast(`Exported session telemetry as ${format.toUpperCase()}.`, 'success');
+    } catch {
+      showToast(`Failed to export session telemetry as ${format.toUpperCase()}.`, 'error');
+    }
+  };
+
   const requeueFlowJob = async (jobId: string) => {
     if (!jobId || !activeFlowCorrelationId) return;
     try {
@@ -680,6 +755,12 @@ export default function AdminQueuePage() {
             </Button>
             <Button size="small" variant="text" disabled={actionBusy} onClick={resetSessionTelemetry} sx={{ textTransform: 'none' }}>
               Reset Session Counters
+            </Button>
+            <Button size="small" variant="text" disabled={actionBusy} onClick={() => exportSessionTelemetry('json')} sx={{ textTransform: 'none' }}>
+              Export Telemetry JSON
+            </Button>
+            <Button size="small" variant="text" disabled={actionBusy} onClick={() => exportSessionTelemetry('csv')} sx={{ textTransform: 'none' }}>
+              Export Telemetry CSV
             </Button>
           </Stack>
         </Stack>
