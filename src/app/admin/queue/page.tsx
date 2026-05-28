@@ -162,6 +162,8 @@ export default function AdminQueuePage() {
   const [bulkConfirmIds, setBulkConfirmIds] = useState<string[]>([]);
   const [handoffPreviewOpen, setHandoffPreviewOpen] = useState(false);
   const [handoffDraft, setHandoffDraft] = useState('');
+  const [handoffOwner, setHandoffOwner] = useState('');
+  const [handoffEta, setHandoffEta] = useState('');
   const [lastAction, setLastAction] = useState<{ message: string; severity: 'success' | 'error' | 'info'; at: string } | null>(null);
   const [sessionTelemetry, setSessionTelemetry] = useState<QueueSessionTelemetry>(EMPTY_SESSION_TELEMETRY);
   const [toast, setToast] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
@@ -592,7 +594,26 @@ export default function AdminQueuePage() {
   const copyIncidentHandoffTemplate = async () => {
     const template = buildIncidentHandoffTemplate();
     setHandoffDraft(template);
+    setHandoffOwner('');
+    setHandoffEta('');
     setHandoffPreviewOpen(true);
+  };
+
+  const applyOwnerEtaToDraft = () => {
+    const ownerValue = handoffOwner.trim() || '[owner]';
+    const etaValue = handoffEta.trim() || '[eta]';
+    const replacement = `- Owner: ${ownerValue} | ETA: ${etaValue} | Next step: [fill in immediate follow-ups]`;
+
+    setHandoffDraft((prev) => {
+      if (prev.includes('- [fill in immediate follow-ups and owner]')) {
+        return prev.replace('- [fill in immediate follow-ups and owner]', replacement);
+      }
+      if (/- Owner: .*\| ETA: .*\| Next step: .*$/m.test(prev)) {
+        return prev.replace(/- Owner: .*\| ETA: .*\| Next step: .*$/m, replacement);
+      }
+      return `${prev}\n${replacement}`;
+    });
+    showToast('Applied Owner/ETA helper to handoff draft.', 'info');
   };
 
   const copyHandoffDraft = async () => {
@@ -1394,6 +1415,32 @@ export default function AdminQueuePage() {
               <Typography variant="body2" color="text.secondary">
                 Review and edit before copying to Slack or incident updates.
               </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 1 }}>
+                <TextField
+                  size="small"
+                  label="Owner"
+                  placeholder="on-call name"
+                  fullWidth
+                  value={handoffOwner}
+                  onChange={(e) => setHandoffOwner(e.target.value)}
+                />
+                <TextField
+                  size="small"
+                  label="ETA"
+                  placeholder="e.g. 20m"
+                  fullWidth
+                  value={handoffEta}
+                  onChange={(e) => setHandoffEta(e.target.value)}
+                />
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={applyOwnerEtaToDraft}
+                  sx={{ textTransform: 'none', minWidth: { sm: 170 } }}
+                >
+                  Insert Owner/ETA
+                </Button>
+              </Stack>
               <TextField
                 multiline
                 minRows={14}
