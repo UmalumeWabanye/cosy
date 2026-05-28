@@ -70,6 +70,17 @@ interface QueueHealthPayload {
     stalled: number;
     oldestPendingSeconds: number;
   };
+  thresholds?: {
+    failureAlertThreshold?: number;
+    oldestPendingAlertSeconds?: number;
+    staleLockMs?: number;
+    completedRetentionDays?: number;
+  };
+  alerts?: Array<{
+    code: string;
+    severity: 'warning' | 'critical';
+    message: string;
+  }>;
   recentFailures: QueueFailureItem[];
 }
 
@@ -334,6 +345,16 @@ export default function AdminDashboardClientInner() {
 
                     {queueHealth ? (
                       <>
+                        {queueHealth.alerts && queueHealth.alerts.length > 0 ? (
+                          <Stack sx={{ mt: 1.5, gap: 1 }}>
+                            {queueHealth.alerts.map((alertItem) => (
+                              <Alert key={alertItem.code} severity={alertItem.severity === 'critical' ? 'error' : 'warning'}>
+                                {alertItem.message}
+                              </Alert>
+                            ))}
+                          </Stack>
+                        ) : null}
+
                         <Stack direction="row" sx={{ mt: 1.5, gap: 1, flexWrap: 'wrap' }}>
                           <Chip size="small" color="info" label={`Pending: ${queueHealth.queue.pending}`} />
                           <Chip size="small" color="primary" label={`Processing: ${queueHealth.queue.processing}`} />
@@ -342,6 +363,12 @@ export default function AdminDashboardClientInner() {
                           <Chip size="small" color={queueHealth.queue.stalled > 0 ? 'warning' : 'default'} label={`Stalled: ${queueHealth.queue.stalled}`} />
                           <Chip size="small" label={`Oldest pending: ${Math.round(queueHealth.queue.oldestPendingSeconds / 60)}m`} />
                         </Stack>
+
+                        {queueHealth.thresholds ? (
+                          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                            Thresholds: failed &gt;= {queueHealth.thresholds.failureAlertThreshold ?? '-'} · oldest pending &gt;= {queueHealth.thresholds.oldestPendingAlertSeconds ?? '-'}s · stale lock {Math.round((queueHealth.thresholds.staleLockMs || 0) / 60000)}m · retention {queueHealth.thresholds.completedRetentionDays ?? '-'}d
+                          </Typography>
+                        ) : null}
 
                         <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block', fontWeight: 600 }}>
                           Recent Failures

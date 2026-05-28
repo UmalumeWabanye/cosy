@@ -51,10 +51,32 @@ const sideEffectJobSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    expiresAt: {
+      type: Date,
+      default: null,
+      index: true,
+    },
+    history: {
+      type: [
+        {
+          at: { type: Date, default: Date.now },
+          action: {
+            type: String,
+            enum: ['created', 'locked', 'completed', 'failed', 'requeued', 'recovered_stale', 'cleanup_deleted'],
+            required: true,
+          },
+          status: { type: String, enum: ['pending', 'processing', 'completed', 'failed'] },
+          workerId: { type: String, default: '' },
+          detail: { type: String, default: '' },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 );
 
 sideEffectJobSchema.index({ status: 1, runAfter: 1, createdAt: 1 });
+sideEffectJobSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model('SideEffectJob', sideEffectJobSchema);
