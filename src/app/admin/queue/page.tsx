@@ -129,6 +129,7 @@ export default function AdminQueuePage() {
   const [flowStatusFilter, setFlowStatusFilter] = useState<'all' | 'failed' | 'processing' | 'completed' | 'pending'>('all');
   const [expandedFlowRows, setExpandedFlowRows] = useState<string[]>([]);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
+  const [requeueingFlowJobId, setRequeueingFlowJobId] = useState('');
 
   useEffect(() => {
     if (isLoading) return;
@@ -295,6 +296,11 @@ export default function AdminQueuePage() {
     }
   };
 
+  const loadIncidentFlow = useCallback(async (id: string) => {
+    const res = await api.get(`/admin/jobs/side-effects/timeline/${encodeURIComponent(id)}?limit=300`);
+    setFlowItems(Array.isArray(res.data?.data) ? res.data.data : []);
+  }, []);
+
   const openIncidentFlow = async (id: string) => {
     try {
       setFlowOpen(true);
@@ -302,13 +308,28 @@ export default function AdminQueuePage() {
       setFlowStatusFilter('all');
       setActiveFlowCorrelationId(id);
       setExpandedFlowRows([]);
-      const res = await api.get(`/admin/jobs/side-effects/timeline/${encodeURIComponent(id)}?limit=300`);
-      setFlowItems(Array.isArray(res.data?.data) ? res.data.data : []);
+      await loadIncidentFlow(id);
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Failed to load incident flow');
       setFlowOpen(false);
     } finally {
       setFlowLoading(false);
+    }
+  };
+
+  const requeueFlowJob = async (jobId: string) => {
+    if (!jobId || !activeFlowCorrelationId) return;
+    try {
+      setRequeueingFlowJobId(jobId);
+      setActionBusy(true);
+      setError('');
+      await api.post('/admin/jobs/side-effects/requeue-selected', { ids: [jobId] });
+      await Promise.all([fetchJobs(), loadIncidentFlow(activeFlowCorrelationId)]);
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Failed to requeue flow job');
+    } finally {
+      setRequeueingFlowJobId('');
+      setActionBusy(false);
     }
   };
 
@@ -853,6 +874,7 @@ export default function AdminQueuePage() {
                     <TableCell sx={{ fontWeight: 700 }}>Attempts</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Last Error</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>History</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Action</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -878,10 +900,26 @@ export default function AdminQueuePage() {
                             {isExpanded ? 'Hide' : 'Show'}
                           </Button>
                         </TableCell>
+                        <TableCell>
+                          {item.status === 'failed' && item._id ? (
+                            <Button
+                              size="small"
+                              color="warning"
+                              variant="outlined"
+                              disabled={actionBusy && requeueingFlowJobId === item._id}
+                              onClick={() => requeueFlowJob(item._id as string)}
+                              sx={{ textTransform: 'none' }}
+                            >
+                              {actionBusy && requeueingFlowJobId === item._id ? 'Requeueing...' : 'Requeue'}
+                            </Button>
+                          ) : (
+                            <Typography variant="caption" color="text.secondary">-</Typography>
+                          )}
+                        </TableCell>
                       </TableRow>
                       {isExpanded ? (
                         <TableRow>
-                          <TableCell colSpan={6}>
+                          <TableCell colSpan={7}>
                             <Box sx={{ maxHeight: 180, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1 }}>
                               {Array.isArray(item.history) && item.history.length > 0 ? item.history.slice().reverse().map((entry, historyIndex) => (
                                 <Box key={`${entry.at || 'na'}-${historyIndex}`} sx={{ py: 0.5 }}>
