@@ -333,6 +333,61 @@ const requeueFailedJobs = async ({ id, limit = 100 } = {}) => {
   };
 };
 
+const requeueFailedJobsByIds = async ({ ids = [] } = {}) => {
+  const normalizedIds = Array.isArray(ids)
+    ? ids.map((value) => String(value || '').trim()).filter(Boolean)
+    : [];
+
+  if (!normalizedIds.length) {
+    return { matched: 0, requeued: 0 };
+  }
+
+  const jobs = await SideEffectJob.find({
+    _id: { $in: normalizedIds },
+    status: 'failed',
+  })
+    .select('_id history')
+    .lean();
+
+  if (!jobs.length) {
+    return { matched: 0, requeued: 0 };
+  }
+
+  const idsToUpdate = jobs.map((job) => job._id);
+  const result = await SideEffectJob.updateMany(
+    { _id: { $in: idsToUpdate } },
+    {
+      $set: {
+        status: 'pending',
+        runAfter: new Date(),
+        lastError: '',
+        lockedAt: null,
+      },
+      $unset: { completedAt: '', expiresAt: '' },
+    }
+  );
+
+  for (const job of jobs) {
+    await SideEffectJob.updateOne(
+      { _id: job._id },
+      {
+        $set: {
+          history: appendHistory(job.history, {
+            action: 'requeued',
+            status: 'pending',
+            detail: 'failed job requeued from selected list',
+          }),
+        },
+      }
+    );
+  }
+
+  return {
+    matched: idsToUpdate.length,
+    requeued: Number(result.modifiedCount || 0),
+  };
+};
+
 module.exports = {
   enqueueEmailJob,
   enqueueNotificationJob,
@@ -340,4 +395,5 @@ module.exports = {
   processSideEffectQueue,
   recoverStaleProcessingJobs,
   requeueFailedJobs,
+  requeueFailedJobsByIds,
 };

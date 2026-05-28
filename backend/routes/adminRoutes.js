@@ -24,10 +24,12 @@ const {
 } = require('../controllers/notificationController');
 const { runReminderJobs } = require('../utils/runReminderJobs');
 const AnalyticsEvent = require('../models/AnalyticsEvent');
+const SideEffectJob = require('../models/SideEffectJob');
 const {
   getQueueHealth,
   processSideEffectQueue,
   requeueFailedJobs,
+  requeueFailedJobsByIds,
 } = require('../utils/sideEffectQueue');
 
 // All routes require authentication
@@ -156,6 +158,70 @@ router.post('/jobs/side-effects/requeue-failed', adminOnly, async (req, res, nex
     const { id } = req.body || {};
     const limit = Math.max(1, Math.min(500, Number(req.body?.limit || 100)));
     const result = await requeueFailedJobs({ id, limit });
+    res.json({ success: true, result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/jobs/side-effects', adminOnly, async (req, res, next) => {
+  try {
+    const status = String(req.query.status || '').trim();
+    const type = String(req.query.type || '').trim();
+    const correlationId = String(req.query.correlationId || '').trim();
+    const page = Math.max(1, Number(req.query.page || 1));
+    const limit = Math.max(1, Math.min(100, Number(req.query.limit || 20)));
+
+    const query = {};
+    if (status && ['pending', 'processing', 'completed', 'failed'].includes(status)) {
+      query.status = status;
+    }
+    if (type && ['email', 'notification'].includes(type)) {
+      query.type = type;
+    }
+    if (correlationId) {
+      query.correlationId = new RegExp(correlationId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    }
+
+    const skip = (page - 1) * limit;
+    const [total, jobs] = await Promise.all([
+      SideEffectJob.countDocuments(query),
+      SideEffectJob.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .select('type status attempts maxAttempts runAfter lastError correlationId lockedAt completedAt createdAt updatedAt')
+        .lean(),
+    ]);
+
+    res.json({
+      success: true,
+      data: jobs,
+      total,
+      pages: Math.ceil(total / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/jobs/side-effects/:id', adminOnly, async (req, res, next) => {
+  try {
+    const job = await SideEffectJob.findById(req.params.id).lean();
+    if (!job) {
+      return res.status(404).json({ message: 'Queue job not found' });
+    }
+    return res.json({ success: true, data: job });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/jobs/side-effects/requeue-selected', adminOnly, async (req, res, next) => {
+  try {
+    const ids = Array.isArray(req.body?.ids) ? req.body.ids : [];
+    const result = await requeueFailedJobsByIds({ ids });
     res.json({ success: true, result });
   } catch (error) {
     next(error);

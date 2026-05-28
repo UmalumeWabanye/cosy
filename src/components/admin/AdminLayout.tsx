@@ -41,6 +41,7 @@ import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
 import AltRouteRoundedIcon from '@mui/icons-material/AltRouteRounded';
 import BuildRoundedIcon from '@mui/icons-material/BuildRounded';
 import FactCheckRoundedIcon from '@mui/icons-material/FactCheckRounded';
+import StorageRoundedIcon from '@mui/icons-material/StorageRounded';
 import Collapse from '@mui/material/Collapse';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
@@ -64,6 +65,7 @@ function getBreadcrumb(pathname: string): string[] {
   if (pathname.startsWith('/admin/profile')) return ['Admin', 'Profile'];
   if (pathname.startsWith('/admin/users')) return ['Admin', 'Users'];
   if (pathname.startsWith('/admin/notifications')) return ['Admin', 'Notifications'];
+  if (pathname.startsWith('/admin/queue')) return ['Admin', 'Queue Jobs'];
   if (pathname.startsWith('/admin/reports/analytics')) return ['Admin', 'Reports', 'Analytics'];
   if (pathname.startsWith('/admin/reports/property-health')) return ['Admin', 'Reports', 'Property Health'];
   if (pathname.startsWith('/admin/reports/transport')) return ['Admin', 'Reports', 'Transport Oversight'];
@@ -240,6 +242,7 @@ const NAV_ITEMS = [
   { label: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/admin/dashboard' },
   { label: 'Users', icon: <PeopleRoundedIcon />, path: '/admin/users' },
   { label: 'Notifications', icon: <NotificationsRoundedIcon />, path: '/admin/notifications' },
+  { label: 'Queue Jobs', icon: <StorageRoundedIcon />, path: '/admin/queue' },
 ];
 
 const REPORT_SUB_ITEMS = [

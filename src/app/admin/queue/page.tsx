@@ -1,0 +1,389 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import api from '@/services/api';
+import AdminLayout from '@/components/admin/AdminLayout';
+
+import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Checkbox from '@mui/material/Checkbox';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import FormControl from '@mui/material/FormControl';
+import Grid from '@mui/material/Grid';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Pagination from '@mui/material/Pagination';
+import Select from '@mui/material/Select';
+import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+
+interface QueueJob {
+  _id: string;
+  type: 'email' | 'notification';
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  attempts: number;
+  maxAttempts: number;
+  runAfter?: string;
+  lastError?: string;
+  correlationId?: string;
+  lockedAt?: string | null;
+  completedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface QueueJobDetail extends QueueJob {
+  payload?: Record<string, unknown>;
+  history?: Array<{
+    at?: string;
+    action?: string;
+    status?: string;
+    workerId?: string;
+    detail?: string;
+  }>;
+}
+
+const statusColor = (status: QueueJob['status']) => {
+  if (status === 'completed') return 'success';
+  if (status === 'failed') return 'error';
+  if (status === 'processing') return 'info';
+  return 'default';
+};
+
+export default function AdminQueuePage() {
+  const router = useRouter();
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  const [items, setItems] = useState<QueueJob[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [actionBusy, setActionBusy] = useState(false);
+
+  const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [correlationFilter, setCorrelationFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState({ total: 0, pages: 1, currentPage: 1 });
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detail, setDetail] = useState<QueueJobDetail | null>(null);
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (!isAuthenticated || user?.role !== 'admin') {
+      router.push('/');
+    }
+  }, [isLoading, isAuthenticated, user, router]);
+
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const params = new URLSearchParams();
+      if (statusFilter) params.set('status', statusFilter);
+      if (typeFilter) params.set('type', typeFilter);
+      if (correlationFilter.trim()) params.set('correlationId', correlationFilter.trim());
+      params.set('page', String(page));
+      params.set('limit', String(limit));
+
+      const res = await api.get(`/admin/jobs/side-effects?${params.toString()}`);
+      const list = Array.isArray(res.data?.data) ? res.data.data : [];
+      setItems(list);
+      setPagination({
+        total: Number(res.data?.total || 0),
+        pages: Math.max(1, Number(res.data?.pages || 1)),
+        currentPage: Number(res.data?.currentPage || page),
+      });
+      setSelectedIds((prev) => prev.filter((id) => list.some((item: QueueJob) => item._id === id)));
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Failed to load queue jobs');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'admin') {
+      fetchJobs();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user, page, limit, statusFilter, typeFilter]);
+
+  const failedSelectedIds = useMemo(
+    () => items.filter((item) => selectedIds.includes(item._id) && item.status === 'failed').map((item) => item._id),
+    [items, selectedIds]
+  );
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
+  };
+
+  const toggleSelectAllVisible = () => {
+    const visibleIds = items.map((item) => item._id);
+    const allSelected = visibleIds.every((id) => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !visibleIds.includes(id)));
+    } else {
+      setSelectedIds((prev) => Array.from(new Set([...prev, ...visibleIds])));
+    }
+  };
+
+  const openDetails = async (id: string) => {
+    try {
+      setDetailOpen(true);
+      setDetailLoading(true);
+      setDetail(null);
+      const res = await api.get(`/admin/jobs/side-effects/${id}`);
+      setDetail(res.data?.data || null);
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Failed to load queue job details');
+      setDetailOpen(false);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const runQueueNow = async () => {
+    try {
+      setActionBusy(true);
+      await api.post('/admin/jobs/side-effects/run', { batchSize: 100 });
+      await fetchJobs();
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Failed to run queue');
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const requeueSelectedFailed = async () => {
+    if (!failedSelectedIds.length) return;
+    try {
+      setActionBusy(true);
+      await api.post('/admin/jobs/side-effects/requeue-selected', { ids: failedSelectedIds });
+      await fetchJobs();
+      setSelectedIds([]);
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Failed to requeue selected jobs');
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  if (isLoading) return null;
+
+  return (
+    <AdminLayout>
+      <Box sx={{ p: { xs: 2, md: 4 } }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 2, gap: 1 }}>
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>Queue Jobs</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Inspect side-effect jobs, review failures, and requeue selected items.
+            </Typography>
+          </Box>
+          <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+            <Button size="small" variant="outlined" disabled={actionBusy} onClick={runQueueNow} sx={{ textTransform: 'none' }}>
+              Run Queue Now
+            </Button>
+            <Button
+              size="small"
+              variant="contained"
+              color="warning"
+              disabled={actionBusy || failedSelectedIds.length === 0}
+              onClick={requeueSelectedFailed}
+              sx={{ textTransform: 'none' }}
+            >
+              Requeue Selected Failed ({failedSelectedIds.length})
+            </Button>
+            <Button size="small" variant="text" disabled={actionBusy || loading} onClick={fetchJobs} sx={{ textTransform: 'none' }}>
+              Refresh
+            </Button>
+          </Stack>
+        </Stack>
+
+        {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
+
+        <Grid container spacing={1.5} sx={{ mb: 2 }}>
+          <Grid size={{ xs: 12, sm: 4, md: 3 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Status</InputLabel>
+              <Select label="Status" value={statusFilter} onChange={(e) => { setStatusFilter(String(e.target.value)); setPage(1); }}>
+                <MenuItem value="">All</MenuItem>
+                <MenuItem value="pending">Pending</MenuItem>
+                <MenuItem value="processing">Processing</MenuItem>
+                <MenuItem value="completed">Completed</MenuItem>
+                <MenuItem value="failed">Failed</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 4, md: 3 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Type</InputLabel>
+              <Select label="Type" value={typeFilter} onChange={(e) => { setTypeFilter(String(e.target.value)); setPage(1); }}>
+                <MenuItem value="">All</MenuItem>
+                <MenuItem value="email">Email</MenuItem>
+                <MenuItem value="notification">Notification</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 4, md: 3 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Page Size</InputLabel>
+              <Select label="Page Size" value={String(limit)} onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}>
+                {[10, 20, 50, 100].map((n) => <MenuItem key={n} value={String(n)}>{n}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid size={{ xs: 12, md: 3 }}>
+            <TextField
+              size="small"
+              fullWidth
+              label="Correlation ID"
+              value={correlationFilter}
+              onChange={(e) => setCorrelationFilter(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setPage(1);
+                  fetchJobs();
+                }
+              }}
+            />
+          </Grid>
+        </Grid>
+
+        <Card variant="outlined">
+          <CardContent sx={{ p: 0 }}>
+            {loading ? (
+              <Box sx={{ py: 8, display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>
+            ) : (
+              <>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          size="small"
+                          checked={items.length > 0 && items.every((item) => selectedIds.includes(item._id))}
+                          indeterminate={items.some((item) => selectedIds.includes(item._id)) && !items.every((item) => selectedIds.includes(item._id))}
+                          onChange={toggleSelectAllVisible}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Type</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Attempts</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Correlation</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Updated</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {items.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7}>
+                          <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+                            No queue jobs found for current filters.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : items.map((item) => (
+                      <TableRow key={item._id} hover>
+                        <TableCell padding="checkbox">
+                          <Checkbox size="small" checked={selectedIds.includes(item._id)} onChange={() => toggleSelect(item._id)} />
+                        </TableCell>
+                        <TableCell>
+                          <Chip size="small" label={item.type} sx={{ textTransform: 'capitalize' }} />
+                        </TableCell>
+                        <TableCell>
+                          <Chip size="small" color={statusColor(item.status)} label={item.status} sx={{ textTransform: 'capitalize' }} />
+                        </TableCell>
+                        <TableCell>{item.attempts}/{item.maxAttempts}</TableCell>
+                        <TableCell>
+                          <Typography variant="caption" color="text.secondary">
+                            {item.correlationId || '-'}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>{new Date(item.updatedAt).toLocaleString('en-ZA')}</TableCell>
+                        <TableCell>
+                          <Button size="small" onClick={() => openDetails(item._id)} sx={{ textTransform: 'none' }}>
+                            Details
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', p: 1.5 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Total jobs: {pagination.total}
+                  </Typography>
+                  <Pagination
+                    page={pagination.currentPage}
+                    count={Math.max(1, pagination.pages)}
+                    onChange={(_, value) => setPage(value)}
+                    size="small"
+                  />
+                </Stack>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Dialog open={detailOpen} onClose={() => setDetailOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle>Queue Job Details</DialogTitle>
+          <DialogContent dividers>
+            {detailLoading ? (
+              <Box sx={{ py: 5, display: 'flex', justifyContent: 'center' }}><CircularProgress size={24} /></Box>
+            ) : !detail ? (
+              <Typography variant="body2" color="text.secondary">No details available.</Typography>
+            ) : (
+              <Stack sx={{ gap: 1.25 }}>
+                <Typography variant="body2"><strong>ID:</strong> {detail._id}</Typography>
+                <Typography variant="body2"><strong>Type:</strong> {detail.type}</Typography>
+                <Typography variant="body2"><strong>Status:</strong> {detail.status}</Typography>
+                <Typography variant="body2"><strong>Attempts:</strong> {detail.attempts}/{detail.maxAttempts}</Typography>
+                <Typography variant="body2"><strong>Correlation:</strong> {detail.correlationId || '-'}</Typography>
+                <Typography variant="body2"><strong>Last Error:</strong> {detail.lastError || '-'}</Typography>
+
+                <Typography variant="subtitle2" sx={{ mt: 1 }}>History</Typography>
+                <Box sx={{ maxHeight: 220, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1 }}>
+                  {Array.isArray(detail.history) && detail.history.length > 0 ? detail.history.slice().reverse().map((entry, index) => (
+                    <Box key={`${entry.at || 'na'}-${index}`} sx={{ py: 0.5 }}>
+                      <Typography variant="caption" sx={{ display: 'block' }}>
+                        {entry.at ? new Date(entry.at).toLocaleString('en-ZA') : '-'} · {entry.action || 'event'} · {entry.status || '-'} {entry.workerId ? `· ${entry.workerId}` : ''}
+                      </Typography>
+                      {entry.detail ? <Typography variant="caption" color="text.secondary">{entry.detail}</Typography> : null}
+                    </Box>
+                  )) : <Typography variant="caption" color="text.secondary">No history entries.</Typography>}
+                </Box>
+
+                <Typography variant="subtitle2" sx={{ mt: 1 }}>Payload Preview</Typography>
+                <Box sx={{ maxHeight: 220, overflowY: 'auto', bgcolor: '#0b1020', color: '#e6edf3', borderRadius: 1, p: 1.25, fontFamily: 'monospace', fontSize: 12 }}>
+                  <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{JSON.stringify(detail.payload || {}, null, 2)}</pre>
+                </Box>
+              </Stack>
+            )}
+          </DialogContent>
+        </Dialog>
+      </Box>
+    </AdminLayout>
+  );
+}
