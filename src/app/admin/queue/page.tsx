@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/services/api';
@@ -123,6 +124,8 @@ export default function AdminQueuePage() {
   const [flowLoading, setFlowLoading] = useState(false);
   const [activeFlowCorrelationId, setActiveFlowCorrelationId] = useState('');
   const [flowItems, setFlowItems] = useState<IncidentFlowJob[]>([]);
+  const [expandedFlowRows, setExpandedFlowRows] = useState<string[]>([]);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
@@ -156,6 +159,7 @@ export default function AdminQueuePage() {
 
       const timelineRes = await api.get('/admin/jobs/side-effects/timeline?limit=12');
       setTimeline(Array.isArray(timelineRes.data?.data) ? timelineRes.data.data : []);
+      setLastRefreshedAt(new Date());
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Failed to load queue jobs');
     } finally {
@@ -220,6 +224,7 @@ export default function AdminQueuePage() {
       setFlowOpen(true);
       setFlowLoading(true);
       setActiveFlowCorrelationId(id);
+      setExpandedFlowRows([]);
       const res = await api.get(`/admin/jobs/side-effects/timeline/${encodeURIComponent(id)}?limit=300`);
       setFlowItems(Array.isArray(res.data?.data) ? res.data.data : []);
     } catch (e: any) {
@@ -338,6 +343,10 @@ export default function AdminQueuePage() {
     }
   };
 
+  const toggleFlowRow = (rowKey: string) => {
+    setExpandedFlowRows((prev) => (prev.includes(rowKey) ? prev.filter((key) => key !== rowKey) : [...prev, rowKey]));
+  };
+
   useEffect(() => {
     if (!autoRefresh || !isAuthenticated || user?.role !== 'admin') return;
     const interval = Math.max(10, autoRefreshSeconds) * 1000;
@@ -407,6 +416,9 @@ export default function AdminQueuePage() {
           </FormControl>
           <Typography variant="caption" color="text.secondary">
             Auto-refresh polls safely and skips while admin actions are running.
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Last refreshed: {lastRefreshedAt ? lastRefreshedAt.toLocaleString('en-ZA') : '-'}
           </Typography>
         </Stack>
 
@@ -700,20 +712,51 @@ export default function AdminQueuePage() {
                     <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Attempts</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Last Error</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>History</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {flowItems.map((item, idx) => (
-                    <TableRow key={`${item._id || 'flow'}-${idx}`} hover>
-                      <TableCell>{item.createdAt ? new Date(item.createdAt).toLocaleString('en-ZA') : '-'}</TableCell>
-                      <TableCell><Chip size="small" label={item.type || 'unknown'} sx={{ textTransform: 'capitalize' }} /></TableCell>
-                      <TableCell><Chip size="small" color={statusColor((item.status || 'pending') as QueueJob['status'])} label={item.status || 'pending'} sx={{ textTransform: 'capitalize' }} /></TableCell>
-                      <TableCell>{item.attempts || 0}/{item.maxAttempts || 0}</TableCell>
-                      <TableCell>
-                        <Typography variant="caption" color="text.secondary">{item.lastError || '-'}</Typography>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {flowItems.map((item, idx) => {
+                    const rowKey = `${item._id || 'flow'}-${idx}`;
+                    const isExpanded = expandedFlowRows.includes(rowKey);
+                    return (
+                    <Fragment key={rowKey}>
+                      <TableRow hover>
+                        <TableCell>{item.createdAt ? new Date(item.createdAt).toLocaleString('en-ZA') : '-'}</TableCell>
+                        <TableCell><Chip size="small" label={item.type || 'unknown'} sx={{ textTransform: 'capitalize' }} /></TableCell>
+                        <TableCell><Chip size="small" color={statusColor((item.status || 'pending') as QueueJob['status'])} label={item.status || 'pending'} sx={{ textTransform: 'capitalize' }} /></TableCell>
+                        <TableCell>{item.attempts || 0}/{item.maxAttempts || 0}</TableCell>
+                        <TableCell>
+                          <Typography variant="caption" color="text.secondary">{item.lastError || '-'}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="small"
+                            sx={{ textTransform: 'none' }}
+                            onClick={() => toggleFlowRow(rowKey)}
+                          >
+                            {isExpanded ? 'Hide' : 'Show'}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                      {isExpanded ? (
+                        <TableRow>
+                          <TableCell colSpan={6}>
+                            <Box sx={{ maxHeight: 180, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1 }}>
+                              {Array.isArray(item.history) && item.history.length > 0 ? item.history.slice().reverse().map((entry, historyIndex) => (
+                                <Box key={`${entry.at || 'na'}-${historyIndex}`} sx={{ py: 0.5 }}>
+                                  <Typography variant="caption" sx={{ display: 'block' }}>
+                                    {entry.at ? new Date(entry.at).toLocaleString('en-ZA') : '-'} · {entry.action || 'event'} · {entry.status || '-'} {entry.workerId ? `· ${entry.workerId}` : ''}
+                                  </Typography>
+                                  {entry.detail ? <Typography variant="caption" color="text.secondary">{entry.detail}</Typography> : null}
+                                </Box>
+                              )) : <Typography variant="caption" color="text.secondary">No history entries.</Typography>}
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ) : null}
+                    </Fragment>
+                  );})}
                 </TableBody>
               </Table>
             )}
