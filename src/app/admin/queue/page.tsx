@@ -544,6 +544,73 @@ export default function AdminQueuePage() {
     }
   };
 
+  const copyIncidentHandoffTemplate = async () => {
+    const topFailing = timeline
+      .filter((entry) => entry.failedJobs > 0)
+      .sort((a, b) => {
+        if (b.failedJobs !== a.failedJobs) return b.failedJobs - a.failedJobs;
+        const aTs = new Date(a.latestUpdateAt || a.latestCreatedAt || 0).getTime();
+        const bTs = new Date(b.latestUpdateAt || b.latestCreatedAt || 0).getTime();
+        return bTs - aTs;
+      })
+      .slice(0, 3);
+
+    const topFailingBlock = topFailing.length
+      ? topFailing.map((entry, index) => (
+        `${index + 1}. ${entry.correlationId} (failed=${entry.failedJobs}, jobs=${entry.totalJobs}, latest=${entry.latestUpdateAt ? new Date(entry.latestUpdateAt).toLocaleString('en-ZA') : '-'})`
+      )).join('\n')
+      : '1. None';
+
+    const templateLines = [
+      'Incident Handoff Template',
+      `Generated: ${new Date().toLocaleString('en-ZA')}`,
+      `Queue Last Refreshed: ${lastRefreshedAt ? lastRefreshedAt.toLocaleString('en-ZA') : '-'}`,
+      `Active Correlation Flow: ${activeFlowCorrelationId || '-'}`,
+      '',
+      'Current Queue Operations Snapshot',
+      `- Last Action: ${lastAction ? `${lastAction.severity.toUpperCase()} @ ${lastAction.at} - ${lastAction.message}` : '-'}`,
+      `- Session Counters: flowOpens=${sessionTelemetry.flowOpens}, singleRequeues=${sessionTelemetry.singleRequeues}, bulkRequeues=${sessionTelemetry.bulkRequeues}, manualRuns=${sessionTelemetry.manualRuns}, manualRefreshes=${sessionTelemetry.manualRefreshes}`,
+      '',
+      'Top Failing Correlations',
+      topFailingBlock,
+      '',
+      'Actions Taken',
+      '- [fill in actions performed]',
+      '',
+      'Risk / Impact',
+      '- [fill in affected scope and severity]',
+      '',
+      'Next Actions',
+      '- [fill in immediate follow-ups and owner]',
+    ];
+
+    const template = templateLines.join('\n');
+
+    try {
+      await navigator.clipboard.writeText(template);
+      showToast('Copied incident handoff template to clipboard.', 'success');
+    } catch {
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = template;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        if (ok) {
+          showToast('Copied incident handoff template to clipboard.', 'success');
+        } else {
+          showToast('Failed to copy incident handoff template.', 'error');
+        }
+      } catch {
+        showToast('Failed to copy incident handoff template.', 'error');
+      }
+    }
+  };
+
   const requeueFlowJob = async (jobId: string) => {
     if (!jobId || !activeFlowCorrelationId) return;
     try {
@@ -799,6 +866,9 @@ export default function AdminQueuePage() {
             </Button>
             <Button size="small" variant="text" disabled={actionBusy} onClick={copyTelemetrySummary} sx={{ textTransform: 'none' }}>
               Copy Telemetry Summary
+            </Button>
+            <Button size="small" variant="text" disabled={actionBusy} onClick={copyIncidentHandoffTemplate} sx={{ textTransform: 'none' }}>
+              Copy Incident Handoff
             </Button>
           </Stack>
         </Stack>
