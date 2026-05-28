@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const connectDB = require('../config/db');
 const errorHandler = require('../middleware/errorHandler');
 const correlationId = require('../middleware/correlationId');
+const { getQueueHealth } = require('../utils/sideEffectQueue');
 
 // Route imports
 const authRoutes = require('../routes/authRoutes');
@@ -58,8 +59,24 @@ app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/api/health', async (req, res) => {
+  const queueEnabled = process.env.ENABLE_SIDE_EFFECT_QUEUE !== 'false';
+  let queue = null;
+
+  if (queueEnabled) {
+    try {
+      const health = await getQueueHealth({ failedSampleLimit: 3 });
+      queue = health.queue;
+    } catch (error) {
+      queue = { status: 'unavailable', message: error?.message || 'queue health unavailable' };
+    }
+  }
+
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    queue,
+  });
 });
 
 // Routes

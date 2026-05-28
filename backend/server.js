@@ -21,7 +21,7 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const { runReminderJobs } = require('./utils/runReminderJobs');
-const { processSideEffectQueue } = require('./utils/sideEffectQueue');
+const { getQueueHealth, processSideEffectQueue } = require('./utils/sideEffectQueue');
 
 // Connect to MongoDB
 connectDB();
@@ -97,8 +97,24 @@ app.get('/', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/api/health', async (req, res) => {
+  const queueEnabled = process.env.ENABLE_SIDE_EFFECT_QUEUE !== 'false';
+  let queue = null;
+
+  if (queueEnabled) {
+    try {
+      const health = await getQueueHealth({ failedSampleLimit: 3 });
+      queue = health.queue;
+    } catch (error) {
+      queue = { status: 'unavailable', message: error?.message || 'queue health unavailable' };
+    }
+  }
+
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    queue,
+  });
 });
 
 app.use('/api/auth', authRoutes);

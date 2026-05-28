@@ -4,6 +4,8 @@ const sendEventEmail = require('./sendEventEmail');
 
 let isProcessing = false;
 
+const STALE_LOCK_MS = 10 * 60 * 1000;
+
 const enqueueNotificationJob = async ({ payload, correlationId = '' }) => {
   if (!payload) return null;
   return SideEffectJob.create({
@@ -59,6 +61,25 @@ const lockNextJob = async (workerId) => {
   ).lean();
 };
 
+const recoverStaleProcessingJobs = async ({ staleAfterMs = STALE_LOCK_MS } = {}) => {
+  const cutoff = new Date(Date.now() - Math.max(60 * 1000, Number(staleAfterMs) || STALE_LOCK_MS));
+  const result = await SideEffectJob.updateMany(
+    {
+      status: 'processing',
+      lockedAt: { $lte: cutoff },
+    },
+    {
+      $set: {
+        status: 'pending',
+        runAfter: new Date(),
+        lockedAt: null,
+      },
+    }
+  );
+
+  return Number(result.modifiedCount || 0);
+};
+
 const processSideEffectQueue = async ({ batchSize = 20, workerId = 'main' } = {}) => {
   if (isProcessing) {
     return { skipped: true, reason: 'already_processing' };
@@ -67,8 +88,11 @@ const processSideEffectQueue = async ({ batchSize = 20, workerId = 'main' } = {}
   isProcessing = true;
   let processed = 0;
   let failed = 0;
+  let recoveredStale = 0;
 
   try {
+    recoveredStale = await recoverStaleProcessingJobs();
+
     for (let i = 0; i < batchSize; i += 1) {
       const job = await lockNextJob(workerId);
       if (!job) break;
@@ -106,7 +130,7 @@ const processSideEffectQueue = async ({ batchSize = 20, workerId = 'main' } = {}
       }
     }
 
-    return { skipped: false, processed, failed };
+    return { skipped: false, recoveredStale, processed, failed };
   } finally {
     isProcessing = false;
   }
@@ -194,5 +218,6 @@ module.exports = {
   enqueueNotificationJob,
   getQueueHealth,
   processSideEffectQueue,
+  recoverStaleProcessingJobs,
   requeueFailedJobs,
 };

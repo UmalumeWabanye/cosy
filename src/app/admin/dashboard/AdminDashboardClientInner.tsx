@@ -51,6 +51,28 @@ interface UserItem {
   isVerified?: boolean;
 }
 
+interface QueueFailureItem {
+  _id: string;
+  type: 'email' | 'notification';
+  attempts: number;
+  maxAttempts: number;
+  lastError: string;
+  correlationId?: string;
+  updatedAt: string;
+}
+
+interface QueueHealthPayload {
+  queue: {
+    pending: number;
+    processing: number;
+    completed: number;
+    failed: number;
+    stalled: number;
+    oldestPendingSeconds: number;
+  };
+  recentFailures: QueueFailureItem[];
+}
+
 function StatCard({
   title,
   value,
@@ -86,8 +108,39 @@ export default function AdminDashboardClientInner() {
   const [recentUsers, setRecentUsers] = useState<UserItem[]>([]);
   const [landlords, setLandlords] = useState<UserItem[]>([]);
   const [alertCount, setAlertCount] = useState(0);
+  const [queueHealth, setQueueHealth] = useState<QueueHealthPayload | null>(null);
+  const [queueActionBusy, setQueueActionBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const refreshQueueHealth = async () => {
+    const queueRes = await api.get('/admin/jobs/side-effects/health?failedSampleLimit=5');
+    setQueueHealth(queueRes.data?.result || null);
+  };
+
+  const runQueueNow = async () => {
+    try {
+      setQueueActionBusy(true);
+      await api.post('/admin/jobs/side-effects/run', { batchSize: 100 });
+      await refreshQueueHealth();
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Failed to run side-effect queue');
+    } finally {
+      setQueueActionBusy(false);
+    }
+  };
+
+  const requeueFailed = async () => {
+    try {
+      setQueueActionBusy(true);
+      await api.post('/admin/jobs/side-effects/requeue-failed', { limit: 100 });
+      await refreshQueueHealth();
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Failed to requeue failed jobs');
+    } finally {
+      setQueueActionBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (isLoading) return;
@@ -110,17 +163,19 @@ export default function AdminDashboardClientInner() {
         setLoading(true);
         setError('');
 
-        const [reportRes, recentUsersRes, landlordRes, notificationRes] = await Promise.all([
+        const [reportRes, recentUsersRes, landlordRes, notificationRes, queueRes] = await Promise.all([
           api.get('/admin/reports'),
           api.get('/admin/users?limit=8'),
           api.get('/admin/users?role=landlord&limit=200'),
           api.get('/admin/notifications?unread=true&limit=1'),
+          api.get('/admin/jobs/side-effects/health?failedSampleLimit=5'),
         ]);
 
         setReports(reportRes.data?.data || null);
         setRecentUsers(Array.isArray(recentUsersRes.data?.data) ? recentUsersRes.data.data : []);
         setLandlords(Array.isArray(landlordRes.data?.data) ? landlordRes.data.data : []);
         setAlertCount(notificationRes.data?.unreadCount ?? 0);
+        setQueueHealth(queueRes.data?.result || null);
       } catch (e: any) {
         setError(e?.response?.data?.message || 'Failed to load admin dashboard');
       } finally {
@@ -256,6 +311,73 @@ export default function AdminDashboardClientInner() {
                       <Button size="small" variant="outlined" sx={{ textTransform: 'none' }} onClick={() => router.push('/admin/notifications')}>Notifications</Button>
                       <Button size="small" variant="outlined" sx={{ textTransform: 'none' }} onClick={() => router.push('/admin/reports/analytics')}>Analytics</Button>
                     </Stack>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <Card variant="outlined" sx={{ height: '100%' }}>
+                  <CardContent>
+                    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Side-Effect Queue Health</Typography>
+                      <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+                        <Button size="small" variant="outlined" disabled={queueActionBusy} onClick={runQueueNow} sx={{ textTransform: 'none' }}>
+                          Run Queue Now
+                        </Button>
+                        <Button size="small" variant="outlined" color="warning" disabled={queueActionBusy} onClick={requeueFailed} sx={{ textTransform: 'none' }}>
+                          Requeue Failed
+                        </Button>
+                        <Button size="small" variant="text" disabled={queueActionBusy} onClick={refreshQueueHealth} sx={{ textTransform: 'none' }}>
+                          Refresh
+                        </Button>
+                      </Stack>
+                    </Stack>
+
+                    {queueHealth ? (
+                      <>
+                        <Stack direction="row" sx={{ mt: 1.5, gap: 1, flexWrap: 'wrap' }}>
+                          <Chip size="small" color="info" label={`Pending: ${queueHealth.queue.pending}`} />
+                          <Chip size="small" color="primary" label={`Processing: ${queueHealth.queue.processing}`} />
+                          <Chip size="small" color="success" label={`Completed: ${queueHealth.queue.completed}`} />
+                          <Chip size="small" color={queueHealth.queue.failed > 0 ? 'error' : 'default'} label={`Failed: ${queueHealth.queue.failed}`} />
+                          <Chip size="small" color={queueHealth.queue.stalled > 0 ? 'warning' : 'default'} label={`Stalled: ${queueHealth.queue.stalled}`} />
+                          <Chip size="small" label={`Oldest pending: ${Math.round(queueHealth.queue.oldestPendingSeconds / 60)}m`} />
+                        </Stack>
+
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block', fontWeight: 600 }}>
+                          Recent Failures
+                        </Typography>
+                        {queueHealth.recentFailures.length === 0 ? (
+                          <Typography variant="body2" color="text.secondary">No recent failures.</Typography>
+                        ) : (
+                          <Stack sx={{ mt: 1, gap: 0.75 }}>
+                            {queueHealth.recentFailures.slice(0, 3).map((failure) => (
+                              <Paper key={failure._id} variant="outlined" sx={{ p: 1.25 }}>
+                                <Stack direction="row" sx={{ justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'capitalize' }}>
+                                    {failure.type} job · {failure.attempts}/{failure.maxAttempts} attempts
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    {new Date(failure.updatedAt).toLocaleString('en-ZA')}
+                                  </Typography>
+                                </Stack>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                  {failure.lastError || 'No error message'}
+                                </Typography>
+                                {failure.correlationId ? (
+                                  <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                                    Correlation: {failure.correlationId}
+                                  </Typography>
+                                ) : null}
+                              </Paper>
+                            ))}
+                          </Stack>
+                        )}
+                      </>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+                        Queue health data unavailable.
+                      </Typography>
+                    )}
                   </CardContent>
                 </Card>
               </Grid>
