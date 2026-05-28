@@ -25,12 +25,31 @@ const {
 const { runReminderJobs } = require('../utils/runReminderJobs');
 const AnalyticsEvent = require('../models/AnalyticsEvent');
 const SideEffectJob = require('../models/SideEffectJob');
+const AdminActionAudit = require('../models/AdminActionAudit');
 const {
   getQueueHealth,
   processSideEffectQueue,
   requeueFailedJobs,
   requeueFailedJobsByIds,
 } = require('../utils/sideEffectQueue');
+
+const writeAudit = async ({ req, action, metadata = {} }) => {
+  try {
+    await AdminActionAudit.create({
+      adminUserId: req.user?._id || null,
+      action,
+      correlationId: req.correlationId || '',
+      metadata,
+    });
+  } catch (error) {
+    // Keep admin flows resilient even if audit persistence fails.
+    console.warn('[admin-audit] failed to persist action', {
+      action,
+      adminUserId: req.user?._id || null,
+      error: error?.message || String(error),
+    });
+  }
+};
 
 // All routes require authentication
 router.use(protect);
@@ -147,6 +166,16 @@ router.post('/jobs/side-effects/run', adminOnly, async (req, res, next) => {
   try {
     const batchSize = Math.max(1, Math.min(200, Number(req.body?.batchSize || 50)));
     const result = await processSideEffectQueue({ batchSize, workerId: `admin:${req.user?._id || 'unknown'}` });
+    await writeAudit({
+      req,
+      action: 'queue-run',
+      metadata: {
+        batchSize,
+        processed: result?.processed || 0,
+        completed: result?.completed || 0,
+        failed: result?.failed || 0,
+      },
+    });
     res.json({ success: true, result });
   } catch (error) {
     next(error);
@@ -158,7 +187,54 @@ router.post('/jobs/side-effects/requeue-failed', adminOnly, async (req, res, nex
     const { id } = req.body || {};
     const limit = Math.max(1, Math.min(500, Number(req.body?.limit || 100)));
     const result = await requeueFailedJobs({ id, limit });
+    await writeAudit({
+      req,
+      action: 'queue-requeue-failed',
+      metadata: {
+        targetId: id || '',
+        limit,
+        requeued: result?.requeued || 0,
+      },
+    });
     res.json({ success: true, result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/jobs/side-effects/audit', adminOnly, async (req, res, next) => {
+  try {
+    const action = String(req.query.action || '').trim();
+    const limit = Math.max(1, Math.min(100, Number(req.query.limit || 25)));
+    const query = {};
+    if (action && ['queue-run', 'queue-requeue-failed', 'queue-requeue-selected'].includes(action)) {
+      query.action = action;
+    }
+
+    const rows = await AdminActionAudit.find(query)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate('adminUserId', 'firstName lastName email role')
+      .lean();
+
+    const mapped = rows.map((row) => ({
+      _id: row._id,
+      action: row.action,
+      correlationId: row.correlationId || '',
+      metadata: row.metadata || {},
+      createdAt: row.createdAt,
+      adminUser: row.adminUserId
+        ? {
+          _id: row.adminUserId._id,
+          firstName: row.adminUserId.firstName || '',
+          lastName: row.adminUserId.lastName || '',
+          email: row.adminUserId.email || '',
+          role: row.adminUserId.role || '',
+        }
+        : null,
+    }));
+
+    return res.json({ success: true, data: mapped });
   } catch (error) {
     next(error);
   }
@@ -365,6 +441,14 @@ router.post('/jobs/side-effects/requeue-selected', adminOnly, async (req, res, n
   try {
     const ids = Array.isArray(req.body?.ids) ? req.body.ids : [];
     const result = await requeueFailedJobsByIds({ ids });
+    await writeAudit({
+      req,
+      action: 'queue-requeue-selected',
+      metadata: {
+        requestedIds: ids.length,
+        requeued: result?.requeued || 0,
+      },
+    });
     res.json({ success: true, result });
   } catch (error) {
     next(error);

@@ -104,6 +104,7 @@ const shortenText = (value: string, max = 72) => {
 const QUEUE_OPERATOR_PREFS_KEY = 'admin-queue-operator-prefs-v1';
 const FLOW_STATE_PREFS_KEY = 'admin-queue-flow-state-v1';
 const QUEUE_SESSION_TELEMETRY_KEY = 'admin-queue-session-telemetry-v1';
+const HANDOFF_TEMPLATES_KEY = 'admin-queue-handoff-templates-v1';
 
 interface QueueSessionTelemetry {
   flowOpens: number;
@@ -111,6 +112,13 @@ interface QueueSessionTelemetry {
   bulkRequeues: number;
   manualRuns: number;
   manualRefreshes: number;
+}
+
+interface HandoffTemplate {
+  id: string;
+  name: string;
+  content: string;
+  updatedAt: string;
 }
 
 const EMPTY_SESSION_TELEMETRY: QueueSessionTelemetry = {
@@ -175,6 +183,10 @@ export default function AdminQueuePage() {
   const [handoffEta, setHandoffEta] = useState('');
   const [handoffSeverity, setHandoffSeverity] = useState('');
   const [handoffScope, setHandoffScope] = useState('');
+  const [handoffTemplateName, setHandoffTemplateName] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [savedHandoffTemplates, setSavedHandoffTemplates] = useState<HandoffTemplate[]>([]);
+  const [forceCopyHandoff, setForceCopyHandoff] = useState(false);
   const [lastAction, setLastAction] = useState<{ message: string; severity: 'success' | 'error' | 'info'; at: string } | null>(null);
   const [sessionTelemetry, setSessionTelemetry] = useState<QueueSessionTelemetry>(EMPTY_SESSION_TELEMETRY);
   const [toast, setToast] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
@@ -264,6 +276,27 @@ export default function AdminQueuePage() {
   }, []);
 
   useEffect(() => {
+    try {
+      const raw = localStorage.getItem(HANDOFF_TEMPLATES_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        const normalized = parsed
+          .filter((item) => item && typeof item.name === 'string' && typeof item.content === 'string')
+          .map((item) => ({
+            id: String(item.id || `${Date.now()}-${Math.random()}`),
+            name: String(item.name),
+            content: String(item.content),
+            updatedAt: String(item.updatedAt || new Date().toISOString()),
+          }));
+        setSavedHandoffTemplates(normalized);
+      }
+    } catch {
+      // Ignore malformed handoff template storage.
+    }
+  }, []);
+
+  useEffect(() => {
     const prefs = {
       autoRefresh,
       autoRefreshSeconds,
@@ -281,6 +314,14 @@ export default function AdminQueuePage() {
       // Ignore storage write errors.
     }
   }, [sessionTelemetry]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(HANDOFF_TEMPLATES_KEY, JSON.stringify(savedHandoffTemplates));
+    } catch {
+      // Ignore local storage write failures for templates.
+    }
+  }, [savedHandoffTemplates]);
 
   const failedSelectedIds = useMemo(
     () => items.filter((item) => selectedIds.includes(item._id) && item.status === 'failed').map((item) => item._id),
@@ -338,6 +379,36 @@ export default function AdminQueuePage() {
       return bTs - aTs;
     })[0];
   }, [timeline]);
+
+  const impactHints = useMemo(() => {
+    const topFailing = timeline
+      .filter((entry) => entry.failedJobs > 0)
+      .sort((a, b) => {
+        if (b.failedJobs !== a.failedJobs) return b.failedJobs - a.failedJobs;
+        const aTs = new Date(a.latestUpdateAt || a.latestCreatedAt || 0).getTime();
+        const bTs = new Date(b.latestUpdateAt || b.latestCreatedAt || 0).getTime();
+        return bTs - aTs;
+      })[0] || null;
+
+    const activeFlowRetryHeavy = flowItems.filter((item) => Number(item.attempts || 0) > 1).length;
+    const activeFlowFailed = flowItems.filter((item) => item.status === 'failed').length;
+
+    return {
+      topFailing,
+      activeFlowRetryHeavy,
+      activeFlowFailed,
+    };
+  }, [timeline, flowItems]);
+
+  const handoffQualityWarnings = useMemo(() => {
+    const warnings: string[] = [];
+    if (!handoffOwner.trim()) warnings.push('Owner is missing.');
+    if (!handoffEta.trim()) warnings.push('ETA is missing.');
+    if (!handoffSeverity.trim()) warnings.push('Severity is missing.');
+    if (!handoffScope.trim()) warnings.push('Impacted scope is missing.');
+    if (/\[fill in/i.test(handoffDraft)) warnings.push('Handoff draft still contains placeholder text.');
+    return warnings;
+  }, [handoffOwner, handoffEta, handoffSeverity, handoffScope, handoffDraft]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
@@ -585,6 +656,7 @@ export default function AdminQueuePage() {
       'Current Queue Operations Snapshot',
       `- Last Action: ${lastAction ? `${lastAction.severity.toUpperCase()} @ ${lastAction.at} - ${lastAction.message}` : '-'}`,
       `- Session Counters: flowOpens=${sessionTelemetry.flowOpens}, singleRequeues=${sessionTelemetry.singleRequeues}, bulkRequeues=${sessionTelemetry.bulkRequeues}, manualRuns=${sessionTelemetry.manualRuns}, manualRefreshes=${sessionTelemetry.manualRefreshes}`,
+      `- Impact Hint: topFailing=${impactHints.topFailing ? `${impactHints.topFailing.correlationId} (failed=${impactHints.topFailing.failedJobs})` : 'none'}, activeFlowFailed=${impactHints.activeFlowFailed}, activeFlowRetryHeavy=${impactHints.activeFlowRetryHeavy}`,
       '',
       'Top Failing Correlations',
       topFailingBlock,
@@ -609,7 +681,60 @@ export default function AdminQueuePage() {
     setHandoffEta('');
     setHandoffSeverity('');
     setHandoffScope('');
+    setHandoffTemplateName('');
+    setSelectedTemplateId('');
+    setForceCopyHandoff(false);
     setHandoffPreviewOpen(true);
+  };
+
+  const saveCurrentHandoffTemplate = () => {
+    const name = handoffTemplateName.trim();
+    if (!name) {
+      showToast('Template name is required.', 'error');
+      return;
+    }
+    const content = (handoffDraft || '').trim();
+    if (!content) {
+      showToast('Template content is empty.', 'error');
+      return;
+    }
+
+    setSavedHandoffTemplates((prev) => {
+      const next = [...prev];
+      const index = next.findIndex((item) => item.name.toLowerCase() === name.toLowerCase());
+      const template: HandoffTemplate = {
+        id: index >= 0 ? next[index].id : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        name,
+        content,
+        updatedAt: new Date().toISOString(),
+      };
+      if (index >= 0) next[index] = template;
+      else next.unshift(template);
+      return next.slice(0, 20);
+    });
+
+    showToast(`Saved handoff template "${name}".`, 'success');
+  };
+
+  const loadSavedHandoffTemplate = (templateId: string) => {
+    const found = savedHandoffTemplates.find((item) => item.id === templateId);
+    if (!found) {
+      showToast('Template not found.', 'error');
+      return;
+    }
+    setSelectedTemplateId(found.id);
+    setHandoffTemplateName(found.name);
+    setHandoffDraft(found.content);
+    setForceCopyHandoff(false);
+    showToast(`Loaded handoff template "${found.name}".`, 'info');
+  };
+
+  const deleteSelectedHandoffTemplate = () => {
+    if (!selectedTemplateId) return;
+    const found = savedHandoffTemplates.find((item) => item.id === selectedTemplateId);
+    setSavedHandoffTemplates((prev) => prev.filter((item) => item.id !== selectedTemplateId));
+    setSelectedTemplateId('');
+    showToast(`Deleted template "${found?.name || 'selected'}".`, 'info');
   };
 
   const applyOwnerEtaToDraft = () => {
@@ -655,10 +780,17 @@ export default function AdminQueuePage() {
   const copyHandoffDraft = async () => {
     const template = handoffDraft || buildIncidentHandoffTemplate();
 
+    if (handoffQualityWarnings.length > 0 && !forceCopyHandoff) {
+      setForceCopyHandoff(true);
+      showToast('Review handoff warnings before copying, or click Copy Anyway.', 'error');
+      return;
+    }
+
     try {
       await navigator.clipboard.writeText(template);
       showToast('Copied incident handoff template to clipboard.', 'success');
       setHandoffPreviewOpen(false);
+      setForceCopyHandoff(false);
     } catch {
       try {
         const textArea = document.createElement('textarea');
@@ -673,6 +805,7 @@ export default function AdminQueuePage() {
         if (ok) {
           showToast('Copied incident handoff template to clipboard.', 'success');
           setHandoffPreviewOpen(false);
+          setForceCopyHandoff(false);
         } else {
           showToast('Failed to copy incident handoff template.', 'error');
         }
@@ -848,6 +981,14 @@ export default function AdminQueuePage() {
       // Ignore storage errors and continue with in-memory state.
     }
   }, [activeFlowCorrelationId, flowStatusFilter, expandedFlowRows]);
+
+  useEffect(() => {
+    if (forceCopyHandoff) {
+      setForceCopyHandoff(false);
+    }
+    // Intentionally react to handoff draft quality-driving fields.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handoffDraft, handoffOwner, handoffEta, handoffSeverity, handoffScope]);
 
   useEffect(() => {
     if (!autoRefresh || !isAuthenticated || user?.role !== 'admin') return;
@@ -1451,6 +1592,62 @@ export default function AdminQueuePage() {
               <Typography variant="body2" color="text.secondary">
                 Review and edit before copying to Slack or incident updates.
               </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 1, flexWrap: 'wrap' }}>
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  label={`Hint: Top failing ${impactHints.topFailing ? `${impactHints.topFailing.correlationId} (${impactHints.topFailing.failedJobs})` : 'none'}`}
+                />
+                <Chip size="small" variant="outlined" label={`Hint: Active flow failed ${impactHints.activeFlowFailed}`} />
+                <Chip size="small" variant="outlined" label={`Hint: Retry-heavy jobs ${impactHints.activeFlowRetryHeavy}`} />
+              </Stack>
+              {handoffQualityWarnings.length > 0 ? (
+                <Alert severity="warning" sx={{ py: 0.5 }}>
+                  <Typography variant="caption" component="div" sx={{ display: 'block', mb: 0.5 }}>
+                    Handoff quality warnings:
+                  </Typography>
+                  {handoffQualityWarnings.map((warning) => (
+                    <Typography key={warning} variant="caption" component="div">• {warning}</Typography>
+                  ))}
+                </Alert>
+              ) : (
+                <Alert severity="success" sx={{ py: 0.5 }}>
+                  <Typography variant="caption">Handoff quality checks passed.</Typography>
+                </Alert>
+              )}
+              <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 1 }}>
+                <TextField
+                  size="small"
+                  label="Template Name"
+                  placeholder="e.g. Queue Incident Standard"
+                  fullWidth
+                  value={handoffTemplateName}
+                  onChange={(e) => setHandoffTemplateName(e.target.value)}
+                />
+                <FormControl size="small" fullWidth>
+                  <InputLabel>Saved Templates</InputLabel>
+                  <Select
+                    label="Saved Templates"
+                    value={selectedTemplateId}
+                    onChange={(e) => {
+                      const id = String(e.target.value);
+                      setSelectedTemplateId(id);
+                      if (id) loadSavedHandoffTemplate(id);
+                    }}
+                  >
+                    <MenuItem value="">None</MenuItem>
+                    {savedHandoffTemplates.map((template) => (
+                      <MenuItem key={template.id} value={template.id}>{template.name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Button size="small" variant="outlined" onClick={saveCurrentHandoffTemplate} sx={{ textTransform: 'none', minWidth: { sm: 120 } }}>
+                  Save
+                </Button>
+                <Button size="small" variant="text" disabled={!selectedTemplateId} onClick={deleteSelectedHandoffTemplate} sx={{ textTransform: 'none', minWidth: { sm: 120 } }}>
+                  Delete
+                </Button>
+              </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 1 }}>
                 <TextField
                   size="small"
@@ -1585,7 +1782,7 @@ export default function AdminQueuePage() {
                   onClick={copyHandoffDraft}
                   sx={{ textTransform: 'none' }}
                 >
-                  Copy to Clipboard
+                  {handoffQualityWarnings.length > 0 && forceCopyHandoff ? 'Copy Anyway' : 'Copy to Clipboard'}
                 </Button>
               </Stack>
             </Stack>
