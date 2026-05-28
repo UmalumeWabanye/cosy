@@ -164,6 +164,8 @@ export default function AdminQueuePage() {
   const [handoffDraft, setHandoffDraft] = useState('');
   const [handoffOwner, setHandoffOwner] = useState('');
   const [handoffEta, setHandoffEta] = useState('');
+  const [handoffSeverity, setHandoffSeverity] = useState('');
+  const [handoffScope, setHandoffScope] = useState('');
   const [lastAction, setLastAction] = useState<{ message: string; severity: 'success' | 'error' | 'info'; at: string } | null>(null);
   const [sessionTelemetry, setSessionTelemetry] = useState<QueueSessionTelemetry>(EMPTY_SESSION_TELEMETRY);
   const [toast, setToast] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
@@ -596,6 +598,8 @@ export default function AdminQueuePage() {
     setHandoffDraft(template);
     setHandoffOwner('');
     setHandoffEta('');
+    setHandoffSeverity('');
+    setHandoffScope('');
     setHandoffPreviewOpen(true);
   };
 
@@ -614,6 +618,23 @@ export default function AdminQueuePage() {
       return `${prev}\n${replacement}`;
     });
     showToast('Applied Owner/ETA helper to handoff draft.', 'info');
+  };
+
+  const applySeverityScopeToDraft = () => {
+    const severityValue = handoffSeverity.trim() || '[severity]';
+    const scopeValue = handoffScope.trim() || '[scope]';
+    const replacement = `- Severity: ${severityValue} | Impacted Scope: ${scopeValue} | Notes: [fill in impact notes]`;
+
+    setHandoffDraft((prev) => {
+      if (prev.includes('- [fill in affected scope and severity]')) {
+        return prev.replace('- [fill in affected scope and severity]', replacement);
+      }
+      if (/- Severity: .*\| Impacted Scope: .*\| Notes: .*$/m.test(prev)) {
+        return prev.replace(/- Severity: .*\| Impacted Scope: .*\| Notes: .*$/m, replacement);
+      }
+      return `${prev}\n${replacement}`;
+    });
+    showToast('Applied severity/scope helper to handoff draft.', 'info');
   };
 
   const copyHandoffDraft = async () => {
@@ -1439,6 +1460,32 @@ export default function AdminQueuePage() {
                   sx={{ textTransform: 'none', minWidth: { sm: 170 } }}
                 >
                   Insert Owner/ETA
+                </Button>
+              </Stack>
+              <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 1 }}>
+                <TextField
+                  size="small"
+                  label="Severity"
+                  placeholder="e.g. high"
+                  fullWidth
+                  value={handoffSeverity}
+                  onChange={(e) => setHandoffSeverity(e.target.value)}
+                />
+                <TextField
+                  size="small"
+                  label="Impacted Scope"
+                  placeholder="e.g. student notifications"
+                  fullWidth
+                  value={handoffScope}
+                  onChange={(e) => setHandoffScope(e.target.value)}
+                />
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={applySeverityScopeToDraft}
+                  sx={{ textTransform: 'none', minWidth: { sm: 190 } }}
+                >
+                  Insert Severity/Scope
                 </Button>
               </Stack>
               <TextField
