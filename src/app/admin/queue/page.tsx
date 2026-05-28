@@ -509,6 +509,41 @@ export default function AdminQueuePage() {
     }
   };
 
+  const copyTelemetrySummary = async () => {
+    const summaryLines = [
+      `Queue Ops Summary (${new Date().toLocaleString('en-ZA')})`,
+      `Active Flow: ${activeFlowCorrelationId || '-'}`,
+      `Last Refreshed: ${lastRefreshedAt ? lastRefreshedAt.toLocaleString('en-ZA') : '-'}`,
+      `Last Action: ${lastAction ? `${lastAction.severity.toUpperCase()} @ ${lastAction.at} - ${lastAction.message}` : '-'}`,
+      `Counters: flowOpens=${sessionTelemetry.flowOpens}, singleRequeues=${sessionTelemetry.singleRequeues}, bulkRequeues=${sessionTelemetry.bulkRequeues}, manualRuns=${sessionTelemetry.manualRuns}, manualRefreshes=${sessionTelemetry.manualRefreshes}`,
+    ];
+    const summary = summaryLines.join('\n');
+
+    try {
+      await navigator.clipboard.writeText(summary);
+      showToast('Copied telemetry summary to clipboard.', 'success');
+    } catch {
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = summary;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        if (ok) {
+          showToast('Copied telemetry summary to clipboard.', 'success');
+        } else {
+          showToast('Failed to copy telemetry summary.', 'error');
+        }
+      } catch {
+        showToast('Failed to copy telemetry summary.', 'error');
+      }
+    }
+  };
+
   const requeueFlowJob = async (jobId: string) => {
     if (!jobId || !activeFlowCorrelationId) return;
     try {
@@ -761,6 +796,9 @@ export default function AdminQueuePage() {
             </Button>
             <Button size="small" variant="text" disabled={actionBusy} onClick={() => exportSessionTelemetry('csv')} sx={{ textTransform: 'none' }}>
               Export Telemetry CSV
+            </Button>
+            <Button size="small" variant="text" disabled={actionBusy} onClick={copyTelemetrySummary} sx={{ textTransform: 'none' }}>
+              Copy Telemetry Summary
             </Button>
           </Stack>
         </Stack>
