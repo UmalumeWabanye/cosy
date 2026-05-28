@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/services/api';
@@ -19,11 +19,13 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import FormControl from '@mui/material/FormControl';
 import Grid from '@mui/material/Grid';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Pagination from '@mui/material/Pagination';
 import Select from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
+import Switch from '@mui/material/Switch';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -66,6 +68,24 @@ interface IncidentTimelineItem {
   latestCreatedAt?: string;
 }
 
+interface IncidentFlowJob {
+  _id?: string;
+  type?: 'email' | 'notification';
+  status?: 'pending' | 'processing' | 'completed' | 'failed';
+  attempts?: number;
+  maxAttempts?: number;
+  lastError?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  history?: Array<{
+    at?: string;
+    action?: string;
+    status?: string;
+    workerId?: string;
+    detail?: string;
+  }>;
+}
+
 const statusColor = (status: QueueJob['status']) => {
   if (status === 'completed') return 'success';
   if (status === 'failed') return 'error';
@@ -85,8 +105,11 @@ export default function AdminQueuePage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [correlationFilter, setCorrelationFilter] = useState('');
+  const [appliedCorrelationFilter, setAppliedCorrelationFilter] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [autoRefreshSeconds, setAutoRefreshSeconds] = useState(30);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [pagination, setPagination] = useState({ total: 0, pages: 1, currentPage: 1 });
@@ -96,6 +119,10 @@ export default function AdminQueuePage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detail, setDetail] = useState<QueueJobDetail | null>(null);
+  const [flowOpen, setFlowOpen] = useState(false);
+  const [flowLoading, setFlowLoading] = useState(false);
+  const [activeFlowCorrelationId, setActiveFlowCorrelationId] = useState('');
+  const [flowItems, setFlowItems] = useState<IncidentFlowJob[]>([]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -104,14 +131,14 @@ export default function AdminQueuePage() {
     }
   }, [isLoading, isAuthenticated, user, router]);
 
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
       const params = new URLSearchParams();
       if (statusFilter) params.set('status', statusFilter);
       if (typeFilter) params.set('type', typeFilter);
-      if (correlationFilter.trim()) params.set('correlationId', correlationFilter.trim());
+      if (appliedCorrelationFilter.trim()) params.set('correlationId', appliedCorrelationFilter.trim());
       params.set('sortBy', sortBy);
       params.set('sortDir', sortDir);
       params.set('page', String(page));
@@ -134,14 +161,13 @@ export default function AdminQueuePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, typeFilter, appliedCorrelationFilter, sortBy, sortDir, page, limit]);
 
   useEffect(() => {
     if (isAuthenticated && user?.role === 'admin') {
       fetchJobs();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, user, page, limit, statusFilter, typeFilter, sortBy, sortDir]);
+  }, [isAuthenticated, user, fetchJobs]);
 
   const failedSelectedIds = useMemo(
     () => items.filter((item) => selectedIds.includes(item._id) && item.status === 'failed').map((item) => item._id),
@@ -189,6 +215,21 @@ export default function AdminQueuePage() {
     }
   };
 
+  const openIncidentFlow = async (id: string) => {
+    try {
+      setFlowOpen(true);
+      setFlowLoading(true);
+      setActiveFlowCorrelationId(id);
+      const res = await api.get(`/admin/jobs/side-effects/timeline/${encodeURIComponent(id)}?limit=300`);
+      setFlowItems(Array.isArray(res.data?.data) ? res.data.data : []);
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Failed to load incident flow');
+      setFlowOpen(false);
+    } finally {
+      setFlowLoading(false);
+    }
+  };
+
   const exportCsv = async () => {
     try {
       setActionBusy(true);
@@ -196,7 +237,7 @@ export default function AdminQueuePage() {
       const params = new URLSearchParams();
       if (statusFilter) params.set('status', statusFilter);
       if (typeFilter) params.set('type', typeFilter);
-      if (correlationFilter.trim()) params.set('correlationId', correlationFilter.trim());
+      if (appliedCorrelationFilter.trim()) params.set('correlationId', appliedCorrelationFilter.trim());
       params.set('sortBy', sortBy);
       params.set('sortDir', sortDir);
       params.set('page', String(page));
@@ -230,6 +271,59 @@ export default function AdminQueuePage() {
     }
   };
 
+  const exportTimelineCsv = async () => {
+    try {
+      setActionBusy(true);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/jobs/side-effects/timeline?limit=100&format=csv`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          'x-correlation-id': `web-${Date.now()}-timeline-csv`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to export timeline CSV');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `queue-timeline-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e: any) {
+      setError(e?.message || 'Failed to export timeline CSV');
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const exportFlowCsv = async () => {
+    if (!activeFlowCorrelationId) return;
+    try {
+      setActionBusy(true);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/jobs/side-effects/timeline/${encodeURIComponent(activeFlowCorrelationId)}?limit=500&format=csv`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          'x-correlation-id': `web-${Date.now()}-flow-csv`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to export incident flow CSV');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `queue-flow-${activeFlowCorrelationId}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e: any) {
+      setError(e?.message || 'Failed to export incident flow CSV');
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
   const requeueSelectedFailed = async () => {
     if (!failedSelectedIds.length) return;
     try {
@@ -243,6 +337,17 @@ export default function AdminQueuePage() {
       setActionBusy(false);
     }
   };
+
+  useEffect(() => {
+    if (!autoRefresh || !isAuthenticated || user?.role !== 'admin') return;
+    const interval = Math.max(10, autoRefreshSeconds) * 1000;
+    const id = window.setInterval(() => {
+      if (!actionBusy) {
+        fetchJobs();
+      }
+    }, interval);
+    return () => window.clearInterval(id);
+  }, [autoRefresh, autoRefreshSeconds, isAuthenticated, user, actionBusy, fetchJobs]);
 
   if (isLoading) return null;
 
@@ -263,6 +368,9 @@ export default function AdminQueuePage() {
             <Button size="small" variant="outlined" disabled={actionBusy || loading} onClick={exportCsv} sx={{ textTransform: 'none' }}>
               Export CSV
             </Button>
+            <Button size="small" variant="outlined" disabled={actionBusy || loading} onClick={exportTimelineCsv} sx={{ textTransform: 'none' }}>
+              Export Timeline CSV
+            </Button>
             <Button
               size="small"
               variant="contained"
@@ -277,6 +385,29 @@ export default function AdminQueuePage() {
               Refresh
             </Button>
           </Stack>
+        </Stack>
+
+        <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ mb: 2, alignItems: { sm: 'center' }, gap: 1.5 }}>
+          <FormControlLabel
+            control={<Switch checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} />}
+            label="Auto-refresh"
+          />
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <InputLabel>Interval</InputLabel>
+            <Select
+              label="Interval"
+              value={String(autoRefreshSeconds)}
+              onChange={(e) => setAutoRefreshSeconds(Number(e.target.value))}
+              disabled={!autoRefresh}
+            >
+              {[15, 30, 60, 120].map((sec) => (
+                <MenuItem key={sec} value={String(sec)}>{sec}s</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Typography variant="caption" color="text.secondary">
+            Auto-refresh polls safely and skips while admin actions are running.
+          </Typography>
         </Stack>
 
         {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
@@ -333,7 +464,7 @@ export default function AdminQueuePage() {
               </Select>
             </FormControl>
           </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: 12, md: 5 }}>
             <TextField
               size="small"
               fullWidth
@@ -342,11 +473,38 @@ export default function AdminQueuePage() {
               onChange={(e) => setCorrelationFilter(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
+                  setAppliedCorrelationFilter(correlationFilter.trim());
                   setPage(1);
-                  fetchJobs();
                 }
               }}
             />
+          </Grid>
+          <Grid size={{ xs: 12, md: 1 }}>
+            <Stack direction="row" sx={{ gap: 1 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => {
+                  setAppliedCorrelationFilter(correlationFilter.trim());
+                  setPage(1);
+                }}
+                sx={{ textTransform: 'none', minWidth: 0 }}
+              >
+                Apply
+              </Button>
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => {
+                  setCorrelationFilter('');
+                  setAppliedCorrelationFilter('');
+                  setPage(1);
+                }}
+                sx={{ textTransform: 'none', minWidth: 0 }}
+              >
+                Clear
+              </Button>
+            </Stack>
           </Grid>
         </Grid>
 
@@ -456,16 +614,22 @@ export default function AdminQueuePage() {
                       </TableCell>
                       <TableCell>{entry.latestUpdateAt ? new Date(entry.latestUpdateAt).toLocaleString('en-ZA') : '-'}</TableCell>
                       <TableCell>
-                        <Button
-                          size="small"
-                          sx={{ textTransform: 'none' }}
-                          onClick={() => {
-                            setCorrelationFilter(entry.correlationId);
-                            setPage(1);
-                          }}
-                        >
-                          Filter
-                        </Button>
+                        <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap' }}>
+                          <Button
+                            size="small"
+                            sx={{ textTransform: 'none' }}
+                            onClick={() => {
+                              setCorrelationFilter(entry.correlationId);
+                              setAppliedCorrelationFilter(entry.correlationId);
+                              setPage(1);
+                            }}
+                          >
+                            Filter
+                          </Button>
+                          <Button size="small" sx={{ textTransform: 'none' }} onClick={() => openIncidentFlow(entry.correlationId)}>
+                            View Flow
+                          </Button>
+                        </Stack>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -508,6 +672,50 @@ export default function AdminQueuePage() {
                   <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{JSON.stringify(detail.payload || {}, null, 2)}</pre>
                 </Box>
               </Stack>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={flowOpen} onClose={() => setFlowOpen(false)} maxWidth="lg" fullWidth>
+          <DialogTitle>Incident Flow: {activeFlowCorrelationId || '-'}</DialogTitle>
+          <DialogContent dividers>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+              <Typography variant="body2" color="text.secondary">
+                Jobs in this correlation flow ordered by created time.
+              </Typography>
+              <Button size="small" variant="outlined" disabled={actionBusy || !activeFlowCorrelationId} onClick={exportFlowCsv} sx={{ textTransform: 'none' }}>
+                Export Flow CSV
+              </Button>
+            </Stack>
+            {flowLoading ? (
+              <Box sx={{ py: 5, display: 'flex', justifyContent: 'center' }}><CircularProgress size={24} /></Box>
+            ) : flowItems.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">No flow jobs found.</Typography>
+            ) : (
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 700 }}>Created</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Type</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Attempts</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Last Error</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {flowItems.map((item, idx) => (
+                    <TableRow key={`${item._id || 'flow'}-${idx}`} hover>
+                      <TableCell>{item.createdAt ? new Date(item.createdAt).toLocaleString('en-ZA') : '-'}</TableCell>
+                      <TableCell><Chip size="small" label={item.type || 'unknown'} sx={{ textTransform: 'capitalize' }} /></TableCell>
+                      <TableCell><Chip size="small" color={statusColor((item.status || 'pending') as QueueJob['status'])} label={item.status || 'pending'} sx={{ textTransform: 'capitalize' }} /></TableCell>
+                      <TableCell>{item.attempts || 0}/{item.maxAttempts || 0}</TableCell>
+                      <TableCell>
+                        <Typography variant="caption" color="text.secondary">{item.lastError || '-'}</Typography>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </DialogContent>
         </Dialog>

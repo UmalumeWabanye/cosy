@@ -248,6 +248,7 @@ router.get('/jobs/side-effects', adminOnly, async (req, res, next) => {
 router.get('/jobs/side-effects/timeline', adminOnly, async (req, res, next) => {
   try {
     const limit = Math.max(1, Math.min(50, Number(req.query.limit || 20)));
+    const format = String(req.query.format || '').trim().toLowerCase();
     const rows = await SideEffectJob.aggregate([
       {
         $match: {
@@ -271,13 +272,78 @@ router.get('/jobs/side-effects/timeline', adminOnly, async (req, res, next) => {
       { $limit: limit },
     ]);
 
-    res.json({ success: true, data: rows.map((row) => ({
+    const mapped = rows.map((row) => ({
       correlationId: row._id,
       totalJobs: row.totalJobs,
       failedJobs: row.failedJobs,
       latestUpdateAt: row.latestUpdateAt,
       latestCreatedAt: row.latestCreatedAt,
-    })) });
+    }));
+
+    if (format === 'csv') {
+      const headers = ['correlationId', 'totalJobs', 'failedJobs', 'latestCreatedAt', 'latestUpdateAt'];
+      const lines = [headers.join(',')];
+      for (const row of mapped) {
+        lines.push([
+          row.correlationId,
+          row.totalJobs,
+          row.failedJobs,
+          row.latestCreatedAt || '',
+          row.latestUpdateAt || '',
+        ].join(','));
+      }
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="queue-timeline-${Date.now()}.csv"`);
+      return res.status(200).send(lines.join('\n'));
+    }
+
+    res.json({ success: true, data: mapped });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/jobs/side-effects/timeline/:correlationId', adminOnly, async (req, res, next) => {
+  try {
+    const correlationId = String(req.params.correlationId || '').trim();
+    const limit = Math.max(1, Math.min(500, Number(req.query.limit || 200)));
+    const format = String(req.query.format || '').trim().toLowerCase();
+
+    if (!correlationId) {
+      return res.status(400).json({ message: 'Correlation id is required' });
+    }
+
+    const jobs = await SideEffectJob.find({ correlationId })
+      .sort({ createdAt: 1 })
+      .limit(limit)
+      .select('type status attempts maxAttempts lastError runAfter lockedAt createdAt updatedAt history')
+      .lean();
+
+    if (format === 'csv') {
+      const escapeCsv = (value) => {
+        const str = value === null || value === undefined ? '' : String(value);
+        if (/[,"\n]/.test(str)) return `"${str.replace(/"/g, '""')}"`;
+        return str;
+      };
+      const headers = ['createdAt', 'updatedAt', 'type', 'status', 'attempts', 'maxAttempts', 'lastError'];
+      const lines = [headers.join(',')];
+      for (const job of jobs) {
+        lines.push([
+          escapeCsv(job.createdAt || ''),
+          escapeCsv(job.updatedAt || ''),
+          escapeCsv(job.type || ''),
+          escapeCsv(job.status || ''),
+          escapeCsv(job.attempts || ''),
+          escapeCsv(job.maxAttempts || ''),
+          escapeCsv(job.lastError || ''),
+        ].join(','));
+      }
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="queue-flow-${Date.now()}.csv"`);
+      return res.status(200).send(lines.join('\n'));
+    }
+
+    return res.json({ success: true, data: jobs });
   } catch (error) {
     next(error);
   }
