@@ -95,6 +95,12 @@ const statusColor = (status: QueueJob['status']) => {
   return 'default';
 };
 
+const shortenText = (value: string, max = 72) => {
+  if (!value) return '';
+  if (value.length <= max) return value;
+  return `${value.slice(0, max - 1)}...`;
+};
+
 const QUEUE_OPERATOR_PREFS_KEY = 'admin-queue-operator-prefs-v1';
 const FLOW_STATE_PREFS_KEY = 'admin-queue-flow-state-v1';
 
@@ -367,6 +373,17 @@ export default function AdminQueuePage() {
     });
   };
 
+  const clearSavedFlowState = () => {
+    try {
+      localStorage.removeItem(FLOW_STATE_PREFS_KEY);
+      setExpandedFlowRows([]);
+      setFlowStatusFilter('all');
+      showToast('Cleared saved flow modal state.', 'info');
+    } catch {
+      showToast('Failed to clear saved flow modal state.', 'error');
+    }
+  };
+
   const requeueFlowJob = async (jobId: string) => {
     if (!jobId || !activeFlowCorrelationId) return;
     try {
@@ -556,11 +573,14 @@ export default function AdminQueuePage() {
             </Typography>
             {lastAction ? (
               <Stack direction="row" sx={{ mt: 0.75 }}>
-                <Chip
-                  size="small"
-                  color={lastAction.severity === 'success' ? 'success' : lastAction.severity === 'error' ? 'error' : 'default'}
-                  label={`Last action ${lastAction.at}`}
-                />
+                <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 0.75, flexWrap: 'wrap' }}>
+                  <Chip
+                    size="small"
+                    color={lastAction.severity === 'success' ? 'success' : lastAction.severity === 'error' ? 'error' : 'default'}
+                    label={`Last action ${lastAction.at}`}
+                  />
+                  <Chip size="small" variant="outlined" label={shortenText(lastAction.message)} />
+                </Stack>
               </Stack>
             ) : null}
           </Box>
@@ -586,6 +606,9 @@ export default function AdminQueuePage() {
             </Button>
             <Button size="small" variant="text" disabled={actionBusy || loading} onClick={fetchJobs} sx={{ textTransform: 'none' }}>
               Refresh
+            </Button>
+            <Button size="small" variant="text" disabled={actionBusy} onClick={clearSavedFlowState} sx={{ textTransform: 'none' }}>
+              Clear Saved Flow State
             </Button>
           </Stack>
         </Stack>
