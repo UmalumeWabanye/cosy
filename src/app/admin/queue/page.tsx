@@ -96,6 +96,7 @@ const statusColor = (status: QueueJob['status']) => {
 };
 
 const QUEUE_OPERATOR_PREFS_KEY = 'admin-queue-operator-prefs-v1';
+const FLOW_STATE_PREFS_KEY = 'admin-queue-flow-state-v1';
 
 export default function AdminQueuePage() {
   const router = useRouter();
@@ -134,6 +135,7 @@ export default function AdminQueuePage() {
   const [requeueingFlowBulk, setRequeueingFlowBulk] = useState(false);
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
   const [bulkConfirmIds, setBulkConfirmIds] = useState<string[]>([]);
+  const [lastAction, setLastAction] = useState<{ message: string; severity: 'success' | 'error' | 'info'; at: string } | null>(null);
   const [toast, setToast] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
     open: false,
     message: '',
@@ -321,9 +323,30 @@ export default function AdminQueuePage() {
     try {
       setFlowOpen(true);
       setFlowLoading(true);
-      setFlowStatusFilter('all');
       setActiveFlowCorrelationId(id);
-      setExpandedFlowRows([]);
+      try {
+        const raw = localStorage.getItem(FLOW_STATE_PREFS_KEY);
+        if (raw) {
+          const stateMap = JSON.parse(raw) as Record<string, { flowStatusFilter?: typeof flowStatusFilter; expandedFlowRows?: string[] }>;
+          const saved = stateMap[id];
+          if (saved?.flowStatusFilter && ['all', 'failed', 'processing', 'completed', 'pending'].includes(saved.flowStatusFilter)) {
+            setFlowStatusFilter(saved.flowStatusFilter);
+          } else {
+            setFlowStatusFilter('all');
+          }
+          if (Array.isArray(saved?.expandedFlowRows)) {
+            setExpandedFlowRows(saved.expandedFlowRows);
+          } else {
+            setExpandedFlowRows([]);
+          }
+        } else {
+          setFlowStatusFilter('all');
+          setExpandedFlowRows([]);
+        }
+      } catch {
+        setFlowStatusFilter('all');
+        setExpandedFlowRows([]);
+      }
       await loadIncidentFlow(id);
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Failed to load incident flow');
@@ -337,6 +360,11 @@ export default function AdminQueuePage() {
 
   const showToast = (message: string, severity: 'success' | 'error' | 'info' = 'info') => {
     setToast({ open: true, message, severity });
+    setLastAction({
+      message,
+      severity,
+      at: new Date().toLocaleString('en-ZA'),
+    });
   };
 
   const requeueFlowJob = async (jobId: string) => {
@@ -490,6 +518,21 @@ export default function AdminQueuePage() {
   };
 
   useEffect(() => {
+    if (!activeFlowCorrelationId) return;
+    try {
+      const raw = localStorage.getItem(FLOW_STATE_PREFS_KEY);
+      const current = raw ? (JSON.parse(raw) as Record<string, { flowStatusFilter?: typeof flowStatusFilter; expandedFlowRows?: string[] }>) : {};
+      current[activeFlowCorrelationId] = {
+        flowStatusFilter,
+        expandedFlowRows,
+      };
+      localStorage.setItem(FLOW_STATE_PREFS_KEY, JSON.stringify(current));
+    } catch {
+      // Ignore storage errors and continue with in-memory state.
+    }
+  }, [activeFlowCorrelationId, flowStatusFilter, expandedFlowRows]);
+
+  useEffect(() => {
     if (!autoRefresh || !isAuthenticated || user?.role !== 'admin') return;
     const interval = Math.max(10, autoRefreshSeconds) * 1000;
     const id = window.setInterval(() => {
@@ -511,6 +554,15 @@ export default function AdminQueuePage() {
             <Typography variant="body2" color="text.secondary">
               Inspect side-effect jobs, review failures, and requeue selected items.
             </Typography>
+            {lastAction ? (
+              <Stack direction="row" sx={{ mt: 0.75 }}>
+                <Chip
+                  size="small"
+                  color={lastAction.severity === 'success' ? 'success' : lastAction.severity === 'error' ? 'error' : 'default'}
+                  label={`Last action ${lastAction.at}`}
+                />
+              </Stack>
+            ) : null}
           </Box>
           <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
             <Button size="small" variant="outlined" disabled={actionBusy} onClick={runQueueNow} sx={{ textTransform: 'none' }}>
