@@ -103,6 +103,23 @@ const shortenText = (value: string, max = 72) => {
 
 const QUEUE_OPERATOR_PREFS_KEY = 'admin-queue-operator-prefs-v1';
 const FLOW_STATE_PREFS_KEY = 'admin-queue-flow-state-v1';
+const QUEUE_SESSION_TELEMETRY_KEY = 'admin-queue-session-telemetry-v1';
+
+interface QueueSessionTelemetry {
+  flowOpens: number;
+  singleRequeues: number;
+  bulkRequeues: number;
+  manualRuns: number;
+  manualRefreshes: number;
+}
+
+const EMPTY_SESSION_TELEMETRY: QueueSessionTelemetry = {
+  flowOpens: 0,
+  singleRequeues: 0,
+  bulkRequeues: 0,
+  manualRuns: 0,
+  manualRefreshes: 0,
+};
 
 export default function AdminQueuePage() {
   const router = useRouter();
@@ -142,6 +159,7 @@ export default function AdminQueuePage() {
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
   const [bulkConfirmIds, setBulkConfirmIds] = useState<string[]>([]);
   const [lastAction, setLastAction] = useState<{ message: string; severity: 'success' | 'error' | 'info'; at: string } | null>(null);
+  const [sessionTelemetry, setSessionTelemetry] = useState<QueueSessionTelemetry>(EMPTY_SESSION_TELEMETRY);
   const [toast, setToast] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
     open: false,
     message: '',
@@ -212,6 +230,23 @@ export default function AdminQueuePage() {
   }, []);
 
   useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(QUEUE_SESSION_TELEMETRY_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Partial<QueueSessionTelemetry>;
+      setSessionTelemetry({
+        flowOpens: Number(parsed.flowOpens || 0),
+        singleRequeues: Number(parsed.singleRequeues || 0),
+        bulkRequeues: Number(parsed.bulkRequeues || 0),
+        manualRuns: Number(parsed.manualRuns || 0),
+        manualRefreshes: Number(parsed.manualRefreshes || 0),
+      });
+    } catch {
+      // Ignore malformed session data.
+    }
+  }, []);
+
+  useEffect(() => {
     const prefs = {
       autoRefresh,
       autoRefreshSeconds,
@@ -221,6 +256,14 @@ export default function AdminQueuePage() {
     };
     localStorage.setItem(QUEUE_OPERATOR_PREFS_KEY, JSON.stringify(prefs));
   }, [autoRefresh, autoRefreshSeconds, limit, sortBy, sortDir]);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(QUEUE_SESSION_TELEMETRY_KEY, JSON.stringify(sessionTelemetry));
+    } catch {
+      // Ignore storage write errors.
+    }
+  }, [sessionTelemetry]);
 
   const failedSelectedIds = useMemo(
     () => items.filter((item) => selectedIds.includes(item._id) && item.status === 'failed').map((item) => item._id),
@@ -311,6 +354,7 @@ export default function AdminQueuePage() {
   const runQueueNow = async () => {
     try {
       setActionBusy(true);
+      setSessionTelemetry((prev) => ({ ...prev, manualRuns: prev.manualRuns + 1 }));
       await api.post('/admin/jobs/side-effects/run', { batchSize: 100 });
       await fetchJobs();
     } catch (e: any) {
@@ -329,6 +373,7 @@ export default function AdminQueuePage() {
     try {
       setFlowOpen(true);
       setFlowLoading(true);
+      setSessionTelemetry((prev) => ({ ...prev, flowOpens: prev.flowOpens + 1 }));
       setActiveFlowCorrelationId(id);
       try {
         const raw = localStorage.getItem(FLOW_STATE_PREFS_KEY);
@@ -384,6 +429,11 @@ export default function AdminQueuePage() {
     }
   };
 
+  const resetSessionTelemetry = () => {
+    setSessionTelemetry(EMPTY_SESSION_TELEMETRY);
+    showToast('Reset session telemetry counters.', 'info');
+  };
+
   const requeueFlowJob = async (jobId: string) => {
     if (!jobId || !activeFlowCorrelationId) return;
     try {
@@ -392,6 +442,7 @@ export default function AdminQueuePage() {
       setError('');
       await api.post('/admin/jobs/side-effects/requeue-selected', { ids: [jobId] });
       await Promise.all([fetchJobs(), loadIncidentFlow(activeFlowCorrelationId)]);
+      setSessionTelemetry((prev) => ({ ...prev, singleRequeues: prev.singleRequeues + 1 }));
       showToast(`Flow job requeued successfully for ${activeFlowCorrelationId || '-'} at ${actionStamp()}.`, 'success');
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Failed to requeue flow job');
@@ -410,6 +461,7 @@ export default function AdminQueuePage() {
       setError('');
       await api.post('/admin/jobs/side-effects/requeue-selected', { ids });
       await Promise.all([fetchJobs(), loadIncidentFlow(activeFlowCorrelationId)]);
+      setSessionTelemetry((prev) => ({ ...prev, bulkRequeues: prev.bulkRequeues + 1 }));
       showToast(`Requeued ${ids.length} failed flow job(s) for ${activeFlowCorrelationId || '-'} at ${actionStamp()}.`, 'success');
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Failed to requeue filtered failed jobs');
@@ -583,6 +635,13 @@ export default function AdminQueuePage() {
                 </Stack>
               </Stack>
             ) : null}
+            <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ mt: 0.75, gap: 0.75, flexWrap: 'wrap' }}>
+              <Chip size="small" variant="outlined" label={`Session Flow Opens ${sessionTelemetry.flowOpens}`} />
+              <Chip size="small" variant="outlined" label={`Single Requeues ${sessionTelemetry.singleRequeues}`} />
+              <Chip size="small" variant="outlined" label={`Bulk Requeues ${sessionTelemetry.bulkRequeues}`} />
+              <Chip size="small" variant="outlined" label={`Manual Runs ${sessionTelemetry.manualRuns}`} />
+              <Chip size="small" variant="outlined" label={`Manual Refreshes ${sessionTelemetry.manualRefreshes}`} />
+            </Stack>
           </Box>
           <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
             <Button size="small" variant="outlined" disabled={actionBusy} onClick={runQueueNow} sx={{ textTransform: 'none' }}>
@@ -604,11 +663,23 @@ export default function AdminQueuePage() {
             >
               Requeue Selected Failed ({failedSelectedIds.length})
             </Button>
-            <Button size="small" variant="text" disabled={actionBusy || loading} onClick={fetchJobs} sx={{ textTransform: 'none' }}>
+            <Button
+              size="small"
+              variant="text"
+              disabled={actionBusy || loading}
+              onClick={() => {
+                setSessionTelemetry((prev) => ({ ...prev, manualRefreshes: prev.manualRefreshes + 1 }));
+                fetchJobs();
+              }}
+              sx={{ textTransform: 'none' }}
+            >
               Refresh
             </Button>
             <Button size="small" variant="text" disabled={actionBusy} onClick={clearSavedFlowState} sx={{ textTransform: 'none' }}>
               Clear Saved Flow State
+            </Button>
+            <Button size="small" variant="text" disabled={actionBusy} onClick={resetSessionTelemetry} sx={{ textTransform: 'none' }}>
+              Reset Session Counters
             </Button>
           </Stack>
         </Stack>
