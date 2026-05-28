@@ -94,6 +94,8 @@ const statusColor = (status: QueueJob['status']) => {
   return 'default';
 };
 
+const QUEUE_OPERATOR_PREFS_KEY = 'admin-queue-operator-prefs-v1';
+
 export default function AdminQueuePage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -173,10 +175,67 @@ export default function AdminQueuePage() {
     }
   }, [isAuthenticated, user, fetchJobs]);
 
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(QUEUE_OPERATOR_PREFS_KEY);
+      if (!raw) return;
+      const prefs = JSON.parse(raw);
+      if (typeof prefs.autoRefresh === 'boolean') setAutoRefresh(prefs.autoRefresh);
+      if ([15, 30, 60, 120].includes(Number(prefs.autoRefreshSeconds))) {
+        setAutoRefreshSeconds(Number(prefs.autoRefreshSeconds));
+      }
+      if ([10, 20, 50, 100].includes(Number(prefs.limit))) setLimit(Number(prefs.limit));
+      if (typeof prefs.sortBy === 'string' && prefs.sortBy) setSortBy(prefs.sortBy);
+      if (prefs.sortDir === 'asc' || prefs.sortDir === 'desc') setSortDir(prefs.sortDir);
+    } catch {
+      // Ignore malformed local storage data and keep defaults.
+    }
+  }, []);
+
+  useEffect(() => {
+    const prefs = {
+      autoRefresh,
+      autoRefreshSeconds,
+      limit,
+      sortBy,
+      sortDir,
+    };
+    localStorage.setItem(QUEUE_OPERATOR_PREFS_KEY, JSON.stringify(prefs));
+  }, [autoRefresh, autoRefreshSeconds, limit, sortBy, sortDir]);
+
   const failedSelectedIds = useMemo(
     () => items.filter((item) => selectedIds.includes(item._id) && item.status === 'failed').map((item) => item._id),
     [items, selectedIds]
   );
+
+  const flowSummary = useMemo(() => {
+    const summary = {
+      total: flowItems.length,
+      failed: 0,
+      completed: 0,
+      processing: 0,
+      pending: 0,
+      oldestCreatedAt: '',
+      newestCreatedAt: '',
+    };
+
+    for (const item of flowItems) {
+      if (item.status === 'failed') summary.failed += 1;
+      else if (item.status === 'completed') summary.completed += 1;
+      else if (item.status === 'processing') summary.processing += 1;
+      else summary.pending += 1;
+    }
+
+    const createdAtValues = flowItems
+      .map((item) => item.createdAt)
+      .filter((value): value is string => Boolean(value))
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+    summary.oldestCreatedAt = createdAtValues[0] || '';
+    summary.newestCreatedAt = createdAtValues[createdAtValues.length - 1] || '';
+
+    return summary;
+  }, [flowItems]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
@@ -698,6 +757,21 @@ export default function AdminQueuePage() {
               <Button size="small" variant="outlined" disabled={actionBusy || !activeFlowCorrelationId} onClick={exportFlowCsv} sx={{ textTransform: 'none' }}>
                 Export Flow CSV
               </Button>
+            </Stack>
+            <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ mb: 1.5, gap: 1, flexWrap: 'wrap' }}>
+              <Chip size="small" label={`Total ${flowSummary.total}`} />
+              <Chip size="small" color="error" label={`Failed ${flowSummary.failed}`} />
+              <Chip size="small" color="success" label={`Completed ${flowSummary.completed}`} />
+              <Chip size="small" color="info" label={`Processing ${flowSummary.processing}`} />
+              <Chip size="small" label={`Pending ${flowSummary.pending}`} />
+              <Chip
+                size="small"
+                label={`Oldest ${flowSummary.oldestCreatedAt ? new Date(flowSummary.oldestCreatedAt).toLocaleString('en-ZA') : '-'}`}
+              />
+              <Chip
+                size="small"
+                label={`Newest ${flowSummary.newestCreatedAt ? new Date(flowSummary.newestCreatedAt).toLocaleString('en-ZA') : '-'}`}
+              />
             </Stack>
             {flowLoading ? (
               <Box sx={{ py: 5, display: 'flex', justifyContent: 'center' }}><CircularProgress size={24} /></Box>
