@@ -1,10 +1,9 @@
 const Request = require('../models/Request');
-const Notification = require('../models/Notification');
 const Property = require('../models/Property');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const User = require('../models/User');
-const sendEventEmail = require('../utils/sendEventEmail');
+const { enqueueEmailJob, enqueueNotificationJob } = require('../utils/sideEffectQueue');
 const { canSendEmail, canSendPush } = require('../utils/notificationPreferences');
 
 const isAdmin = (user) => user?.role === 'admin';
@@ -133,14 +132,17 @@ const createRequest = async (req, res, next) => {
       // Also notify the landlord of the property
       const property = await Property.findById(request.property).select('createdBy');
       if (property?.createdBy) {
-        await Notification.create({
-          recipient: property.createdBy,
-          type: 'new_request',
-          title: 'New Accommodation Request',
-          message: `A student submitted a new request for ${request.property?.propertyName ?? 'your property'}.`,
-          link: `/landlord/requests?requestId=${request._id}`,
-          refModel: 'Request',
-          refId: request._id,
+        await enqueueNotificationJob({
+          correlationId: req.correlationId,
+          payload: {
+            recipient: property.createdBy,
+            type: 'new_request',
+            title: 'New Accommodation Request',
+            message: `A student submitted a new request for ${request.property?.propertyName ?? 'your property'}.`,
+            link: `/landlord/requests?requestId=${request._id}`,
+            refModel: 'Request',
+            refId: request._id,
+          },
         });
       }
 
@@ -228,30 +230,32 @@ const updateRequestStatus = async (req, res, next) => {
       : null;
 
     if (studentUser && canSendPush(studentUser, 'pushApplicationUpdates')) {
-      await Notification.create({
-        recipient: request.student?._id || null,
-        type: 'request_updated',
-        title: 'Request Status Updated',
-        message: `An accommodation request has been marked as "${status}".`,
-        link: `/applications?requestId=${request._id}`,
-        refModel: 'Request',
-        refId: request._id,
+      await enqueueNotificationJob({
+        correlationId: req.correlationId,
+        payload: {
+          recipient: request.student?._id || null,
+          type: 'request_updated',
+          title: 'Request Status Updated',
+          message: `An accommodation request has been marked as "${status}".`,
+          link: `/applications?requestId=${request._id}`,
+          refModel: 'Request',
+          refId: request._id,
+        },
       });
     }
 
     if (studentUser && canSendEmail(studentUser, 'emailApplicationUpdates')) {
-      try {
-        await sendEventEmail({
+      await enqueueEmailJob({
+        correlationId: req.correlationId,
+        payload: {
           to: studentUser.email,
           subject: 'Your application status was updated',
           heading: 'Application status update',
           body: `Your request for ${request.property?.propertyName || 'your selected property'} is now marked as ${status}.`,
           ctaUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/applications?requestId=${request._id}`,
           ctaLabel: 'View Application',
-        });
-      } catch (emailError) {
-        console.error('Status update email failed:', emailError?.message || emailError);
-      }
+        },
+      });
     }
 
     res.json(request);

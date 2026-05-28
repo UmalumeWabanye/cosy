@@ -9,11 +9,17 @@ const api = axios.create({
   },
 });
 
+const makeCorrelationId = () => {
+  const rand = Math.random().toString(36).slice(2, 10);
+  return `web-${Date.now()}-${rand}`;
+};
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  config.headers['x-correlation-id'] = makeCorrelationId();
   return config;
 });
 

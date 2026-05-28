@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
+const correlationId = require('./middleware/correlationId');
 
 // Route imports
 const authRoutes = require('./routes/authRoutes');
@@ -20,6 +21,7 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const { runReminderJobs } = require('./utils/runReminderJobs');
+const { processSideEffectQueue } = require('./utils/sideEffectQueue');
 
 // Connect to MongoDB
 connectDB();
@@ -63,6 +65,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
+app.use(correlationId);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 if (process.env.NODE_ENV === 'development') {
@@ -126,6 +129,23 @@ if (reminderJobsEnabled) {
       console.error('Scheduled reminder job failed:', error.message || error);
     });
   }, reminderIntervalMs);
+}
+
+const sideEffectQueueEnabled = process.env.ENABLE_SIDE_EFFECT_QUEUE !== 'false';
+if (sideEffectQueueEnabled) {
+  const intervalMs = Number(process.env.SIDE_EFFECT_QUEUE_INTERVAL_MS || 15000);
+
+  setTimeout(() => {
+    processSideEffectQueue().catch((error) => {
+      console.error('Initial side-effect queue run failed:', error.message || error);
+    });
+  }, 5000);
+
+  setInterval(() => {
+    processSideEffectQueue().catch((error) => {
+      console.error('Scheduled side-effect queue run failed:', error.message || error);
+    });
+  }, intervalMs);
 }
 
 // Backwards-compatible admin-prefixed routes (some frontends call /api/admin/...)

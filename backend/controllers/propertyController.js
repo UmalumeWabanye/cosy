@@ -2,8 +2,7 @@ const Property = require('../models/Property');
 const User = require('../models/User');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
-const Notification = require('../models/Notification');
-const sendEventEmail = require('../utils/sendEventEmail');
+const { enqueueEmailJob, enqueueNotificationJob } = require('../utils/sideEffectQueue');
 const { canSendEmail, canSendPush } = require('../utils/notificationPreferences');
 
 const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -100,30 +99,32 @@ const syncAllocationMessages = async ({ actorUserId, property, previousAllocatio
     await conversation.save();
 
     if (canSendPush(studentUser, 'pushAllocationUpdates')) {
-      await Notification.create({
-        recipient: studentId,
-        type: 'request_updated',
-        title: 'Room Allocation Updated',
-        message: notificationMessage,
-        link: '/messages',
-        refModel: 'Property',
-        refId: propertyId,
+      await enqueueNotificationJob({
+        correlationId: `allocation:${propertyId}`,
+        payload: {
+          recipient: studentId,
+          type: 'request_updated',
+          title: 'Room Allocation Updated',
+          message: notificationMessage,
+          link: '/messages',
+          refModel: 'Property',
+          refId: propertyId,
+        },
       });
     }
 
     if (canSendEmail(studentUser, 'emailAllocationUpdates')) {
-      try {
-        await sendEventEmail({
+      await enqueueEmailJob({
+        correlationId: `allocation:${propertyId}`,
+        payload: {
           to: studentUser.email,
           subject: 'Your room allocation was updated',
           heading: 'Room allocation update',
           body: notificationMessage,
           ctaUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/messages`,
           ctaLabel: 'Open Messages',
-        });
-      } catch (emailError) {
-        console.error('Allocation email failed:', emailError?.message || emailError);
-      }
+        },
+      });
     }
   }
 };

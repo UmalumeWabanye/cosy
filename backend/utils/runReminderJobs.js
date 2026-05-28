@@ -1,11 +1,10 @@
 const Request = require('../models/Request');
-const Notification = require('../models/Notification');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const Property = require('../models/Property');
 const SavedSearch = require('../models/SavedSearch');
-const sendEventEmail = require('./sendEventEmail');
+const { enqueueEmailJob, enqueueNotificationJob } = require('./sideEffectQueue');
 const { canSendEmail, canSendPush } = require('./notificationPreferences');
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -113,25 +112,31 @@ const runReminderJobs = async () => {
       });
 
       if (canSendPush(student, 'pushMessages')) {
-        await Notification.create({
-          recipient: student._id,
-          type: 'request_updated',
-          title: 'Move-In Reminder',
-          message: `Your move-in date is approaching for ${property.propertyName || 'your accommodation'}.`,
-          link: '/messages',
-          refModel: 'Request',
-          refId: req._id,
+        await enqueueNotificationJob({
+          correlationId: `reminder:movein:${req._id}`,
+          payload: {
+            recipient: student._id,
+            type: 'request_updated',
+            title: 'Move-In Reminder',
+            message: `Your move-in date is approaching for ${property.propertyName || 'your accommodation'}.`,
+            link: '/messages',
+            refModel: 'Request',
+            refId: req._id,
+          },
         });
       }
 
       if (canSendEmail(student, 'emailMoveInReminders')) {
-        await sendEventEmail({
-          to: student.email,
-          subject: 'Move-in reminder from Cosy',
-          heading: 'Your move-in is coming up',
-          body: `Your move-in date for ${property.propertyName || 'your accommodation'} is ${formattedDate}.`,
-          ctaUrl: `${FRONTEND_URL}/messages`,
-          ctaLabel: 'Open Messages',
+        await enqueueEmailJob({
+          correlationId: `reminder:movein:${req._id}`,
+          payload: {
+            to: student.email,
+            subject: 'Move-in reminder from Cosy',
+            heading: 'Your move-in is coming up',
+            body: `Your move-in date for ${property.propertyName || 'your accommodation'} is ${formattedDate}.`,
+            ctaUrl: `${FRONTEND_URL}/messages`,
+            ctaLabel: 'Open Messages',
+          },
         });
       }
 
@@ -168,25 +173,31 @@ const runReminderJobs = async () => {
       const propertyName = req.property?.propertyName || 'a property';
 
       if (canSendPush(landlord, 'pushMessages')) {
-        await Notification.create({
-          recipient: landlord._id,
-          type: 'request_updated',
-          title: 'Allocation Reminder',
-          message: `${studentName} is approved for ${propertyName} but still has no room assigned.`,
-          link: `/landlord/requests?requestId=${req._id}`,
-          refModel: 'Request',
-          refId: req._id,
+        await enqueueNotificationJob({
+          correlationId: `reminder:allocation:${req._id}`,
+          payload: {
+            recipient: landlord._id,
+            type: 'request_updated',
+            title: 'Allocation Reminder',
+            message: `${studentName} is approved for ${propertyName} but still has no room assigned.`,
+            link: `/landlord/requests?requestId=${req._id}`,
+            refModel: 'Request',
+            refId: req._id,
+          },
         });
       }
 
       if (canSendEmail(landlord, 'emailLandlordAlerts')) {
-        await sendEventEmail({
-          to: landlord.email,
-          subject: 'Approved request still needs room allocation',
-          heading: 'Room allocation reminder',
-          body: `${studentName} is approved for ${propertyName} but is still unassigned. Please allocate a room to complete onboarding.`,
-          ctaUrl: `${FRONTEND_URL}/landlord/requests?requestId=${req._id}`,
-          ctaLabel: 'Open Requests',
+        await enqueueEmailJob({
+          correlationId: `reminder:allocation:${req._id}`,
+          payload: {
+            to: landlord.email,
+            subject: 'Approved request still needs room allocation',
+            heading: 'Room allocation reminder',
+            body: `${studentName} is approved for ${propertyName} but is still unassigned. Please allocate a room to complete onboarding.`,
+            ctaUrl: `${FRONTEND_URL}/landlord/requests?requestId=${req._id}`,
+            ctaLabel: 'Open Requests',
+          },
         });
       }
 
@@ -215,25 +226,31 @@ const runReminderJobs = async () => {
       const isIncrease = matchCount > Number(search.lastMatchedCount || 0);
 
       if (isIncrease && canSendPush(student, 'pushApplicationUpdates')) {
-        await Notification.create({
-          recipient: student._id,
-          type: 'request_updated',
-          title: 'Saved Search Digest',
-          message: `${search.name}: ${matchCount} properties currently match your saved search.`,
-          link: '/browse',
-          refModel: 'User',
-          refId: student._id,
+        await enqueueNotificationJob({
+          correlationId: `savedsearch:${search._id}`,
+          payload: {
+            recipient: student._id,
+            type: 'request_updated',
+            title: 'Saved Search Digest',
+            message: `${search.name}: ${matchCount} properties currently match your saved search.`,
+            link: '/browse',
+            refModel: 'User',
+            refId: student._id,
+          },
         });
       }
 
       if (isIncrease && canSendEmail(student, 'emailNewListings')) {
-        await sendEventEmail({
-          to: student.email,
-          subject: 'New matching properties are available',
-          heading: 'Saved search digest',
-          body: `${search.name}: ${matchCount} properties currently match your search preferences.`,
-          ctaUrl: `${FRONTEND_URL}/browse`,
-          ctaLabel: 'Browse Matches',
+        await enqueueEmailJob({
+          correlationId: `savedsearch:${search._id}`,
+          payload: {
+            to: student.email,
+            subject: 'New matching properties are available',
+            heading: 'Saved search digest',
+            body: `${search.name}: ${matchCount} properties currently match your search preferences.`,
+            ctaUrl: `${FRONTEND_URL}/browse`,
+            ctaLabel: 'Browse Matches',
+          },
         });
       }
 
