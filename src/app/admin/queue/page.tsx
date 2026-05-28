@@ -132,6 +132,8 @@ export default function AdminQueuePage() {
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const [requeueingFlowJobId, setRequeueingFlowJobId] = useState('');
   const [requeueingFlowBulk, setRequeueingFlowBulk] = useState(false);
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [bulkConfirmIds, setBulkConfirmIds] = useState<string[]>([]);
   const [toast, setToast] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
     open: false,
     message: '',
@@ -331,6 +333,8 @@ export default function AdminQueuePage() {
     }
   };
 
+  const actionStamp = () => new Date().toLocaleString('en-ZA');
+
   const showToast = (message: string, severity: 'success' | 'error' | 'info' = 'info') => {
     setToast({ open: true, message, severity });
   };
@@ -343,31 +347,33 @@ export default function AdminQueuePage() {
       setError('');
       await api.post('/admin/jobs/side-effects/requeue-selected', { ids: [jobId] });
       await Promise.all([fetchJobs(), loadIncidentFlow(activeFlowCorrelationId)]);
-      showToast('Flow job requeued successfully.', 'success');
+      showToast(`Flow job requeued successfully for ${activeFlowCorrelationId || '-'} at ${actionStamp()}.`, 'success');
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Failed to requeue flow job');
-      showToast('Failed to requeue flow job.', 'error');
+      showToast(`Failed to requeue flow job for ${activeFlowCorrelationId || '-'}.`, 'error');
     } finally {
       setRequeueingFlowJobId('');
       setActionBusy(false);
     }
   };
 
-  const requeueFilteredFailedFlowJobs = async () => {
-    if (!activeFlowCorrelationId || filteredFailedFlowIds.length === 0) return;
+  const requeueFilteredFailedFlowJobs = async (ids: string[]) => {
+    if (!activeFlowCorrelationId || ids.length === 0) return;
     try {
       setRequeueingFlowBulk(true);
       setActionBusy(true);
       setError('');
-      await api.post('/admin/jobs/side-effects/requeue-selected', { ids: filteredFailedFlowIds });
+      await api.post('/admin/jobs/side-effects/requeue-selected', { ids });
       await Promise.all([fetchJobs(), loadIncidentFlow(activeFlowCorrelationId)]);
-      showToast(`Requeued ${filteredFailedFlowIds.length} failed flow job(s).`, 'success');
+      showToast(`Requeued ${ids.length} failed flow job(s) for ${activeFlowCorrelationId || '-'} at ${actionStamp()}.`, 'success');
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Failed to requeue filtered failed jobs');
-      showToast('Failed to requeue filtered failed jobs.', 'error');
+      showToast(`Failed to requeue filtered failed jobs for ${activeFlowCorrelationId || '-'}.`, 'error');
     } finally {
       setRequeueingFlowBulk(false);
       setActionBusy(false);
+      setBulkConfirmOpen(false);
+      setBulkConfirmIds([]);
     }
   };
 
@@ -867,7 +873,10 @@ export default function AdminQueuePage() {
                 variant="contained"
                 color="warning"
                 disabled={actionBusy || filteredFailedFlowIds.length === 0}
-                onClick={requeueFilteredFailedFlowJobs}
+                onClick={() => {
+                  setBulkConfirmIds(filteredFailedFlowIds);
+                  setBulkConfirmOpen(true);
+                }}
                 sx={{ textTransform: 'none' }}
               >
                 {requeueingFlowBulk ? 'Requeueing...' : `Requeue Filtered Failed (${filteredFailedFlowIds.length})`}
@@ -991,6 +1000,41 @@ export default function AdminQueuePage() {
                 </TableBody>
               </Table>
             )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={bulkConfirmOpen} onClose={() => !requeueingFlowBulk && setBulkConfirmOpen(false)} maxWidth="xs" fullWidth>
+          <DialogTitle>Confirm Bulk Requeue</DialogTitle>
+          <DialogContent dividers>
+            <Stack sx={{ gap: 1.5 }}>
+              <Typography variant="body2" color="text.secondary">
+                Requeue {bulkConfirmIds.length} failed job(s) for flow {activeFlowCorrelationId || '-'}?
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                This action targets currently filtered failed rows in the incident flow modal.
+              </Typography>
+              <Stack direction="row" sx={{ justifyContent: 'flex-end', gap: 1 }}>
+                <Button
+                  size="small"
+                  variant="text"
+                  disabled={requeueingFlowBulk}
+                  onClick={() => setBulkConfirmOpen(false)}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="warning"
+                  disabled={requeueingFlowBulk || bulkConfirmIds.length === 0}
+                  onClick={() => requeueFilteredFailedFlowJobs(bulkConfirmIds)}
+                  sx={{ textTransform: 'none' }}
+                >
+                  {requeueingFlowBulk ? 'Requeueing...' : 'Confirm Requeue'}
+                </Button>
+              </Stack>
+            </Stack>
           </DialogContent>
         </Dialog>
 
