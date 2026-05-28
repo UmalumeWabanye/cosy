@@ -121,6 +121,8 @@ const EMPTY_SESSION_TELEMETRY: QueueSessionTelemetry = {
   manualRefreshes: 0,
 };
 
+const SEVERITY_PRESETS = ['low', 'medium', 'high', 'critical'];
+
 type TelemetryExportFormat = 'json' | 'csv';
 
 export default function AdminQueuePage() {
@@ -1487,6 +1489,23 @@ export default function AdminQueuePage() {
                 >
                   Insert Severity/Scope
                 </Button>
+              </Stack>
+              <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap' }}>
+                {SEVERITY_PRESETS.map((preset) => {
+                  const selected = handoffSeverity.trim().toLowerCase() === preset;
+                  return (
+                    <Chip
+                      key={preset}
+                      size="small"
+                      label={preset}
+                      clickable
+                      color={selected ? 'primary' : 'default'}
+                      variant={selected ? 'filled' : 'outlined'}
+                      onClick={() => setHandoffSeverity(preset)}
+                      sx={{ textTransform: 'capitalize' }}
+                    />
+                  );
+                })}
               </Stack>
               <TextField
                 multiline
