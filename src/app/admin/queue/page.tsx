@@ -160,6 +160,8 @@ export default function AdminQueuePage() {
   const [requeueingFlowBulk, setRequeueingFlowBulk] = useState(false);
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
   const [bulkConfirmIds, setBulkConfirmIds] = useState<string[]>([]);
+  const [handoffPreviewOpen, setHandoffPreviewOpen] = useState(false);
+  const [handoffDraft, setHandoffDraft] = useState('');
   const [lastAction, setLastAction] = useState<{ message: string; severity: 'success' | 'error' | 'info'; at: string } | null>(null);
   const [sessionTelemetry, setSessionTelemetry] = useState<QueueSessionTelemetry>(EMPTY_SESSION_TELEMETRY);
   const [toast, setToast] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
@@ -544,7 +546,7 @@ export default function AdminQueuePage() {
     }
   };
 
-  const copyIncidentHandoffTemplate = async () => {
+  const buildIncidentHandoffTemplate = () => {
     const topFailing = timeline
       .filter((entry) => entry.failedJobs > 0)
       .sort((a, b) => {
@@ -584,11 +586,22 @@ export default function AdminQueuePage() {
       '- [fill in immediate follow-ups and owner]',
     ];
 
-    const template = templateLines.join('\n');
+    return templateLines.join('\n');
+  };
+
+  const copyIncidentHandoffTemplate = async () => {
+    const template = buildIncidentHandoffTemplate();
+    setHandoffDraft(template);
+    setHandoffPreviewOpen(true);
+  };
+
+  const copyHandoffDraft = async () => {
+    const template = handoffDraft || buildIncidentHandoffTemplate();
 
     try {
       await navigator.clipboard.writeText(template);
       showToast('Copied incident handoff template to clipboard.', 'success');
+      setHandoffPreviewOpen(false);
     } catch {
       try {
         const textArea = document.createElement('textarea');
@@ -602,6 +615,7 @@ export default function AdminQueuePage() {
         document.body.removeChild(textArea);
         if (ok) {
           showToast('Copied incident handoff template to clipboard.', 'success');
+          setHandoffPreviewOpen(false);
         } else {
           showToast('Failed to copy incident handoff template.', 'error');
         }
@@ -868,7 +882,7 @@ export default function AdminQueuePage() {
               Copy Telemetry Summary
             </Button>
             <Button size="small" variant="text" disabled={actionBusy} onClick={copyIncidentHandoffTemplate} sx={{ textTransform: 'none' }}>
-              Copy Incident Handoff
+              Preview Incident Handoff
             </Button>
           </Stack>
         </Stack>
@@ -1367,6 +1381,51 @@ export default function AdminQueuePage() {
                   sx={{ textTransform: 'none' }}
                 >
                   {requeueingFlowBulk ? 'Requeueing...' : 'Confirm Requeue'}
+                </Button>
+              </Stack>
+            </Stack>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={handoffPreviewOpen} onClose={() => setHandoffPreviewOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle>Incident Handoff Preview</DialogTitle>
+          <DialogContent dividers>
+            <Stack sx={{ gap: 1.5 }}>
+              <Typography variant="body2" color="text.secondary">
+                Review and edit before copying to Slack or incident updates.
+              </Typography>
+              <TextField
+                multiline
+                minRows={14}
+                maxRows={24}
+                fullWidth
+                value={handoffDraft}
+                onChange={(e) => setHandoffDraft(e.target.value)}
+              />
+              <Stack direction="row" sx={{ justifyContent: 'flex-end', gap: 1, flexWrap: 'wrap' }}>
+                <Button
+                  size="small"
+                  variant="text"
+                  onClick={() => setHandoffPreviewOpen(false)}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Close
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setHandoffDraft(buildIncidentHandoffTemplate())}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Regenerate
+                </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={copyHandoffDraft}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Copy to Clipboard
                 </Button>
               </Stack>
             </Stack>
