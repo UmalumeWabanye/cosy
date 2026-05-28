@@ -126,6 +126,7 @@ export default function AdminQueuePage() {
   const [flowLoading, setFlowLoading] = useState(false);
   const [activeFlowCorrelationId, setActiveFlowCorrelationId] = useState('');
   const [flowItems, setFlowItems] = useState<IncidentFlowJob[]>([]);
+  const [flowStatusFilter, setFlowStatusFilter] = useState<'all' | 'failed' | 'processing' | 'completed' | 'pending'>('all');
   const [expandedFlowRows, setExpandedFlowRows] = useState<string[]>([]);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
 
@@ -237,6 +238,22 @@ export default function AdminQueuePage() {
     return summary;
   }, [flowItems]);
 
+  const filteredFlowItems = useMemo(() => {
+    if (flowStatusFilter === 'all') return flowItems;
+    return flowItems.filter((item) => (item.status || 'pending') === flowStatusFilter);
+  }, [flowItems, flowStatusFilter]);
+
+  const latestFailedCorrelation = useMemo(() => {
+    const failedTimeline = timeline.filter((entry) => entry.failedJobs > 0);
+    if (failedTimeline.length === 0) return null;
+
+    return failedTimeline.sort((a, b) => {
+      const aTs = new Date(a.latestUpdateAt || a.latestCreatedAt || 0).getTime();
+      const bTs = new Date(b.latestUpdateAt || b.latestCreatedAt || 0).getTime();
+      return bTs - aTs;
+    })[0];
+  }, [timeline]);
+
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
   };
@@ -282,6 +299,7 @@ export default function AdminQueuePage() {
     try {
       setFlowOpen(true);
       setFlowLoading(true);
+      setFlowStatusFilter('all');
       setActiveFlowCorrelationId(id);
       setExpandedFlowRows([]);
       const res = await api.get(`/admin/jobs/side-effects/timeline/${encodeURIComponent(id)}?limit=300`);
@@ -659,7 +677,18 @@ export default function AdminQueuePage() {
 
         <Card variant="outlined" sx={{ mt: 2 }}>
           <CardContent>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>Incident Timeline (By Correlation ID)</Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 1.5, gap: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Incident Timeline (By Correlation ID)</Typography>
+              <Button
+                size="small"
+                variant="outlined"
+                sx={{ textTransform: 'none' }}
+                disabled={!latestFailedCorrelation || actionBusy}
+                onClick={() => latestFailedCorrelation && openIncidentFlow(latestFailedCorrelation.correlationId)}
+              >
+                Open Latest Failed Flow
+              </Button>
+            </Stack>
             {timeline.length === 0 ? (
               <Typography variant="body2" color="text.secondary">No correlation timeline data available.</Typography>
             ) : (
@@ -773,9 +802,46 @@ export default function AdminQueuePage() {
                 label={`Newest ${flowSummary.newestCreatedAt ? new Date(flowSummary.newestCreatedAt).toLocaleString('en-ZA') : '-'}`}
               />
             </Stack>
+            <Stack direction="row" sx={{ mb: 1.5, gap: 1, flexWrap: 'wrap' }}>
+              <Chip
+                size="small"
+                label="All"
+                color={flowStatusFilter === 'all' ? 'primary' : 'default'}
+                onClick={() => setFlowStatusFilter('all')}
+                clickable
+              />
+              <Chip
+                size="small"
+                label="Failed"
+                color={flowStatusFilter === 'failed' ? 'error' : 'default'}
+                onClick={() => setFlowStatusFilter('failed')}
+                clickable
+              />
+              <Chip
+                size="small"
+                label="Processing"
+                color={flowStatusFilter === 'processing' ? 'info' : 'default'}
+                onClick={() => setFlowStatusFilter('processing')}
+                clickable
+              />
+              <Chip
+                size="small"
+                label="Completed"
+                color={flowStatusFilter === 'completed' ? 'success' : 'default'}
+                onClick={() => setFlowStatusFilter('completed')}
+                clickable
+              />
+              <Chip
+                size="small"
+                label="Pending"
+                color={flowStatusFilter === 'pending' ? 'primary' : 'default'}
+                onClick={() => setFlowStatusFilter('pending')}
+                clickable
+              />
+            </Stack>
             {flowLoading ? (
               <Box sx={{ py: 5, display: 'flex', justifyContent: 'center' }}><CircularProgress size={24} /></Box>
-            ) : flowItems.length === 0 ? (
+            ) : filteredFlowItems.length === 0 ? (
               <Typography variant="body2" color="text.secondary">No flow jobs found.</Typography>
             ) : (
               <Table size="small">
@@ -790,7 +856,7 @@ export default function AdminQueuePage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {flowItems.map((item, idx) => {
+                  {filteredFlowItems.map((item, idx) => {
                     const rowKey = `${item._id || 'flow'}-${idx}`;
                     const isExpanded = expandedFlowRows.includes(rowKey);
                     return (
