@@ -122,6 +122,7 @@ const EMPTY_SESSION_TELEMETRY: QueueSessionTelemetry = {
 };
 
 const SEVERITY_PRESETS = ['low', 'medium', 'high', 'critical'];
+const SCOPE_PRESETS = ['notifications', 'email', 'queue processing', 'admin ui'];
 
 type TelemetryExportFormat = 'json' | 'csv';
 
@@ -1502,6 +1503,23 @@ export default function AdminQueuePage() {
                       color={selected ? 'primary' : 'default'}
                       variant={selected ? 'filled' : 'outlined'}
                       onClick={() => setHandoffSeverity(preset)}
+                      sx={{ textTransform: 'capitalize' }}
+                    />
+                  );
+                })}
+              </Stack>
+              <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap' }}>
+                {SCOPE_PRESETS.map((preset) => {
+                  const selected = handoffScope.trim().toLowerCase() === preset;
+                  return (
+                    <Chip
+                      key={preset}
+                      size="small"
+                      label={preset}
+                      clickable
+                      color={selected ? 'primary' : 'default'}
+                      variant={selected ? 'filled' : 'outlined'}
+                      onClick={() => setHandoffScope(preset)}
                       sx={{ textTransform: 'capitalize' }}
                     />
                   );
