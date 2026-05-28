@@ -25,6 +25,7 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Pagination from '@mui/material/Pagination';
 import Select from '@mui/material/Select';
+import Snackbar from '@mui/material/Snackbar';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import Table from '@mui/material/Table';
@@ -130,6 +131,12 @@ export default function AdminQueuePage() {
   const [expandedFlowRows, setExpandedFlowRows] = useState<string[]>([]);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const [requeueingFlowJobId, setRequeueingFlowJobId] = useState('');
+  const [requeueingFlowBulk, setRequeueingFlowBulk] = useState(false);
+  const [toast, setToast] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
 
   useEffect(() => {
     if (isLoading) return;
@@ -244,6 +251,13 @@ export default function AdminQueuePage() {
     return flowItems.filter((item) => (item.status || 'pending') === flowStatusFilter);
   }, [flowItems, flowStatusFilter]);
 
+  const filteredFailedFlowIds = useMemo(
+    () => filteredFlowItems
+      .filter((item) => item.status === 'failed' && typeof item._id === 'string' && item._id)
+      .map((item) => item._id as string),
+    [filteredFlowItems]
+  );
+
   const latestFailedCorrelation = useMemo(() => {
     const failedTimeline = timeline.filter((entry) => entry.failedJobs > 0);
     if (failedTimeline.length === 0) return null;
@@ -317,6 +331,10 @@ export default function AdminQueuePage() {
     }
   };
 
+  const showToast = (message: string, severity: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ open: true, message, severity });
+  };
+
   const requeueFlowJob = async (jobId: string) => {
     if (!jobId || !activeFlowCorrelationId) return;
     try {
@@ -325,10 +343,30 @@ export default function AdminQueuePage() {
       setError('');
       await api.post('/admin/jobs/side-effects/requeue-selected', { ids: [jobId] });
       await Promise.all([fetchJobs(), loadIncidentFlow(activeFlowCorrelationId)]);
+      showToast('Flow job requeued successfully.', 'success');
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Failed to requeue flow job');
+      showToast('Failed to requeue flow job.', 'error');
     } finally {
       setRequeueingFlowJobId('');
+      setActionBusy(false);
+    }
+  };
+
+  const requeueFilteredFailedFlowJobs = async () => {
+    if (!activeFlowCorrelationId || filteredFailedFlowIds.length === 0) return;
+    try {
+      setRequeueingFlowBulk(true);
+      setActionBusy(true);
+      setError('');
+      await api.post('/admin/jobs/side-effects/requeue-selected', { ids: filteredFailedFlowIds });
+      await Promise.all([fetchJobs(), loadIncidentFlow(activeFlowCorrelationId)]);
+      showToast(`Requeued ${filteredFailedFlowIds.length} failed flow job(s).`, 'success');
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Failed to requeue filtered failed jobs');
+      showToast('Failed to requeue filtered failed jobs.', 'error');
+    } finally {
+      setRequeueingFlowBulk(false);
       setActionBusy(false);
     }
   };
@@ -823,6 +861,21 @@ export default function AdminQueuePage() {
                 label={`Newest ${flowSummary.newestCreatedAt ? new Date(flowSummary.newestCreatedAt).toLocaleString('en-ZA') : '-'}`}
               />
             </Stack>
+            <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ mb: 1.5, gap: 1, alignItems: { sm: 'center' } }}>
+              <Button
+                size="small"
+                variant="contained"
+                color="warning"
+                disabled={actionBusy || filteredFailedFlowIds.length === 0}
+                onClick={requeueFilteredFailedFlowJobs}
+                sx={{ textTransform: 'none' }}
+              >
+                {requeueingFlowBulk ? 'Requeueing...' : `Requeue Filtered Failed (${filteredFailedFlowIds.length})`}
+              </Button>
+              <Typography variant="caption" color="text.secondary">
+                Requeues failed rows currently visible under the selected flow status filter.
+              </Typography>
+            </Stack>
             <Stack direction="row" sx={{ mb: 1.5, gap: 1, flexWrap: 'wrap' }}>
               <Chip
                 size="small"
@@ -940,6 +993,22 @@ export default function AdminQueuePage() {
             )}
           </DialogContent>
         </Dialog>
+
+        <Snackbar
+          open={toast.open}
+          autoHideDuration={2500}
+          onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert
+            onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+            severity={toast.severity}
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            {toast.message}
+          </Alert>
+        </Snackbar>
       </Box>
     </AdminLayout>
   );
