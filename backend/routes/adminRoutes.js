@@ -24,6 +24,11 @@ const {
 } = require('../controllers/notificationController');
 const { runReminderJobs } = require('../utils/runReminderJobs');
 const AnalyticsEvent = require('../models/AnalyticsEvent');
+const {
+  getQueueHealth,
+  processSideEffectQueue,
+  requeueFailedJobs,
+} = require('../utils/sideEffectQueue');
 
 // All routes require authentication
 router.use(protect);
@@ -120,6 +125,37 @@ router.get('/reports/funnel-summary', async (req, res, next) => {
 router.post('/jobs/reminders/run', adminOnly, async (req, res, next) => {
   try {
     const result = await runReminderJobs();
+    res.json({ success: true, result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/jobs/side-effects/health', adminOnly, async (req, res, next) => {
+  try {
+    const failedSampleLimit = Math.max(1, Math.min(50, Number(req.query.failedSampleLimit || 10)));
+    const result = await getQueueHealth({ failedSampleLimit });
+    res.json({ success: true, result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/jobs/side-effects/run', adminOnly, async (req, res, next) => {
+  try {
+    const batchSize = Math.max(1, Math.min(200, Number(req.body?.batchSize || 50)));
+    const result = await processSideEffectQueue({ batchSize, workerId: `admin:${req.user?._id || 'unknown'}` });
+    res.json({ success: true, result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/jobs/side-effects/requeue-failed', adminOnly, async (req, res, next) => {
+  try {
+    const { id } = req.body || {};
+    const limit = Math.max(1, Math.min(500, Number(req.body?.limit || 100)));
+    const result = await requeueFailedJobs({ id, limit });
     res.json({ success: true, result });
   } catch (error) {
     next(error);

@@ -112,8 +112,87 @@ const processSideEffectQueue = async ({ batchSize = 20, workerId = 'main' } = {}
   }
 };
 
+const getQueueHealth = async ({ failedSampleLimit = 10 } = {}) => {
+  const now = new Date();
+
+  const [
+    pending,
+    processing,
+    completed,
+    failed,
+    oldestPending,
+    stalled,
+    recentFailures,
+  ] = await Promise.all([
+    SideEffectJob.countDocuments({ status: 'pending' }),
+    SideEffectJob.countDocuments({ status: 'processing' }),
+    SideEffectJob.countDocuments({ status: 'completed' }),
+    SideEffectJob.countDocuments({ status: 'failed' }),
+    SideEffectJob.findOne({ status: 'pending' }).sort({ createdAt: 1 }).select('createdAt runAfter').lean(),
+    SideEffectJob.countDocuments({ status: 'processing', lockedAt: { $lte: new Date(now.getTime() - 10 * 60 * 1000) } }),
+    SideEffectJob.find({ status: 'failed' })
+      .sort({ updatedAt: -1 })
+      .limit(failedSampleLimit)
+      .select('type attempts maxAttempts lastError correlationId updatedAt')
+      .lean(),
+  ]);
+
+  const oldestPendingSeconds = oldestPending?.createdAt
+    ? Math.max(0, Math.round((now.getTime() - new Date(oldestPending.createdAt).getTime()) / 1000))
+    : 0;
+
+  return {
+    queue: {
+      pending,
+      processing,
+      completed,
+      failed,
+      stalled,
+      oldestPendingSeconds,
+    },
+    recentFailures,
+  };
+};
+
+const requeueFailedJobs = async ({ id, limit = 100 } = {}) => {
+  const query = id
+    ? { _id: id, status: 'failed' }
+    : { status: 'failed' };
+
+  const jobs = await SideEffectJob.find(query)
+    .sort({ updatedAt: -1 })
+    .limit(Math.max(1, Math.min(500, Number(limit) || 100)))
+    .select('_id')
+    .lean();
+
+  if (!jobs.length) {
+    return { matched: 0, requeued: 0 };
+  }
+
+  const ids = jobs.map((job) => job._id);
+  const result = await SideEffectJob.updateMany(
+    { _id: { $in: ids } },
+    {
+      $set: {
+        status: 'pending',
+        runAfter: new Date(),
+        lastError: '',
+        lockedAt: null,
+      },
+      $unset: { completedAt: '' },
+    }
+  );
+
+  return {
+    matched: ids.length,
+    requeued: Number(result.modifiedCount || 0),
+  };
+};
+
 module.exports = {
   enqueueEmailJob,
   enqueueNotificationJob,
+  getQueueHealth,
   processSideEffectQueue,
+  requeueFailedJobs,
 };
