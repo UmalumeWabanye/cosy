@@ -243,7 +243,7 @@ export default function LandlordPage() {
         >
           <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
             <Chip
-              label="🏠 For Property Owners & Landlords"
+              label="For Property Owners & Landlords"
               size="small"
               sx={{
                 bgcolor: 'rgba(255,255,255,0.15)', color: 'white', fontWeight: 600,

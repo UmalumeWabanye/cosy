@@ -187,7 +187,7 @@ export default function SetupAccountPage() {
         <Box sx={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, bgcolor: 'grey.50' }}>
           <Paper elevation={0} sx={{ maxWidth: 440, width: '100%', p: { xs: 4, sm: 5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
             <CheckCircleRoundedIcon sx={{ fontSize: 72, color: 'success.main', mb: 2 }} />
-            <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>You're all set! 🎉</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>You're all set!</Typography>
             <Typography color="text.secondary" sx={{ mb: 4 }}>
               Your profile is ready. Start browsing student accommodation across South Africa.
             </Typography>

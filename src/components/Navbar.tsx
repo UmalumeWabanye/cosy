@@ -154,9 +154,9 @@ export default function Navbar() {
                   size="small"
                   sx={{
                     textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
-                    color: '#1565c0', bgcolor: 'transparent',
+                    color: 'primary.main', bgcolor: 'transparent',
                     display: { xs: 'none', sm: 'inline-flex' }, px: 1,
-                    '&:hover': { bgcolor: 'transparent', color: '#0d47a1' },
+                    '&:hover': { bgcolor: 'transparent', color: 'primary.dark' },
                   }}
                 >
                   For Tenants
@@ -167,9 +167,9 @@ export default function Navbar() {
                   size="small"
                   sx={{
                     textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
-                    color: '#1565c0', bgcolor: 'transparent',
+                    color: 'primary.main', bgcolor: 'transparent',
                     display: { xs: 'none', sm: 'inline-flex' }, px: 1,
-                    '&:hover': { bgcolor: 'transparent', color: '#0d47a1' },
+                    '&:hover': { bgcolor: 'transparent', color: 'primary.dark' },
                   }}
                 >
                   Create a Listing
@@ -184,9 +184,9 @@ export default function Navbar() {
                   size="small"
                   sx={{
                     textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
-                    color: '#1565c0', bgcolor: 'transparent',
+                    color: 'primary.main', bgcolor: 'transparent',
                     display: { xs: 'none', md: 'inline-flex' }, px: 1,
-                    '&:hover': { bgcolor: 'transparent', color: '#0d47a1' },
+                    '&:hover': { bgcolor: 'transparent', color: 'primary.dark' },
                   }}
                 >
                   About us
@@ -197,9 +197,9 @@ export default function Navbar() {
                   size="small"
                   sx={{
                     textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
-                    color: '#1565c0', bgcolor: 'transparent',
+                    color: 'primary.main', bgcolor: 'transparent',
                     display: { xs: 'none', sm: 'inline-flex' }, px: 1,
-                    '&:hover': { bgcolor: 'transparent', color: '#0d47a1' },
+                    '&:hover': { bgcolor: 'transparent', color: 'primary.dark' },
                   }}
                 >
                   Become a Landlord

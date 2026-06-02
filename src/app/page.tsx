@@ -94,22 +94,22 @@ const STEPS = [
 
 const FEATURES = [
   {
-    icon: <SchoolOutlinedIcon sx={{ fontSize: 36, color: '#1976d2' }} />,
+    icon: <SchoolOutlinedIcon sx={{ fontSize: 36, color: 'primary.main' }} />,
     title: 'Student-Focused',
     desc: 'Properties verified and tailored specifically for university students near campus.',
   },
   {
-    icon: <VerifiedOutlinedIcon sx={{ fontSize: 36, color: '#1976d2' }} />,
+    icon: <VerifiedOutlinedIcon sx={{ fontSize: 36, color: 'primary.main' }} />,
     title: 'NSFAS Accredited',
     desc: 'Easily find properties that accept NSFAS funding to make accommodation accessible.',
   },
   {
-    icon: <SecurityOutlinedIcon sx={{ fontSize: 36, color: '#1976d2' }} />,
+    icon: <SecurityOutlinedIcon sx={{ fontSize: 36, color: 'primary.main' }} />,
     title: 'Secure & Verified',
     desc: 'All listings are verified to ensure you find safe, quality accommodation.',
   },
   {
-    icon: <SupportAgentOutlinedIcon sx={{ fontSize: 36, color: '#1976d2' }} />,
+    icon: <SupportAgentOutlinedIcon sx={{ fontSize: 36, color: 'primary.main' }} />,
     title: '24/7 Support',
     desc: 'Our team is always available to help you find your perfect student home.',
   },
@@ -266,7 +266,7 @@ export default function HomePage() {
         {/* ─── HERO ─────────────────────────────────────────────── */}
         <Box
           sx={{
-            background: 'linear-gradient(130deg, #08182a 0%, #0d2f52 34%, #155a93 72%, #2f87c8 100%)',
+            background: 'linear-gradient(130deg, #021a38 0%, #0c3f73 36%, #0f62a6 70%, #1971c2 100%)',
             pt: { xs: 8, md: 14 },
             pb: { xs: 6, md: 10 },
             px: 2,
@@ -277,7 +277,7 @@ export default function HomePage() {
               position: 'absolute',
               inset: 0,
               backgroundImage:
-                'radial-gradient(circle at 18% 42%, rgba(131, 208, 255, 0.25) 0%, transparent 40%), radial-gradient(circle at 82% 18%, rgba(255, 244, 214, 0.18) 0%, transparent 38%)',
+                'radial-gradient(circle at 18% 42%, rgba(173, 224, 255, 0.24) 0%, transparent 40%), radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.14) 0%, transparent 38%)',
             },
             '&::after': {
               content: '""',
@@ -293,7 +293,7 @@ export default function HomePage() {
               {/* Left: headline + search */}
               <Grid size={{ xs: 12, md: 7 }}>
                 <Chip
-                  label="🎓 South Africa's Student Accommodation Platform"
+                  label="South Africa's Student Accommodation Platform"
                   size="small"
                   sx={{
                     bgcolor: 'rgba(255,255,255,0.15)',
@@ -473,8 +473,8 @@ export default function HomePage() {
                       <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', mb: 0.5 }}>Modern Student Flat</Typography>
                       <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>Cape Town · Near UCT</Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography sx={{ fontWeight: 800, color: '#1976d2', fontSize: '1.1rem' }}>R 4,200/mo</Typography>
-                        <Chip label="NSFAS" size="small" sx={{ bgcolor: '#e3f2fd', color: '#1565c0', fontWeight: 600, fontSize: '0.7rem' }} />
+                        <Typography sx={{ fontWeight: 800, color: 'primary.main', fontSize: '1.1rem' }}>R 4,200/mo</Typography>
+                        <Chip label="NSFAS" size="small" sx={{ bgcolor: 'primary.light', color: 'primary.main', fontWeight: 600, fontSize: '0.7rem' }} />
                       </Box>
                     </Box>
                   </Paper>
@@ -717,12 +717,12 @@ export default function HomePage() {
                               <Typography variant="caption">{getPropertyCity(prop)}</Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, mt: 'auto' }}>
-                              <Typography sx={{ fontWeight: 800, color: '#1976d2', fontSize: '1rem' }}>
+                              <Typography sx={{ fontWeight: 800, color: 'primary.main', fontSize: '1rem' }}>
                                 R {prop.price?.toLocaleString()}/mo
                               </Typography>
                               <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                                 {isNsfasProperty(prop) && (
-                                  <Chip label="NSFAS" size="small" sx={{ bgcolor: '#e3f2fd', color: '#1565c0', fontWeight: 600, fontSize: '0.65rem', height: 20 }} />
+                                  <Chip label="NSFAS" size="small" sx={{ bgcolor: 'primary.light', color: 'primary.main', fontWeight: 600, fontSize: '0.65rem', height: 20 }} />
                                 )}
                                 {prop.roomType && (
                                   <Chip label={prop.roomType} size="small" sx={{ bgcolor: '#f5f5f5', fontWeight: 600, fontSize: '0.65rem', height: 20, textTransform: 'capitalize' }} />
@@ -737,7 +737,7 @@ export default function HomePage() {
                     <Grid size={{ xs: 12 }}>
                       <Box sx={{ textAlign: 'center', py: 6, color: 'text.secondary' }}>
                         <ApartmentRoundedIcon sx={{ fontSize: 56, mb: 2, opacity: 0.3 }} />
-                        <Typography>No featured listings yet. <Link href="/browse" style={{ color: '#1976d2' }}>Browse all properties</Link></Typography>
+                        <Typography>No featured listings yet. <Link href="/browse" style={{ color: 'var(--mui-palette-primary-main)' }}>Browse all properties</Link></Typography>
                       </Box>
                     </Grid>
                   )
@@ -746,22 +746,6 @@ export default function HomePage() {
           </Container>
         </Box>
 
-        {/* ─── COMPARE TEASER ─────────────────────────────────── */}
-        <Box sx={{ bgcolor: '#f8fbff', py: { xs: 6, md: 8 } }}>
-          <Container maxWidth="lg">
-            <Paper variant="outlined" sx={{ borderRadius: 3, p: { xs: 2.5, md: 3.5 }, display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, gap: 2, flexDirection: { xs: 'column', md: 'row' } }}>
-              <Box>
-                <Typography sx={{ fontWeight: 800, fontSize: { xs: '1.1rem', md: '1.35rem' }, mb: 0.6 }}>Compare Properties By Real Monthly Cost</Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 640 }}>
-                  Use our compare flow to evaluate rent, estimated utilities, and commute impact before you apply.
-                </Typography>
-              </Box>
-              <Button component={Link} href="/browse?source=homepage-compare" variant="contained" endIcon={<ArrowForwardRoundedIcon />} onClick={() => trackEvent('cta-click', { button: 'compare-listings', location: 'compare-teaser' })} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}>
-                Compare Listings
-              </Button>
-            </Paper>
-          </Container>
-        </Box>
 
         {/* ─── WHY COSY ─────────────────────────────────────────── */}
         <Box sx={{ bgcolor: '#f0f4f8', py: { xs: 8, md: 12 } }}>

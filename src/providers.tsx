@@ -20,8 +20,20 @@ const theme = createTheme({
   shape: { borderRadius: 8 },
   palette: {
     primary: {
-      main: '#1976d2',
-      dark: '#1565c0',
+      main: '#0071c2',
+      dark: '#005b98',
+      light: '#d9edff',
+    },
+    secondary: {
+      main: '#f4f9ff',
+    },
+    background: {
+      default: '#f4f9ff',
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#0f2036',
+      secondary: '#4c6d8e',
     },
   },
   components: {
@@ -37,9 +49,9 @@ const theme = createTheme({
           fontFamily: 'inherit',
         },
         contained: {
-          background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
+          background: 'linear-gradient(135deg, #0071c2 0%, #005b98 100%)',
           '&:hover': {
-            background: 'linear-gradient(135deg, #0d47a1 0%, #1565c0 100%)',
+            background: 'linear-gradient(135deg, #005b98 0%, #00467d 100%)',
           },
         },
       },
