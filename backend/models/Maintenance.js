@@ -45,6 +45,37 @@ const maintenanceSchema = new mongoose.Schema(
       trim: true,
       maxlength: [1000, 'Description cannot exceed 1000 characters'],
     },
+    attachments: [
+      {
+        url: { type: String, required: true },
+        filename: { type: String, trim: true },
+      },
+    ],
+    conversation: [
+      {
+        sender: {
+          type: String,
+          enum: ['student', 'landlord'],
+          required: true,
+        },
+        message: {
+          type: String,
+          required: [true, 'Message is required'],
+          trim: true,
+          maxlength: [1000, 'Message cannot exceed 1000 characters'],
+        },
+        attachments: [
+          {
+            url: { type: String, required: true },
+            filename: { type: String, trim: true },
+          },
+        ],
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
     priority: {
       type: String,
       enum: ['low', 'medium', 'high', 'urgent'],
@@ -55,15 +86,25 @@ const maintenanceSchema = new mongoose.Schema(
       enum: ['open', 'in_progress', 'resolved', 'closed'],
       default: 'open',
     },
-    // Set by landlord when they acknowledge and schedule the fix
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5,
+    },
+    ratingComment: {
+      type: String,
+      trim: true,
+      maxlength: [1000, 'Rating comment cannot exceed 1000 characters'],
+    },
+    ratedAt: {
+      type: Date,
+    },
     expectedDate: {
       type: Date,
     },
-    // Set when the landlord first responds in a meaningful way
     acknowledgedAt: {
       type: Date,
     },
-    // Optional note from the landlord (e.g. "Plumber booked for Thursday")
     landlordNote: {
       type: String,
       trim: true,

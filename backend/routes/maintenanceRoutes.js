@@ -1,4 +1,6 @@
 const express = require('express');
+const multer = require('multer');
+const cloudinary = require('../config/cloudinary');
 const { body, param } = require('express-validator');
 const { protect } = require('../middleware/auth');
 const { handleValidation } = require('../middleware/validateRequest');
@@ -7,6 +9,7 @@ const Request = require('../models/Request');
 const Property = require('../models/Property');
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 const CATEGORIES = Maintenance.schema.path('category').enumValues;
 
@@ -21,6 +24,9 @@ router.post(
     body('category').isIn(CATEGORIES).withMessage('Invalid category'),
     body('description').trim().isLength({ min: 10, max: 1000 }).withMessage('Description must be 10–1000 characters'),
     body('priority').optional().isIn(['low', 'medium', 'high', 'urgent']).withMessage('Invalid priority'),
+    body('attachments').optional().isArray({ max: 4 }).withMessage('Attachments must be an array of up to 4 items'),
+    body('attachments.*.url').optional().isURL().withMessage('Invalid attachment URL'),
+    body('attachments.*.filename').optional().isString().trim().isLength({ max: 200 }).withMessage('Invalid attachment filename'),
   ],
   handleValidation,
   async (req, res) => {
@@ -73,6 +79,9 @@ router.post(
         category,
         description: description.trim(),
         priority: priority || 'medium',
+        attachments: Array.isArray(req.body.attachments)
+          ? req.body.attachments.filter((item) => item?.url).map((item) => ({ url: item.url, filename: item.filename || '' }))
+          : [],
       });
 
       await ticket.populate([
@@ -150,6 +159,29 @@ router.get('/active-properties', protect, async (req, res) => {
     return res.json({ data });
   } catch {
     return res.status(500).json({ message: 'Failed to fetch active properties' });
+  }
+});
+
+// ─── POST /api/maintenance/upload-image ─────────────────────────────────────────────────
+router.post('/upload-image', protect, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'No file provided' });
+
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'cosy/maintenance', transformation: [{ quality: 'auto', fetch_format: 'auto' }] },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      stream.end(req.file.buffer);
+    });
+
+    res.json({ imageUrl: result.secure_url, publicId: result.public_id });
+  } catch (err) {
+    console.error('Maintenance image upload error:', err);
+    res.status(500).json({ message: err.message || 'Image upload failed' });
   }
 });
 
@@ -233,6 +265,89 @@ router.patch(
       return res.json({ message: 'Maintenance request updated', data: ticket });
     } catch {
       return res.status(500).json({ message: 'Failed to update maintenance request' });
+    }
+  }
+);
+
+// ─── POST /api/maintenance/:id/comment ───────────────────────────────────────────
+router.post(
+  '/:id/comment',
+  protect,
+  [
+    param('id').isMongoId().withMessage('Invalid maintenance ID'),
+    body('message').trim().isLength({ min: 2, max: 1000 }).withMessage('Message must be 2–1000 characters'),
+    body('attachments').optional().isArray({ max: 4 }).withMessage('Attachments must be an array of up to 4 items'),
+    body('attachments.*.url').optional().isURL().withMessage('Invalid attachment URL'),
+    body('attachments.*.filename').optional().isString().trim().isLength({ max: 200 }).withMessage('Invalid attachment filename'),
+  ],
+  handleValidation,
+  async (req, res) => {
+    try {
+      const ticket = await Maintenance.findById(req.params.id);
+      if (!ticket) return res.status(404).json({ message: 'Maintenance request not found' });
+
+      const isStudent = req.user.role === 'student' && String(ticket.student) === String(req.user._id);
+      const isLandlord = req.user.role === 'landlord' && String(ticket.landlord) === String(req.user._id);
+      if (!isStudent && !isLandlord) {
+        return res.status(403).json({ message: 'Not authorized to comment on this maintenance request' });
+      }
+
+      if (ticket.status === 'closed') {
+        return res.status(400).json({ message: 'Closed maintenance requests cannot receive new comments' });
+      }
+
+      const { message, attachments } = req.body;
+      const comment = {
+        sender: isLandlord ? 'landlord' : 'student',
+        message: message.trim(),
+        attachments: Array.isArray(attachments)
+          ? attachments.filter((item) => item?.url).map((item) => ({ url: item.url, filename: item.filename || '' }))
+          : [],
+      };
+
+      ticket.conversation = ticket.conversation || [];
+      ticket.conversation.push(comment);
+      await ticket.save();
+
+      return res.json({ message: 'Comment added', data: ticket });
+    } catch {
+      return res.status(500).json({ message: 'Failed to add comment' });
+    }
+  }
+);
+
+// ─── POST /api/maintenance/:id/rating ───────────────────────────────────────────
+router.post(
+  '/:id/rating',
+  protect,
+  [
+    param('id').isMongoId().withMessage('Invalid maintenance ID'),
+    body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
+    body('comment').optional().trim().isLength({ max: 1000 }).withMessage('Comment cannot exceed 1000 characters'),
+  ],
+  handleValidation,
+  async (req, res) => {
+    try {
+      const ticket = await Maintenance.findById(req.params.id);
+      if (!ticket) return res.status(404).json({ message: 'Maintenance request not found' });
+      if (req.user.role !== 'student' || String(ticket.student) !== String(req.user._id)) {
+        return res.status(403).json({ message: 'Not authorized to rate this maintenance request' });
+      }
+      if (!['resolved', 'closed'].includes(ticket.status)) {
+        return res.status(400).json({ message: 'You can only rate a maintenance request after it has been completed' });
+      }
+      if (ticket.rating) {
+        return res.status(400).json({ message: 'This maintenance request has already been rated' });
+      }
+
+      ticket.rating = Number(req.body.rating);
+      ticket.ratingComment = req.body.comment?.trim() || undefined;
+      ticket.ratedAt = new Date();
+      await ticket.save();
+
+      return res.json({ message: 'Thank you for your feedback', data: ticket });
+    } catch {
+      return res.status(500).json({ message: 'Failed to submit rating' });
     }
   }
 );

@@ -27,7 +27,6 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
-import Grid from '@mui/material/Grid';
 import InputAdornment from '@mui/material/InputAdornment';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -65,6 +64,13 @@ const PRIORITY_FILTERS = ['all', 'low', 'medium', 'high', 'urgent'] as const;
 
 type StatusFilter = 'all' | 'open' | 'in_progress' | 'resolved' | 'closed';
 
+interface ConversationItem {
+  sender: 'student' | 'landlord';
+  message: string;
+  attachments?: { url: string; filename?: string }[];
+  createdAt: string;
+}
+
 interface Ticket {
   _id: string;
   category: string;
@@ -78,6 +84,11 @@ interface Ticket {
   updatedAt: string;
   student?: { name?: string; email?: string };
   property?: { _id: string; propertyName?: string; city?: string };
+  attachments?: { url: string; filename?: string }[];
+  conversation?: ConversationItem[];
+  rating?: number;
+  ratingComment?: string;
+  ratedAt?: string;
 }
 
 export default function LandlordMaintenancePage() {
@@ -99,6 +110,11 @@ export default function LandlordMaintenancePage() {
   const [editForm, setEditForm] = useState({ status: '', expectedDate: '', landlordNote: '' });
   const [editError, setEditError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const [commentTarget, setCommentTarget] = useState<Ticket | null>(null);
+  const [commentMessage, setCommentMessage] = useState('');
+  const [commentError, setCommentError] = useState('');
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || user?.role !== 'landlord')) router.push('/');
@@ -166,6 +182,35 @@ export default function LandlordMaintenancePage() {
       setEditError(e?.response?.data?.message || 'Failed to save changes');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const openComment = (ticket: Ticket) => {
+    setCommentTarget(ticket);
+    setCommentMessage('');
+    setCommentError('');
+  };
+
+  const handleCommentSubmit = async () => {
+    if (!commentTarget) return;
+    if (!commentMessage.trim()) {
+      setCommentError('Please enter a message');
+      return;
+    }
+
+    setCommentSubmitting(true);
+    setCommentError('');
+    try {
+      await api.post(`/maintenance/${commentTarget._id}/comment`, {
+        message: commentMessage.trim(),
+      });
+      setCommentTarget(null);
+      setCommentMessage('');
+      await load();
+    } catch (e: any) {
+      setCommentError(e?.response?.data?.message || 'Failed to send comment');
+    } finally {
+      setCommentSubmitting(false);
     }
   };
 
@@ -273,24 +318,22 @@ export default function LandlordMaintenancePage() {
             </Button>
           </Stack>
 
-          <Grid container spacing={1.5} sx={{ mt: 1.5 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' }, gap: 1.5, mt: 1.5, mb: 3 }}>
             {[
               { label: 'Total', value: tickets.length, icon: <HomeRoundedIcon sx={{ fontSize: 18 }} />, color: '#1976d2' },
               { label: 'Open', value: counts.open, icon: <PauseCircleRoundedIcon sx={{ fontSize: 18 }} />, color: '#1565c0' },
               { label: 'In progress', value: counts.in_progress, icon: <AutorenewRoundedIcon sx={{ fontSize: 18 }} />, color: '#e65100' },
               { label: 'Room-linked', value: tickets.filter((ticket) => Boolean(ticket.roomNumber)).length, icon: <RoomRoundedIcon sx={{ fontSize: 18 }} />, color: '#2e7d32' },
             ].map((item) => (
-              <Grid key={item.label} size={{ xs: 6, md: 3 }}>
-                <Paper variant="outlined" sx={{ p: 1.5 }}>
-                  <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{item.label}</Typography>
-                    <Box sx={{ color: item.color }}>{item.icon}</Box>
-                  </Stack>
-                  <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.1 }}>{item.value}</Typography>
-                </Paper>
-              </Grid>
+              <Paper key={item.label} variant="outlined" sx={{ p: 1.5 }}>
+                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{item.label}</Typography>
+                  <Box sx={{ color: item.color }}>{item.icon}</Box>
+                </Stack>
+                <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.1 }}>{item.value}</Typography>
+              </Paper>
             ))}
-          </Grid>
+          </Box>
         </Paper>
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -387,6 +430,13 @@ export default function LandlordMaintenancePage() {
                         >
                           Update
                         </Button>
+                        <Button
+                          size="small" variant="outlined"
+                          onClick={() => openComment(ticket)}
+                          sx={{ textTransform: 'none', fontSize: 12, borderRadius: 1.5 }}
+                        >
+                          Reply
+                        </Button>
                       </Stack>
                     </Stack>
 
@@ -429,6 +479,37 @@ export default function LandlordMaintenancePage() {
                         )}
                       </Box>
                     )}
+
+                    {ticket.conversation?.length ? (
+                      <Box sx={{ p: 2, mb: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 700, mb: 1, display: 'block' }}>Recent conversation</Typography>
+                        {ticket.conversation.slice(-2).map((message, index) => (
+                          <Box key={`${message.createdAt}-${index}`} sx={{ mb: index < ticket.conversation!.slice(-2).length - 1 ? 1.5 : 0 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
+                              {message.sender === 'landlord' ? 'You' : ticket.student?.name || 'Student'} · {new Date(message.createdAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>{message.message}</Typography>
+                            {message.attachments?.length ? (
+                              <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap', mt: 1 }}>
+                                {message.attachments.map((attachment, attachmentIndex) => (
+                                  <Button
+                                    key={attachmentIndex}
+                                    size="small"
+                                    component="a"
+                                    href={attachment.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    sx={{ textTransform: 'none', fontSize: 12, px: 1.5, py: 0.75 }}
+                                  >
+                                    {attachment.filename || 'Attachment'}
+                                  </Button>
+                                ))}
+                              </Stack>
+                            ) : null}
+                          </Box>
+                        ))}
+                      </Box>
+                    ) : null}
 
                     <Divider sx={{ my: 1.5 }} />
                     <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 1.5, flexWrap: 'wrap' }}>
@@ -524,6 +605,39 @@ export default function LandlordMaintenancePage() {
           <Button variant="contained" onClick={handleSave} disabled={saving}
             sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 1.5 }}>
             {saving ? 'Saving…' : 'Save Changes'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={!!commentTarget} onClose={() => !commentSubmitting && setCommentTarget(null)} maxWidth="sm" fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Reply to Maintenance Request</DialogTitle>
+        <DialogContent sx={{ pt: '12px !important' }}>
+          {commentTarget && (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              {commentTarget.property?.propertyName} · Room {commentTarget.roomNumber || 'not assigned'}
+            </Typography>
+          )}
+          <Stack sx={{ gap: 2 }}>
+            <TextField
+              label="Message"
+              multiline
+              minRows={3}
+              fullWidth
+              value={commentMessage}
+              onChange={(e) => setCommentMessage(e.target.value)}
+              slotProps={{ input: { inputProps: { maxLength: 1000 } } }}
+              helperText={`${commentMessage.length}/1000`}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
+            />
+            {commentError && <Alert severity="error" sx={{ borderRadius: 1.5 }}>{commentError}</Alert>}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={() => setCommentTarget(null)} disabled={commentSubmitting} sx={{ textTransform: 'none', borderRadius: 1.5 }}>Cancel</Button>
+          <Button variant="contained" onClick={handleCommentSubmit} disabled={commentSubmitting || !commentMessage.trim()}
+            sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 1.5 }}>
+            {commentSubmitting ? 'Sending…' : 'Send Reply'}
           </Button>
         </DialogActions>
       </Dialog>
