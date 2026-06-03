@@ -279,12 +279,14 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search conversations"
-              InputProps={{
-                startAdornment: (
-                  <Box sx={{ display: 'flex', alignItems: 'center', pl: 1, pr: 0.75, color: 'text.secondary' }}>
-                    <SearchRoundedIcon fontSize="small" />
-                  </Box>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <Box sx={{ display: 'flex', alignItems: 'center', pl: 1, pr: 0.75, color: 'text.secondary' }}>
+                      <SearchRoundedIcon fontSize="small" />
+                    </Box>
+                  ),
+                },
               }}
               sx={{ mt: 2, backgroundColor: 'background.paper', borderRadius: 2 }}
             />
