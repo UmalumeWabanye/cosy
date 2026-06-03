@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/services/api';
@@ -16,6 +16,7 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
 interface Participant {
   _id: string;
@@ -56,8 +57,10 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
   const [messageLoading, setMessageLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [draft, setDraft] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState('');
   const [contextLabel, setContextLabel] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) router.push('/');
@@ -200,6 +203,18 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
     'Please share lease copy and payment instructions.',
   ];
 
+  const filteredConversations = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return conversations.filter((conv) => {
+      if (!query) return true;
+      const peer = conv.participants.find((p) => p._id !== user?.id) || conv.participants[0];
+      const nameOrEmail = `${peer?.name || ''} ${peer?.email || ''}`.toLowerCase();
+      const propertyName = conv.property?.propertyName?.toLowerCase() || '';
+      const lastMessage = conv.lastMessage?.toLowerCase() || '';
+      return nameOrEmail.includes(query) || propertyName.includes(query) || lastMessage.includes(query);
+    });
+  }, [conversations, searchQuery, user?.id]);
+
   const selectedConversation = useMemo(
     () => conversations.find((c) => c._id === selectedId) || null,
     [conversations, selectedId]
@@ -209,6 +224,12 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
     if (!conversation) return null;
     return conversation.participants.find((p) => p._id !== user?.id) || conversation.participants[0] || null;
   };
+
+  useEffect(() => {
+    if (!messageLoading) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [messages, messageLoading]);
 
   const sendMessage = async () => {
     if (!selectedId || !draft.trim()) return;
@@ -232,122 +253,209 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 } }}>
-      <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>Secure Messaging</Typography>
+      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'flex-end' }} sx={{ mb: 2, gap: 2 }}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>Secure Messaging</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75, maxWidth: 640 }}>
+            Stay connected with your conversations through a modern, focused chat experience.
+          </Typography>
+        </Box>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+          <Chip label={`${conversations.length} conversations`} color="primary" variant="outlined" />
+          <Chip label={`${conversations.reduce((sum, conv) => sum + (conv.unreadCount ?? 0), 0)} unread`} color="secondary" variant="outlined" />
+        </Stack>
+      </Stack>
+
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      <Paper variant="outlined" sx={{ borderRadius: 2.5, overflow: 'hidden', minHeight: { xs: 560, md: 620 }, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '320px 1fr' } }}>
-        <Box sx={{ borderRight: { md: '1px solid' }, borderColor: 'divider', maxHeight: { xs: 220, md: 'unset' }, overflowY: 'auto' }}>
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}><CircularProgress /></Box>
-          ) : conversations.length === 0 ? (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <Typography sx={{ fontWeight: 600 }}>No conversations yet</Typography>
-              <Typography variant="body2" color="text.secondary">Open a conversation to start chatting.</Typography>
-            </Box>
-          ) : (
-            <Stack>
-              {conversations.map((conv) => {
-                const peer = otherParticipant(conv);
-                const selected = conv._id === selectedId;
-                return (
-                  <Box
-                    key={conv._id}
-                    onClick={() => setSelectedId(conv._id)}
-                    sx={{ p: 1.25, cursor: 'pointer', bgcolor: selected ? 'action.selected' : 'transparent', borderBottom: '1px solid', borderColor: 'divider' }}
-                  >
-                    <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
-                      <Avatar src={peer?.avatar || undefined} sx={{ width: 36, height: 36 }}>
-                        {(peer?.name || peer?.email || '?')[0]?.toUpperCase()}
-                      </Avatar>
-                      <Box sx={{ minWidth: 0, flex: 1 }}>
-                        <Stack direction="row" sx={{ justifyContent: 'space-between', gap: 1 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>{peer?.name || peer?.email || 'User'}</Typography>
-                          {conv.unreadCount ? <Typography variant="caption" color="primary">{conv.unreadCount}</Typography> : null}
-                        </Stack>
-                        <Typography variant="caption" color="text.secondary" noWrap>
-                          {conv.property?.propertyName ? `${conv.property.propertyName} · ` : ''}{conv.lastMessage || 'No messages yet'}
-                        </Typography>
-                      </Box>
-                    </Stack>
+      <Paper variant="outlined" sx={{ borderRadius: 3, overflow: 'hidden', minHeight: { xs: 680, md: 720 }, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '360px 1fr' }, boxShadow: 6 }}>
+        <Box sx={{ borderRight: { md: '1px solid' }, borderColor: 'divider', bgcolor: 'grey.50', display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Conversations</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>Search messages, people, or properties.</Typography>
+            <TextField
+              size="small"
+              fullWidth
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search conversations"
+              InputProps={{
+                startAdornment: (
+                  <Box sx={{ display: 'flex', alignItems: 'center', pl: 1, pr: 0.75, color: 'text.secondary' }}>
+                    <SearchRoundedIcon fontSize="small" />
                   </Box>
-                );
-              })}
-            </Stack>
-          )}
+                ),
+              }}
+              sx={{ mt: 2, backgroundColor: 'background.paper', borderRadius: 2 }}
+            />
+          </Box>
+
+          <Box sx={{ flex: 1, overflowY: 'auto' }}>
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress /></Box>
+            ) : filteredConversations.length === 0 ? (
+              <Box sx={{ p: 3, textAlign: 'center' }}>
+                <Typography sx={{ fontWeight: 700, mb: 1 }}>No conversations found</Typography>
+                <Typography variant="body2" color="text.secondary">Try adjusting your search or start a new conversation.</Typography>
+              </Box>
+            ) : (
+              <Stack spacing={1.25} sx={{ p: 2 }}>
+                {filteredConversations.map((conv) => {
+                  const peer = otherParticipant(conv);
+                  const selected = conv._id === selectedId;
+                  return (
+                    <Box
+                      key={conv._id}
+                      onClick={() => setSelectedId(conv._id)}
+                      sx={{
+                        p: 2,
+                        borderRadius: 3,
+                        bgcolor: selected ? 'primary.main' : 'background.paper',
+                        color: selected ? 'common.white' : 'text.primary',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s, box-shadow 0.2s, background 0.2s',
+                        boxShadow: selected ? '0 12px 24px rgba(25, 118, 210, 0.12)' : '0 1px 2px rgba(15, 23, 42, 0.05)',
+                        '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 8px 18px rgba(15, 23, 42, 0.08)' },
+                      }}
+                    >
+                      <Stack direction="row" alignItems="center" spacing={2}>
+                        <Avatar src={peer?.avatar || undefined} sx={{ width: 44, height: 44, bgcolor: selected ? 'rgba(255,255,255,0.18)' : 'primary.main' }}>
+                          {(peer?.name || peer?.email || '?')[0]?.toUpperCase()}
+                        </Avatar>
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                            <Typography noWrap sx={{ fontWeight: 700, fontSize: 14 }}>
+                              {peer?.name || peer?.email || 'User'}
+                            </Typography>
+                            {conv.unreadCount ? (
+                              <Chip size="small" label={`${conv.unreadCount} new`} color={selected ? 'secondary' : 'info'} sx={{ fontWeight: 700 }} />
+                            ) : null}
+                          </Stack>
+                          <Typography variant="caption" noWrap color={selected ? 'rgba(255,255,255,0.8)' : 'text.secondary'}>
+                            {conv.property?.propertyName ? `${conv.property.propertyName} · ` : ''}{conv.lastMessage || 'No messages yet'}
+                          </Typography>
+                          <Typography variant="caption" color={selected ? 'rgba(255,255,255,0.72)' : 'text.secondary'} sx={{ display: 'block', mt: 0.5 }}>
+                            {conv.lastMessageAt ? new Date(conv.lastMessageAt).toLocaleString('en-ZA', { month: 'short', day: 'numeric', hour:'2-digit', minute:'2-digit' }) : 'Updated recently'}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </Box>
+                  );
+                })}
+              </Stack>
+            )}
+          </Box>
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {selectedConversation ? (
             <>
-              <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Typography sx={{ fontWeight: 700 }}>{otherParticipant(selectedConversation)?.name || 'Conversation'}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {selectedConversation.property?.propertyName ? `Property: ${selectedConversation.property.propertyName}` : 'Direct message'}
-                </Typography>
-                {contextLabel ? (
-                  <Alert severity="info" sx={{ mt: 1, py: 0 }}>{contextLabel}</Alert>
-                ) : null}
+              <Box sx={{ p: { xs: 2, md: 3 }, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                  <Avatar src={otherParticipant(selectedConversation)?.avatar || undefined} sx={{ width: 52, height: 52 }}>
+                    {(otherParticipant(selectedConversation)?.name || otherParticipant(selectedConversation)?.email || 'U')[0]?.toUpperCase()}
+                  </Avatar>
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                      {otherParticipant(selectedConversation)?.name || 'Conversation'}
+                    </Typography>
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap', mt: 0.75 }}>
+                      <Chip label={selectedConversation.property?.propertyName ? selectedConversation.property.propertyName : 'Direct message'} size="small" color="secondary" />
+                      {contextLabel ? <Chip label={contextLabel} size="small" /> : null}
+                    </Stack>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary">
+                    {selectedConversation.lastMessageAt ? new Date(selectedConversation.lastMessageAt).toLocaleString('en-ZA', { hour:'2-digit', minute:'2-digit' }) : ''}
+                  </Typography>
+                </Stack>
               </Box>
 
-              <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5, bgcolor: '#f8fafc' }}>
+              <Box sx={{ flex: 1, overflowY: 'auto', p: { xs: 2, md: 3 }, bgcolor: 'rgba(15,23,42,0.03)' }}>
                 {messageLoading ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress size={24} /></Box>
                 ) : messages.length === 0 ? (
-                  <Box sx={{ textAlign: 'center', py: 6 }}>
-                    <Typography color="text.secondary">No messages yet. Start the conversation below.</Typography>
+                  <Box sx={{ textAlign: 'center', py: 8 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>No messages yet</Typography>
+                    <Typography color="text.secondary">Send a note to get the conversation started.</Typography>
                   </Box>
                 ) : (
-                  <Stack sx={{ gap: 1 }}>
+                  <Stack spacing={1.5}>
                     {messages.map((m) => {
                       const mine = m.sender?._id === user?.id;
                       return (
                         <Box key={m._id} sx={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
-                          <Paper sx={{ maxWidth: '80%', px: 1.25, py: 1, bgcolor: mine ? 'primary.main' : 'white', color: mine ? 'white' : 'text.primary', borderRadius: 2 }}>
+                          <Box sx={{
+                            maxWidth: '80%',
+                            px: 2,
+                            py: 1.5,
+                            bgcolor: mine ? 'primary.main' : 'common.white',
+                            color: mine ? 'common.white' : 'text.primary',
+                            borderRadius: 3,
+                            borderTopLeftRadius: mine ? 3 : 0,
+                            borderTopRightRadius: mine ? 0 : 3,
+                            boxShadow: '0 2px 12px rgba(15,23,42,0.08)',
+                          }}>
                             <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{m.text}</Typography>
-                            <Typography variant="caption" sx={{ opacity: 0.8, display: 'block', mt: 0.25 }}>
+                            <Typography variant="caption" sx={{ mt: 0.75, display: 'block', opacity: 0.72, color: mine ? 'rgba(255,255,255,0.8)' : 'text.secondary' }}>
                               {new Date(m.createdAt).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}
                             </Typography>
-                          </Paper>
+                          </Box>
                         </Box>
                       );
                     })}
+                    <div ref={messagesEndRef} />
                   </Stack>
                 )}
               </Box>
 
-              <Stack direction="row" sx={{ gap: 1, p: 1.25, borderTop: '1px solid', borderColor: 'divider' }}>
-                <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap', alignItems: 'center', mr: 1, display: { xs: 'none', md: 'flex' } }}>
+              <Box sx={{ p: { xs: 2, md: 3 }, borderTop: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: { xs: 2, md: 1 }, flexWrap: 'wrap' }}>
                   {quickTemplates.map((template) => (
                     <Chip
                       key={template}
                       size="small"
-                      label={template.length > 28 ? `${template.slice(0, 28)}...` : template}
+                      label={template.length > 26 ? `${template.slice(0, 26)}...` : template}
                       onClick={() => setDraft(template)}
+                      sx={{ cursor: 'pointer' }}
                     />
                   ))}
                 </Stack>
-                <TextField
-                  size="small"
-                  fullWidth
-                  placeholder="Type your message"
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      sendMessage();
-                    }
-                  }}
-                />
-                <IconButton color="primary" onClick={sendMessage} disabled={!draft.trim() || sending}>
-                  <SendRoundedIcon />
-                </IconButton>
-              </Stack>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                  <TextField
+                    size="medium"
+                    fullWidth
+                    placeholder="Type your message..."
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                      }
+                    }}
+                    multiline
+                    minRows={2}
+                    maxRows={4}
+                  />
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={sendMessage}
+                    disabled={!draft.trim() || sending}
+                    sx={{ whiteSpace: 'nowrap', px: 3 }}
+                  >
+                    Send
+                  </Button>
+                </Stack>
+              </Box>
             </>
           ) : (
             <Box sx={{ p: 4, textAlign: 'center' }}>
-              <Typography color="text.secondary">Select a conversation to start messaging.</Typography>
-              <Button sx={{ mt: 2, textTransform: 'none' }} onClick={() => router.push(propertiesPath)}>Browse Properties</Button>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Select a conversation</Typography>
+              <Typography color="text.secondary">Choose an existing thread or browse properties to open a new one.</Typography>
+              <Button variant="contained" sx={{ mt: 3 }} onClick={() => router.push(propertiesPath)}>
+                Browse Properties
+              </Button>
             </Box>
           )}
         </Box>
