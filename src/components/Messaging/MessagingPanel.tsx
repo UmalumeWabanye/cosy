@@ -340,7 +340,7 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
                             {conv.lastMessageAt ? new Date(conv.lastMessageAt).toLocaleString('en-ZA', { month: 'short', day: 'numeric', hour:'2-digit', minute:'2-digit' }) : 'Updated recently'}
                           </Typography>
                         </Box>
-                      </Stack>
+                      </Box>
                     </Box>
                   );
                 })}
@@ -369,9 +369,8 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
                   <Typography variant="caption" color="text.secondary">
                     {selectedConversation.lastMessageAt ? new Date(selectedConversation.lastMessageAt).toLocaleString('en-ZA', { hour:'2-digit', minute:'2-digit' }) : ''}
                   </Typography>
-                </Stack>
+                </Box>
               </Box>
-
               <Box sx={{ flex: 1, overflowY: 'auto', p: { xs: 2, md: 3 }, bgcolor: 'rgba(15,23,42,0.03)' }}>
                 {messageLoading ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress size={24} /></Box>
@@ -421,7 +420,7 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
                       sx={{ cursor: 'pointer' }}
                     />
                   ))}
-                </Stack>
+                </Box>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                   <TextField
                     size="medium"
