@@ -36,6 +36,7 @@ import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
+import DirectionsBusRoundedIcon from '@mui/icons-material/DirectionsBusRounded';
 import HandymanRoundedIcon from '@mui/icons-material/HandymanRounded';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
@@ -58,6 +59,7 @@ const NAV_ITEMS = [
   { label: 'Roommates', icon: <GroupsRoundedIcon />, path: '/roommates' },
   { label: 'Saved Listings', icon: <BookmarkRoundedIcon />, path: '/saved-listings' },
   { label: 'Maintenance', icon: <HandymanRoundedIcon />, path: '/maintenance' },
+  { label: 'Transportation', icon: <DirectionsBusRoundedIcon />, path: '/transportation' },
   { label: 'Notifications', icon: <NotificationsRoundedIcon />, path: '/notifications', badge: true },
 ];
 
@@ -81,15 +83,18 @@ interface SideMenuProps {
   messageCount: number;
   notificationCount: number;
   canAccessMaintenance: boolean;
+  canAccessTransportation: boolean;
   pathname: string;
   onNavigate: (path: string) => void;
   onLogout: () => void;
 }
 
-function SideMenu({ user, messageCount, notificationCount, canAccessMaintenance, pathname, onNavigate, onLogout }: SideMenuProps) {
-  const navItems = canAccessMaintenance
-    ? NAV_ITEMS
-    : NAV_ITEMS.filter((item) => item.path !== '/maintenance');
+function SideMenu({ user, messageCount, notificationCount, canAccessMaintenance, canAccessTransportation, pathname, onNavigate, onLogout }: SideMenuProps) {
+  const navItems = NAV_ITEMS.filter((item) => {
+    if (item.path === '/maintenance' && !canAccessMaintenance) return false;
+    if (item.path === '/transportation' && !canAccessTransportation) return false;
+    return true;
+  });
 
   return (
     <>
@@ -217,6 +222,7 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
   const [messageCount, setMessageCount] = useState(0);
   const [notificationCount, setNotificationCount] = useState(0);
   const [canAccessMaintenance, setCanAccessMaintenance] = useState(false);
+  const [canAccessTransportation, setCanAccessTransportation] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -228,6 +234,7 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
             setMessageCount(0);
             setNotificationCount(0);
             setCanAccessMaintenance(false);
+            setCanAccessTransportation(false);
           }
           return;
         }
@@ -262,9 +269,13 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
         if (activePropertiesRes.ok) {
           const activePropertiesData = await activePropertiesRes.json();
           const hasActiveMoveIn = Array.isArray(activePropertiesData.data) && activePropertiesData.data.length > 0;
-          if (!cancelled) setCanAccessMaintenance(hasActiveMoveIn);
+          if (!cancelled) {
+            setCanAccessMaintenance(hasActiveMoveIn);
+            setCanAccessTransportation(hasActiveMoveIn);
+          }
         } else if (!cancelled) {
           setCanAccessMaintenance(false);
+          setCanAccessTransportation(false);
         }
       } catch { /* silent */ }
     };
@@ -301,6 +312,7 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
           messageCount={messageCount}
           notificationCount={notificationCount}
           canAccessMaintenance={canAccessMaintenance}
+          canAccessTransportation={canAccessTransportation}
           pathname={pathname}
           onNavigate={handleNavigate}
           onLogout={handleLogout}
@@ -323,6 +335,7 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
           messageCount={messageCount}
           notificationCount={notificationCount}
           canAccessMaintenance={canAccessMaintenance}
+          canAccessTransportation={canAccessTransportation}
           pathname={pathname}
           onNavigate={handleNavigate}
           onLogout={handleLogout}
