@@ -332,7 +332,7 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
                             {conv.unreadCount ? (
                               <Chip size="small" label={`${conv.unreadCount} new`} color={selected ? 'secondary' : 'info'} sx={{ fontWeight: 700 }} />
                             ) : null}
-                          </Stack>
+                          </Box>
                           <Typography variant="caption" noWrap color={selected ? 'rgba(255,255,255,0.8)' : 'text.secondary'}>
                             {conv.property?.propertyName ? `${conv.property.propertyName} · ` : ''}{conv.lastMessage || 'No messages yet'}
                           </Typography>
