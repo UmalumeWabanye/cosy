@@ -253,7 +253,7 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 } }}>
-      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'flex-end' }} sx={{ mb: 2, gap: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'flex-end' }, mb: 2, gap: 2 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>Secure Messaging</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75, maxWidth: 640 }}>
@@ -264,7 +264,7 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
           <Chip label={`${conversations.length} conversations`} color="primary" variant="outlined" />
           <Chip label={`${conversations.reduce((sum, conv) => sum + (conv.unreadCount ?? 0), 0)} unread`} color="secondary" variant="outlined" />
         </Stack>
-      </Stack>
+      </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
