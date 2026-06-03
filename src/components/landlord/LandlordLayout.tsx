@@ -73,13 +73,13 @@ function getBreadcrumb(pathname: string): string[] {
   return ['Landlord'];
 }
 
-function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
+function ContentHeader({ pathname, onNavigate, onOpenMenu, notificationCount }: {
   pathname: string;
   onNavigate: (path: string) => void;
   onOpenMenu?: () => void;
+  notificationCount: number;
 }) {
   const breadcrumb = getBreadcrumb(pathname);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [calAnchor, setCalAnchor] = useState<HTMLElement | null>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const todayStr = new Date().toISOString().split('T')[0];
@@ -88,26 +88,6 @@ function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
   const displayDate = new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',
   });
-
-  // Poll unread count every 30 s
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-        const res = await fetch(`${API}/landlord/notifications?limit=1`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!cancelled) setUnreadCount(data.unreadCount ?? 0);
-      } catch { /* silent */ }
-    };
-    load();
-    const id = setInterval(load, 30_000);
-    return () => { cancelled = true; clearInterval(id); };
-  }, [pathname]);
 
   const handleCalClick = (e: React.MouseEvent<HTMLElement>) => {
     setCalAnchor(e.currentTarget);
@@ -221,7 +201,7 @@ function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
         </Popover>
 
         {/* Notifications bell */}
-        <Tooltip title={unreadCount > 0 ? `${unreadCount} unread notifications` : 'Notifications'}>
+        <Tooltip title={notificationCount > 0 ? `${notificationCount} unread notifications` : 'Notifications'}>
           <IconButton
             size="small"
             onClick={() => onNavigate('/landlord/notifications')}
@@ -231,7 +211,7 @@ function ContentHeader({ pathname, onNavigate, onOpenMenu }: {
               '&:hover': { borderColor: 'primary.main', boxShadow: '0 0 0 2px rgba(16,185,129,0.12)' },
             }}
           >
-            <Badge badgeContent={unreadCount > 0 ? unreadCount : undefined} color="error" max={99}>
+            <Badge badgeContent={notificationCount > 0 ? notificationCount : undefined} color="error" max={99}>
               <NotificationsRoundedIcon fontSize="small" />
             </Badge>
           </IconButton>
@@ -247,6 +227,7 @@ const NAV_ITEMS = [
   { label: 'Applications', icon: <AssignmentRoundedIcon />, path: '/landlord/requests' },
   { label: 'Add Property', icon: <AddRoundedIcon />, path: '/landlord/properties/new' },
   { label: 'Messages', icon: <ChatRoundedIcon />, path: '/landlord/messages' },
+  { label: 'Notifications', icon: <NotificationsRoundedIcon />, path: '/landlord/notifications' },
   { label: 'Viewings', icon: <CalendarTodayRoundedIcon />, path: '/landlord/viewings' },
   { label: 'Maintenance', icon: <HandymanRoundedIcon />, path: '/landlord/maintenance' },
   { label: 'Monthly Collection', icon: <ReceiptLongRoundedIcon />, path: '/landlord/reports/collection' },
@@ -255,12 +236,14 @@ const NAV_ITEMS = [
 
 interface SideMenuInnerProps {
   user: { name?: string; email?: string } | null;
+  messageCount: number;
+  notificationCount: number;
   pathname: string;
   onNavigate: (path: string) => void;
   onLogout: () => void;
 }
 
-function SideMenuInner({ user, pathname, onNavigate, onLogout }: SideMenuInnerProps) {
+function SideMenuInner({ user, messageCount, notificationCount, pathname, onNavigate, onLogout }: SideMenuInnerProps) {
   return (
     <>
       {/* Brand */}
@@ -293,6 +276,7 @@ function SideMenuInner({ user, pathname, onNavigate, onLogout }: SideMenuInnerPr
         <List dense disablePadding>
           {NAV_ITEMS.map(({ label, icon, path }) => {
             const selected = pathname === path || (path !== '/landlord/dashboard' && pathname.startsWith(path) && path !== '/landlord/properties/new');
+            const count = path === '/landlord/messages' ? messageCount : path === '/landlord/notifications' ? notificationCount : 0;
             return (
               <ListItem key={label} disablePadding sx={{ px: 1, mb: 0.25 }}>
                 <ListItemButton
@@ -319,7 +303,9 @@ function SideMenuInner({ user, pathname, onNavigate, onLogout }: SideMenuInnerPr
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 36 }}>
-                    {icon}
+                    {count > 0 ? (
+                      <Badge badgeContent={count} color="error" max={99}>{icon}</Badge>
+                    ) : icon}
                   </ListItemIcon>
                   <ListItemText
                     primary={label}
@@ -376,6 +362,53 @@ function LandlordLayoutInner({ children }: LandlordLayoutProps) {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [messageCount, setMessageCount] = useState(0);
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          if (!cancelled) {
+            setMessageCount(0);
+            setNotificationCount(0);
+          }
+          return;
+        }
+
+        const [messagesRes, notificationsRes] = await Promise.all([
+          fetch(`${API}/messages`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API}/landlord/notifications?limit=1`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        if (messagesRes.ok) {
+          const messagesData = await messagesRes.json();
+          if (!cancelled) {
+            const unreadMessages = Array.isArray(messagesData.data)
+              ? messagesData.data.reduce((sum: number, conv: any) => sum + (conv.unreadCount ?? 0), 0)
+              : 0;
+            setMessageCount(unreadMessages);
+          }
+        }
+
+        if (notificationsRes.ok) {
+          const notificationData = await notificationsRes.json();
+          if (!cancelled) setNotificationCount(notificationData.unreadCount ?? 0);
+        }
+      } catch {
+        /* silent */
+      }
+    };
+    load();
+    const id = setInterval(load, 30_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [pathname]);
 
   const handleNavigate = (path: string) => {
     setMobileOpen(false);
@@ -407,6 +440,8 @@ function LandlordLayoutInner({ children }: LandlordLayoutProps) {
       >
         <SideMenuInner
           user={user}
+          messageCount={messageCount}
+          notificationCount={notificationCount}
           pathname={pathname}
           onNavigate={handleNavigate}
           onLogout={handleLogout}
@@ -431,6 +466,8 @@ function LandlordLayoutInner({ children }: LandlordLayoutProps) {
       >
         <SideMenuInner
           user={user}
+          messageCount={messageCount}
+          notificationCount={notificationCount}
           pathname={pathname}
           onNavigate={handleNavigate}
           onLogout={handleLogout}

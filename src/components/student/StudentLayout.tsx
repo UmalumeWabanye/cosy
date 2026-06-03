@@ -78,14 +78,15 @@ function getBreadcrumb(pathname: string): string[] {
 
 interface SideMenuProps {
   user: { name?: string; email?: string; fundingType?: string; isVerified?: boolean } | null;
-  unreadCount: number;
+  messageCount: number;
+  notificationCount: number;
   canAccessMaintenance: boolean;
   pathname: string;
   onNavigate: (path: string) => void;
   onLogout: () => void;
 }
 
-function SideMenu({ user, unreadCount, canAccessMaintenance, pathname, onNavigate, onLogout }: SideMenuProps) {
+function SideMenu({ user, messageCount, notificationCount, canAccessMaintenance, pathname, onNavigate, onLogout }: SideMenuProps) {
   const navItems = canAccessMaintenance
     ? NAV_ITEMS
     : NAV_ITEMS.filter((item) => item.path !== '/maintenance');
@@ -115,9 +116,9 @@ function SideMenu({ user, unreadCount, canAccessMaintenance, pathname, onNavigat
       {/* Nav */}
       <Box sx={{ pt: 1, flexGrow: 1 }}>
         <List dense disablePadding>
-          {navItems.map(({ label, icon, path, badge }) => {
+          {navItems.map(({ label, icon, path }) => {
             const selected = pathname === path || (path !== '/dashboard' && path !== '/browse' && pathname.startsWith(path));
-            const count = badge ? unreadCount : 0;
+            const count = path === '/messages' ? messageCount : path === '/notifications' ? notificationCount : 0;
             return (
               <ListItem key={label} disablePadding sx={{ px: 1, mb: 0.25 }}>
                 <ListItemButton
@@ -148,7 +149,7 @@ function SideMenu({ user, unreadCount, canAccessMaintenance, pathname, onNavigat
                       <Badge badgeContent={count} color="error" max={99}>{icon}</Badge>
                     ) : icon}
                   </ListItemIcon>
-                  <ListItemText
+                            <ListItemText
                     primary={label}
                     slotProps={{ primary: { sx: { fontSize: 14, fontWeight: selected ? 600 : 400 } } }}
                   />
@@ -213,7 +214,8 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [messageCount, setMessageCount] = useState(0);
+  const [notificationCount, setNotificationCount] = useState(0);
   const [canAccessMaintenance, setCanAccessMaintenance] = useState(false);
 
   useEffect(() => {
@@ -223,14 +225,18 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
         const token = localStorage.getItem('token');
         if (!token) {
           if (!cancelled) {
-            setUnreadCount(0);
+            setMessageCount(0);
+            setNotificationCount(0);
             setCanAccessMaintenance(false);
           }
           return;
         }
 
-        const [notificationsRes, activePropertiesRes] = await Promise.all([
+        const [notificationsRes, messagesRes, activePropertiesRes] = await Promise.all([
           fetch(`${API}/student/notifications?limit=1`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API}/messages`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
           fetch(`${API}/maintenance/active-properties`, {
@@ -240,7 +246,17 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
 
         if (notificationsRes.ok) {
           const notificationData = await notificationsRes.json();
-          if (!cancelled) setUnreadCount(notificationData.unreadCount ?? 0);
+          if (!cancelled) setNotificationCount(notificationData.unreadCount ?? 0);
+        }
+
+        if (messagesRes.ok) {
+          const messagesData = await messagesRes.json();
+          if (!cancelled) {
+            const unreadMessages = Array.isArray(messagesData.data)
+              ? messagesData.data.reduce((sum: number, conv: any) => sum + (conv.unreadCount ?? 0), 0)
+              : 0;
+            setMessageCount(unreadMessages);
+          }
         }
 
         if (activePropertiesRes.ok) {
@@ -280,7 +296,15 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
           },
         }}
       >
-        <SideMenu user={user} unreadCount={unreadCount} canAccessMaintenance={canAccessMaintenance} pathname={pathname} onNavigate={handleNavigate} onLogout={handleLogout} />
+        <SideMenu
+          user={user}
+          messageCount={messageCount}
+          notificationCount={notificationCount}
+          canAccessMaintenance={canAccessMaintenance}
+          pathname={pathname}
+          onNavigate={handleNavigate}
+          onLogout={handleLogout}
+        />
       </MuiDrawer>
 
       {/* Mobile drawer */}
@@ -294,7 +318,15 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
           [`& .${drawerClasses.paper}`]: { width: DRAWER_WIDTH, display: 'flex', flexDirection: 'column' },
         }}
       >
-        <SideMenu user={user} unreadCount={unreadCount} canAccessMaintenance={canAccessMaintenance} pathname={pathname} onNavigate={handleNavigate} onLogout={handleLogout} />
+        <SideMenu
+          user={user}
+          messageCount={messageCount}
+          notificationCount={notificationCount}
+          canAccessMaintenance={canAccessMaintenance}
+          pathname={pathname}
+          onNavigate={handleNavigate}
+          onLogout={handleLogout}
+        />
       </MuiDrawer>
 
       {/* Main content */}

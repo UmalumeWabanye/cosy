@@ -187,11 +187,18 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
+const http = require('http');
+const { init: initSocket } = require('./socket');
+
 const PORT = process.env.PORT || 5000;
-// Bind explicitly to 0.0.0.0 to ensure IPv4 localhost access and avoid
-// potential binding to only IPv6 or another interface in some environments.
-app.listen(PORT, '0.0.0.0', () => {
+const server = http.createServer(app);
+
+// Initialize socket.io
+initSocket(server);
+
+// Bind explicitly to 0.0.0.0 to ensure IPv4 localhost access
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT} (host 0.0.0.0)`);
 });
 
-module.exports = app;
+module.exports = { app, server };

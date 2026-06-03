@@ -52,6 +52,20 @@ router.post('/', async (req, res) => {
     }
 
     const populated = await conversation.populate('participants', 'name email avatar role university course');
+
+    // Emit new conversation event to participants (if socket initialized)
+    try {
+      const { getIo } = require('../socket');
+      const io = getIo();
+      if (io && populated.participants) {
+        populated.participants.forEach((p) => {
+          if (p && p._id) io.to(`user:${p._id}`).emit('conversation:new', populated);
+        });
+      }
+    } catch (err) {
+      // ignore socket emit errors
+    }
+
     res.status(201).json({ data: populated });
   } catch (err) {
     res.status(500).json({ message: err.message || 'Failed to start conversation' });
@@ -107,6 +121,23 @@ router.post('/:conversationId', async (req, res) => {
     await conversation.save();
 
     const populated = await message.populate('sender', 'name email avatar role');
+
+    // Emit the new message to the conversation room and notify participants
+    try {
+      const { getIo } = require('../socket');
+      const io = getIo();
+      if (io) {
+        io.to(`conversation:${conversation._id}`).emit('message', { message: populated, conversationId: String(conversation._id) });
+        // notify each participant's personal room about updated conversation (unread counts)
+        const convPop = await conversation.populate('participants', 'name email avatar role');
+        convPop.participants.forEach((p) => {
+          if (p && p._id) io.to(`user:${p._id}`).emit('conversation:update', convPop);
+        });
+      }
+    } catch (err) {
+      // ignore socket emit errors
+    }
+
     res.status(201).json({ data: populated });
   } catch (err) {
     res.status(500).json({ message: err.message || 'Failed to send message' });
