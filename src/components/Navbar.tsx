@@ -58,7 +58,7 @@ export default function Navbar() {
 
   const handleLogout = () => {
     logout();
-    router.push('/');
+    router.replace('/');
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {

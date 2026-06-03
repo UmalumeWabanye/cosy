@@ -274,7 +274,7 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
   }, [pathname]);
 
   const handleNavigate = (path: string) => { setMobileOpen(false); router.push(path); };
-  const handleLogout = () => { logout(); router.push('/'); };
+  const handleLogout = () => { logout(); router.replace('/'); };
 
   const breadcrumb = getBreadcrumb(pathname);
 

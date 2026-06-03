@@ -417,7 +417,7 @@ function LandlordLayoutInner({ children }: LandlordLayoutProps) {
 
   const handleLogout = () => {
     logout();
-    router.push('/');
+    router.replace('/');
   };
 
   return (

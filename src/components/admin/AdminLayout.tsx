@@ -478,7 +478,7 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
 
   const handleLogout = () => {
     logout();
-    router.push('/');
+    router.replace('/');
   };
 
   return (

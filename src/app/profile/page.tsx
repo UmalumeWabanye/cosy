@@ -161,7 +161,7 @@ export default function ProfilePage() {
     } finally { setPwSaving(false); }
   };
 
-  const handleLogout = () => { logout(); router.push('/'); };
+  const handleLogout = () => { logout(); router.replace('/'); };
 
   const handleSaveNotificationPrefs = async () => {
     setNotifSaving(true);
