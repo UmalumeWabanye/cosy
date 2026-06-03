@@ -320,12 +320,12 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
                         '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 8px 18px rgba(15, 23, 42, 0.08)' },
                       }}
                     >
-                      <Stack direction="row" alignItems="center" spacing={2}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Avatar src={peer?.avatar || undefined} sx={{ width: 44, height: 44, bgcolor: selected ? 'rgba(255,255,255,0.18)' : 'primary.main' }}>
                           {(peer?.name || peer?.email || '?')[0]?.toUpperCase()}
                         </Avatar>
                         <Box sx={{ minWidth: 0, flex: 1 }}>
-                          <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                             <Typography noWrap sx={{ fontWeight: 700, fontSize: 14 }}>
                               {peer?.name || peer?.email || 'User'}
                             </Typography>
@@ -353,7 +353,7 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
           {selectedConversation ? (
             <>
               <Box sx={{ p: { xs: 2, md: 3 }, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
-                <Stack direction="row" alignItems="center" spacing={2}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Avatar src={otherParticipant(selectedConversation)?.avatar || undefined} sx={{ width: 52, height: 52 }}>
                     {(otherParticipant(selectedConversation)?.name || otherParticipant(selectedConversation)?.email || 'U')[0]?.toUpperCase()}
                   </Avatar>
@@ -361,10 +361,10 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       {otherParticipant(selectedConversation)?.name || 'Conversation'}
                     </Typography>
-                    <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap', mt: 0.75 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mt: 0.75 }}>
                       <Chip label={selectedConversation.property?.propertyName ? selectedConversation.property.propertyName : 'Direct message'} size="small" color="secondary" />
                       {contextLabel ? <Chip label={contextLabel} size="small" /> : null}
-                    </Stack>
+                    </Box>
                   </Box>
                   <Typography variant="caption" color="text.secondary">
                     {selectedConversation.lastMessageAt ? new Date(selectedConversation.lastMessageAt).toLocaleString('en-ZA', { hour:'2-digit', minute:'2-digit' }) : ''}
@@ -411,7 +411,7 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
               </Box>
 
               <Box sx={{ p: { xs: 2, md: 3 }, borderTop: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: { xs: 2, md: 1 }, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 2, md: 1 }, flexWrap: 'wrap' }}>
                   {quickTemplates.map((template) => (
                     <Chip
                       key={template}
