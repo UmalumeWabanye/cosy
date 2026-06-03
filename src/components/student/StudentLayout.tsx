@@ -376,7 +376,7 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
           <Box sx={{ flexGrow: 1 }} />
           <Tooltip title="Notifications">
             <IconButton size="small" onClick={() => handleNavigate('/notifications')} sx={{ display: { xs: 'inline-flex', md: 'none' } }}>
-              <Badge badgeContent={unreadCount || undefined} color="error" max={99}>
+              <Badge badgeContent={notificationCount || undefined} color="error" max={99}>
                 <NotificationsRoundedIcon fontSize="small" />
               </Badge>
             </IconButton>
