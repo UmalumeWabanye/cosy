@@ -73,11 +73,11 @@ function getBreadcrumb(pathname: string): string[] {
   return ['Landlord'];
 }
 
-function ContentHeader({ pathname, onNavigate, onOpenMenu, notificationCount }: {
+function ContentHeader({ pathname, onNavigate, onOpenMenu, notificationCount = 0 }: {
   pathname: string;
   onNavigate: (path: string) => void;
   onOpenMenu?: () => void;
-  notificationCount: number;
+  notificationCount?: number;
 }) {
   const breadcrumb = getBreadcrumb(pathname);
   const [calAnchor, setCalAnchor] = useState<HTMLElement | null>(null);
