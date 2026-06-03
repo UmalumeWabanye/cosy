@@ -136,7 +136,7 @@ export default function MessagingPanel({ propertiesPath = '/browse' }: Props) {
       if (typeof window === 'undefined' || !user?.id) return;
       try {
         // dynamic import to avoid SSR issues
-        // @ts-ignore: socket.io-client may not have types installed in this workspace
+        // @ts-expect-error: socket.io-client may not have types installed in this workspace
         const { io } = await import('socket.io-client');
         const base = (process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')) || 'http://localhost:5000';
         socket = io(base, { path: '/socket.io', transports: ['websocket'], auth: { token: localStorage.getItem('token') } });
