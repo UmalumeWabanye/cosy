@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: cosy-frontend
+    env: node
+    rootDir: .
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
+
+  - type: web
+    name: cosy-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
