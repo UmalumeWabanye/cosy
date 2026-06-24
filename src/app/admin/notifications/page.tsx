@@ -121,7 +121,7 @@ export default function NotificationsPage() {
 
   return (
     <AdminLayout>
-      <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 800, mx: 'auto' }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 3 }, maxWidth: 800, mx: 'auto' }}>
 
         {/* Header */}
         <Stack sx={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>

@@ -127,7 +127,7 @@ export default function LandlordProfilePage() {
 
   return (
     <LandlordLayout>
-      <Box sx={{ px: { xs: 2, md: 4 }, pt: { xs: 2, md: 3 }, pb: 4 }}>
+      <Box className="modern-shell" sx={{ px: { xs: 2, md: 4 }, pt: { xs: 2, md: 3 }, pb: 4 }}>
         <Stack direction={{ xs: 'column', md: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { md: 'center' }, mb: 3, gap: 1.5 }}>
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Landlord Profile</Typography>
@@ -147,7 +147,7 @@ export default function LandlordProfilePage() {
 
         <Grid container spacing={2.5}>
           <Grid size={{ xs: 12, lg: 4 }}>
-            <Card variant="outlined">
+            <Card variant="outlined" className="glass-card" sx={{ borderRadius: 3 }}>
               <CardContent>
                 <Stack sx={{ alignItems: 'center', textAlign: 'center', gap: 1.5 }}>
                   <Box sx={{ position: 'relative' }}>
@@ -171,7 +171,7 @@ export default function LandlordProfilePage() {
                     <Typography variant="body2" color="text.secondary">{user?.email}</Typography>
                   </Box>
 
-                  <Paper variant="outlined" sx={{ p: 2, width: '100%', textAlign: 'left', borderRadius: 2.5 }}>
+                  <Paper variant="outlined" className="glass-card" sx={{ p: 2, width: '100%', textAlign: 'left', borderRadius: 2.5 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Verification Checklist</Typography>
                     <Stack sx={{ gap: 1 }}>
                       {[
@@ -200,7 +200,7 @@ export default function LandlordProfilePage() {
           </Grid>
 
           <Grid size={{ xs: 12, lg: 8 }}>
-            <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, borderRadius: 3 }}>
+            <Paper variant="outlined" className="glass-card" sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, '& .MuiOutlinedInput-root': { borderRadius: 1.75 } }}>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Verification Details</Typography>
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -271,7 +271,7 @@ export default function LandlordProfilePage() {
                   startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveRoundedIcon />}
                   onClick={handleSave}
                   disabled={saving}
-                  sx={{ textTransform: 'none', fontWeight: 600 }}
+                  sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 1.75, boxShadow: '0 12px 24px rgba(4,120,87,0.18)', transition: 'transform 0.18s ease, box-shadow 0.18s ease', '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 16px 30px rgba(4,120,87,0.22)' } }}
                 >
                   {saving ? 'Saving...' : 'Save Verification Profile'}
                 </Button>

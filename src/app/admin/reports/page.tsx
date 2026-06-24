@@ -50,7 +50,7 @@ function buildMonthlyLabels() {
 
 function SummaryCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number; color: string }) {
   return (
-    <Card variant="outlined" sx={{ height: '100%' }}>
+    <Card elevation={0} className="glass-card" sx={{ height: '100%', borderRadius: 3 }}>
       <CardContent>
         <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5, mb: 1.5 }}>
           <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', color }}>
@@ -114,7 +114,7 @@ export default function AdminReportsPage() {
 
   return (
     <AdminLayout>
-      <Box sx={{ p: { xs: 2, md: 4 } }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 4 } }}>
         {/* Header */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>Reports</Typography>

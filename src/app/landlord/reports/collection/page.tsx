@@ -80,7 +80,7 @@ function StatCard({ icon, label, value, sub, color = 'primary' }: {
   icon: React.ReactNode; label: string; value: string | number; sub?: string; color?: string;
 }) {
   return (
-    <Card variant="outlined">
+    <Card elevation={0} className="glass-card" sx={{ borderRadius: 3 }}>
       <CardContent>
         <Stack direction="row" sx={{ alignItems: 'center', gap: 2 }}>
           <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: `${color}.50`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: `${color}.main`, flexShrink: 0 }}>
@@ -167,7 +167,7 @@ export default function MonthlyCollectionPage() {
 
   return (
     <LandlordLayout>
-      <Box sx={{ p: { xs: 2, md: 4 } }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 4 } }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 3, gap: 2 }}>
           <Box>
             <Stack direction="row" sx={{ alignItems: 'center', gap: 1, mb: 0.5 }}>
@@ -234,10 +234,22 @@ export default function MonthlyCollectionPage() {
                 <Typography color="text.secondary">No active tenants for {MONTH_NAMES[month - 1]} {year}.</Typography>
               </Paper>
             ) : (
-              <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
-                <Table size="small" sx={{ minWidth: 900 }}>
+              <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto', maxHeight: 620, borderRadius: 3 }}>
+                <Table
+                  stickyHeader
+                  size="small"
+                  sx={{
+                    minWidth: 900,
+                    '& .MuiTableCell-root': { py: 1.25 },
+                    '& .MuiTableCell-stickyHeader': {
+                      bgcolor: 'rgba(255,255,255,0.94)',
+                      backdropFilter: 'blur(12px)',
+                      boxShadow: 'inset 0 -1px 0 rgba(5,150,105,0.14), 0 10px 22px rgba(4,120,87,0.06)',
+                    },
+                  }}
+                >
                   <TableHead>
-                    <TableRow sx={{ bgcolor: 'action.hover' }}>
+                    <TableRow>
                       <TableCell sx={{ fontWeight: 700 }}>Tenant</TableCell>
                       <TableCell sx={{ fontWeight: 700, display: { xs: 'none', md: 'table-cell' } }}>Property</TableCell>
                       <TableCell sx={{ fontWeight: 700, display: { xs: 'none', sm: 'table-cell' } }}>Funding</TableCell>
@@ -250,7 +262,7 @@ export default function MonthlyCollectionPage() {
                   </TableHead>
                   <TableBody>
                     {data.rows.map((row) => (
-                      <TableRow key={row.requestId} hover>
+                      <TableRow key={row.requestId} hover sx={{ '& td': { transition: 'background-color 0.2s ease' }, '&:hover td': { bgcolor: 'rgba(5,150,105,0.05)' } }}>
                         <TableCell>
                           <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5 }}>
                             <Avatar sx={{ width: 30, height: 30, fontSize: 12, bgcolor: 'primary.main' }}>
@@ -269,13 +281,14 @@ export default function MonthlyCollectionPage() {
                           </Typography>
                         </TableCell>
                         <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
-                          <Chip size="small" label={row.fundingType} color={fundingChipColor(row.fundingType)} variant="outlined" />
+                          <Chip size="small" label={row.fundingType} color={fundingChipColor(row.fundingType)} variant="outlined" sx={{ height: 24, fontWeight: 600 }} />
                         </TableCell>
                         <TableCell>
                           <Chip
                             size="small"
                             label={row.applicationStatus === 'approved' ? 'Approved' : row.applicationStatus === 'rejected' ? 'Rejected' : 'Pending'}
                             color={row.applicationStatus === 'approved' ? 'success' : row.applicationStatus === 'rejected' ? 'error' : 'warning'}
+                            sx={{ height: 24, fontWeight: 600 }}
                           />
                         </TableCell>
                         <TableCell>
@@ -298,6 +311,7 @@ export default function MonthlyCollectionPage() {
                             size="small"
                             label={row.paymentStatus === 'expected' ? 'Expected' : row.paymentStatus === 'pending' ? 'Pending' : 'Inactive'}
                             color={row.paymentStatus === 'expected' ? 'warning' : row.paymentStatus === 'pending' ? 'info' : 'default'}
+                            sx={{ height: 24, fontWeight: 600 }}
                           />
                         </TableCell>
                       </TableRow>

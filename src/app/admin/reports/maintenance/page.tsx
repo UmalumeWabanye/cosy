@@ -125,7 +125,7 @@ function priorityColor(priority: MaintenancePriority) {
 
 function StatCard({ icon, label, value, caption, color }: { icon: React.ReactNode; label: string; value: string; caption?: string; color: string }) {
   return (
-    <Card variant="outlined" sx={{ height: '100%' }}>
+    <Card elevation={0} className="glass-card" sx={{ height: '100%', borderRadius: 3 }}>
       <CardContent>
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>{label}</Typography>
@@ -223,7 +223,7 @@ export default function AdminMaintenanceOversightPage() {
 
   return (
     <AdminLayout>
-      <Box sx={{ p: { xs: 2, md: 4 } }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 4 } }}>
         <Box sx={{ mb: 3 }}>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>Maintenance Oversight</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
@@ -355,10 +355,22 @@ export default function AdminMaintenanceOversightPage() {
                       <Typography color="text.secondary">No tickets match the selected filters.</Typography>
                     </Box>
                   ) : (
-                    <TableContainer sx={{ overflowX: 'auto' }}>
-                      <Table size="small" sx={{ minWidth: 1280 }}>
+                    <TableContainer sx={{ overflowX: 'auto', maxHeight: 620, borderRadius: 3 }}>
+                      <Table
+                        stickyHeader
+                        size="small"
+                        sx={{
+                          minWidth: 1280,
+                          '& .MuiTableCell-root': { py: 1.25 },
+                          '& .MuiTableCell-stickyHeader': {
+                            bgcolor: 'rgba(255,255,255,0.94)',
+                            backdropFilter: 'blur(12px)',
+                            boxShadow: 'inset 0 -1px 0 rgba(24,104,201,0.12), 0 10px 22px rgba(17,67,124,0.06)',
+                          },
+                        }}
+                      >
                         <TableHead>
-                          <TableRow sx={{ bgcolor: 'action.hover' }}>
+                          <TableRow>
                             <TableCell sx={{ fontWeight: 700 }}>Property</TableCell>
                             <TableCell sx={{ fontWeight: 700 }}>Landlord</TableCell>
                             <TableCell sx={{ fontWeight: 700 }}>Student</TableCell>
@@ -373,7 +385,7 @@ export default function AdminMaintenanceOversightPage() {
                         </TableHead>
                         <TableBody>
                           {filteredRows.map((row) => (
-                            <TableRow key={row.maintenanceId} hover>
+                            <TableRow key={row.maintenanceId} hover sx={{ '& td': { transition: 'background-color 0.2s ease' }, '&:hover td': { bgcolor: 'rgba(24,104,201,0.05)' } }}>
                               <TableCell>
                                 <Typography variant="body2" sx={{ fontWeight: 700 }}>{row.property?.propertyName || 'Unknown property'}</Typography>
                                 <Typography variant="caption" color="text.secondary">
@@ -395,11 +407,11 @@ export default function AdminMaintenanceOversightPage() {
                                 <Typography variant="body2">{row.category}</Typography>
                               </TableCell>
                               <TableCell>
-                                <Chip size="small" label={row.priority} color={priorityColor(row.priority)} sx={{ textTransform: 'capitalize' }} />
+                                <Chip size="small" label={row.priority} color={priorityColor(row.priority)} sx={{ textTransform: 'capitalize', height: 24, fontWeight: 600 }} />
                               </TableCell>
                               <TableCell>
-                                <Chip size="small" label={statusLabel(row.status)} color={statusColor(row.status)} sx={{ textTransform: 'capitalize' }} />
-                                {row.overdue && <Chip size="small" color="error" label="Overdue" sx={{ ml: 0.75 }} />}
+                                <Chip size="small" label={statusLabel(row.status)} color={statusColor(row.status)} sx={{ textTransform: 'capitalize', height: 24, fontWeight: 600 }} />
+                                {row.overdue && <Chip size="small" color="error" label="Overdue" sx={{ ml: 0.75, height: 24, fontWeight: 600 }} />}
                               </TableCell>
                               <TableCell>
                                 <Typography variant="body2" sx={{ fontWeight: 700 }}>{row.ageDays}d</Typography>
@@ -413,10 +425,10 @@ export default function AdminMaintenanceOversightPage() {
                               </TableCell>
                               <TableCell>
                                 <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap' }}>
-                                  <Button size="small" variant="outlined" sx={{ textTransform: 'none' }} onClick={() => openPropertyDetails(row.property?._id)}>
+                                  <Button size="small" variant="outlined" sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }} onClick={() => openPropertyDetails(row.property?._id)}>
                                     Property
                                   </Button>
-                                  <Button size="small" variant="outlined" sx={{ textTransform: 'none' }} onClick={() => openLandlordProfile(row.landlord?._id)}>
+                                  <Button size="small" variant="outlined" sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }} onClick={() => openLandlordProfile(row.landlord?._id)}>
                                     Landlord
                                   </Button>
                                 </Stack>

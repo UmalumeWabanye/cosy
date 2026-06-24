@@ -111,7 +111,7 @@ function healthColor(status: HealthStatus) {
 
 function StatCard({ icon, label, value, caption, color }: { icon: React.ReactNode; label: string; value: string; caption?: string; color: string }) {
   return (
-    <Card variant="outlined" sx={{ height: '100%' }}>
+    <Card elevation={0} className="glass-card" sx={{ height: '100%', borderRadius: 3 }}>
       <CardContent>
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>{label}</Typography>
@@ -199,7 +199,7 @@ export default function PropertyHealthPage() {
 
   return (
     <AdminLayout>
-      <Box sx={{ p: { xs: 2, md: 4 } }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 4 } }}>
         <Box sx={{ mb: 3 }}>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>Property Health</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
@@ -305,10 +305,22 @@ export default function PropertyHealthPage() {
                   <Typography color="text.secondary">No properties match the selected filters.</Typography>
                 </Box>
               ) : (
-                <TableContainer sx={{ overflowX: 'auto' }}>
-                  <Table size="small" sx={{ minWidth: 1280 }}>
+                <TableContainer sx={{ overflowX: 'auto', maxHeight: 620, borderRadius: 3 }}>
+                  <Table
+                    stickyHeader
+                    size="small"
+                    sx={{
+                      minWidth: 1280,
+                      '& .MuiTableCell-root': { py: 1.25 },
+                      '& .MuiTableCell-stickyHeader': {
+                        bgcolor: 'rgba(255,255,255,0.94)',
+                        backdropFilter: 'blur(12px)',
+                        boxShadow: 'inset 0 -1px 0 rgba(24,104,201,0.12), 0 10px 22px rgba(17,67,124,0.06)',
+                      },
+                    }}
+                  >
                     <TableHead>
-                      <TableRow sx={{ bgcolor: 'action.hover' }}>
+                      <TableRow>
                         <TableCell sx={{ fontWeight: 700 }}>Property</TableCell>
                         <TableCell sx={{ fontWeight: 700 }}>Landlord</TableCell>
                         <TableCell sx={{ fontWeight: 700 }}>Health</TableCell>
@@ -321,7 +333,7 @@ export default function PropertyHealthPage() {
                     </TableHead>
                     <TableBody>
                       {filteredRows.map((row) => (
-                        <TableRow key={row.propertyId} hover>
+                        <TableRow key={row.propertyId} hover sx={{ '& td': { transition: 'background-color 0.2s ease' }, '&:hover td': { bgcolor: 'rgba(24,104,201,0.05)' } }}>
                           <TableCell>
                             <Typography variant="body2" sx={{ fontWeight: 700 }}>{row.propertyName}</Typography>
                             <Typography variant="caption" color="text.secondary">
@@ -337,7 +349,7 @@ export default function PropertyHealthPage() {
                           </TableCell>
                           <TableCell>
                             <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap' }}>
-                              <Chip size="small" label={`${row.health.score}%`} color={healthColor(row.health.status)} sx={{ fontWeight: 700 }} />
+                              <Chip size="small" label={`${row.health.score}%`} color={healthColor(row.health.status)} sx={{ fontWeight: 700, height: 24 }} />
                               <Chip size="small" variant="outlined" label={healthLabel(row.health.status)} />
                               {row.inventory.lowOccupancy && <Chip size="small" color="warning" label="Low occupancy" />}
                               {row.inventory.roomCountMismatch && <Chip size="small" color="error" label="Room mismatch" />}
@@ -364,7 +376,7 @@ export default function PropertyHealthPage() {
                             <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap' }}>
                               {row.transport.enabled ? (
                                 <>
-                                  <Chip size="small" label={row.transport.mode} sx={{ textTransform: 'capitalize' }} />
+                                  <Chip size="small" label={row.transport.mode} sx={{ textTransform: 'capitalize', height: 24, fontWeight: 600 }} />
                                   {row.transport.incomplete && <Chip size="small" color="error" label="Incomplete" />}
                                   {!row.transport.incomplete && <Chip size="small" color="success" label="Complete" />}
                                 </>
@@ -381,10 +393,10 @@ export default function PropertyHealthPage() {
                           </TableCell>
                           <TableCell>
                             <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap' }}>
-                              <Button size="small" variant="outlined" sx={{ textTransform: 'none' }} onClick={() => openPropertyRooms(row.propertyId)}>
+                              <Button size="small" variant="outlined" sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }} onClick={() => openPropertyRooms(row.propertyId)}>
                                 Rooms
                               </Button>
-                              <Button size="small" variant="outlined" sx={{ textTransform: 'none' }} onClick={() => openLandlordProfile(row.landlord?.id)}>
+                              <Button size="small" variant="outlined" sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }} onClick={() => openLandlordProfile(row.landlord?.id)}>
                                 Landlord
                               </Button>
                             </Stack>

@@ -98,7 +98,19 @@ function StatCard({
   color: string;
 }) {
   return (
-    <Card variant="outlined" sx={{ height: '100%' }}>
+    <Card
+      elevation={0}
+      className="glass-card"
+      sx={{
+        height: '100%',
+        borderRadius: 3,
+        transition: 'transform 0.24s ease, box-shadow 0.24s ease',
+        '&:hover': {
+          transform: 'translateY(-3px)',
+          boxShadow: '0 22px 42px rgba(17,67,124,0.15)',
+        },
+      }}
+    >
       <CardContent>
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>{title}</Typography>
@@ -219,19 +231,40 @@ export default function AdminDashboardClientInner() {
 
   return (
     <AdminLayout pendingCount={alertCount}>
-      <Box sx={{ p: { xs: 2, md: 4 } }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 3, gap: 1.5 }}>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>Admin Control Center</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Oversee users, requests, properties, and moderation across the student and landlord platforms.
-            </Typography>
-          </Box>
-          <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
-            <Button variant="outlined" onClick={() => router.push('/admin/users')} sx={{ textTransform: 'none' }}>Manage Users</Button>
-            <Button variant="contained" onClick={() => router.push('/admin/reports')} sx={{ textTransform: 'none', fontWeight: 700 }}>Open Reports</Button>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 4 } }}>
+        <Paper
+          elevation={0}
+          className="glass-card stagger-in"
+          sx={{
+            p: { xs: 2.25, md: 3 },
+            mb: 3,
+            borderRadius: 3,
+            overflow: 'hidden',
+            position: 'relative',
+          }}
+        >
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              background:
+                'radial-gradient(640px 280px at 0% 0%, rgba(24,104,201,0.14), transparent 65%), radial-gradient(540px 260px at 100% 100%, rgba(13,148,136,0.12), transparent 62%)',
+            }}
+          />
+          <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ position: 'relative', justifyContent: 'space-between', alignItems: { sm: 'center' }, gap: 1.5 }}>
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.2 }}>Admin Control Center</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Oversee users, requests, properties, and moderation across student and landlord platforms.
+              </Typography>
+            </Box>
+            <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+              <Button variant="outlined" onClick={() => router.push('/admin/users')} sx={{ textTransform: 'none' }}>Manage Users</Button>
+              <Button variant="contained" onClick={() => router.push('/admin/reports')} sx={{ textTransform: 'none', fontWeight: 700 }}>Open Reports</Button>
+            </Stack>
           </Stack>
-        </Stack>
+        </Paper>
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 

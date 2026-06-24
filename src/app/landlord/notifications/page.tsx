@@ -124,7 +124,7 @@ export default function LandlordNotificationsPage() {
 
   return (
     <LandlordLayout>
-      <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 900, mx: 'auto' }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 3 }, maxWidth: 900, mx: 'auto' }}>
         <Stack sx={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', mb: 3, gap: 2, flexWrap: 'wrap' }}>
           <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1.5 }}>
             <Box sx={{ width: 40, height: 40, borderRadius: 2, background: 'linear-gradient(135deg, #10b981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 12px rgba(16,185,129,0.3)' }}>

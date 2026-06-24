@@ -50,14 +50,19 @@ const DRAWER_WIDTH = 240;
 export const adminTheme = createTheme({
   typography: {
     fontFamily: [
-      'Inter',
+      'Plus Jakarta Sans',
+      'Segoe UI',
       '-apple-system',
       'BlinkMacSystemFont',
-      '"Segoe UI"',
       'sans-serif',
     ].join(','),
   },
-  shape: { borderRadius: 8 },
+  shape: { borderRadius: 12 },
+  palette: {
+    primary: { main: '#1868c9', dark: '#104d97' },
+    secondary: { main: '#0d9488' },
+    background: { default: '#f4f8ff' },
+  },
 });
 
 function getBreadcrumb(pathname: string): string[] {
@@ -489,11 +494,12 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
         sx={{
           display: { xs: 'none', md: 'block' },
           [`& .${drawerClasses.paper}`]: {
-            backgroundColor: 'background.paper',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(245,251,255,0.94) 100%)',
             width: DRAWER_WIDTH,
             boxSizing: 'border-box',
             borderRight: '1px solid',
-            borderColor: 'divider',
+            borderColor: 'rgba(24,104,201,0.14)',
+            boxShadow: '4px 0 24px rgba(16,77,151,0.06)',
             display: 'flex',
             flexDirection: 'column',
           },
@@ -541,7 +547,8 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
           ml: { md: `${DRAWER_WIDTH}px` },
           mt: 0,
           minHeight: '100vh',
-          bgcolor: 'background.default',
+          background:
+            'radial-gradient(850px 450px at 6% -18%, rgba(77,178,255,0.16), transparent 64%), radial-gradient(900px 480px at 96% -20%, rgba(255,196,123,0.12), transparent 66%), linear-gradient(180deg, #f8fcff 0%, #f3f8ff 45%, #fbfdff 100%)',
           display: 'flex',
           flexDirection: 'column',
           overflowX: 'hidden',
@@ -555,14 +562,14 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
             position: 'sticky',
             top: 0,
             zIndex: 100,
-            bgcolor: 'background.default',
+            bgcolor: 'rgba(255,255,255,0.82)',
             px: { xs: 2, md: 3 },
             pt: { xs: 1.5, md: 2 },
             pb: 0,
-            backdropFilter: 'blur(8px)',
+            backdropFilter: 'blur(12px)',
             borderBottom: '1px solid',
             borderColor: 'divider',
-            boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
+            boxShadow: '0 6px 18px rgba(17,67,124,0.08)',
           }}
         >
           <ContentHeader pathname={pathname} onNavigate={handleNavigate} onOpenMenu={() => setMobileOpen(true)} />

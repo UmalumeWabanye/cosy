@@ -308,7 +308,7 @@ export default function NewPropertyPage() {
 
   return (
     <AdminLayout>
-      <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 760, mx: 'auto' }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 4 }, maxWidth: 760, mx: 'auto' }}>
 
         {/* Header */}
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
@@ -323,7 +323,7 @@ export default function NewPropertyPage() {
           <Button
             variant="outlined" size="small"
             onClick={() => router.push('/admin/properties')}
-            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
+            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2, backdropFilter: 'blur(10px)' }}
           >
             Cancel
           </Button>
@@ -341,7 +341,8 @@ export default function NewPropertyPage() {
         <Fade in={!animating} timeout={220}>
           <Paper
             variant="outlined"
-            sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: 3, borderColor: 'divider', transition: 'box-shadow 0.2s', '&:hover': { boxShadow: '0 4px 24px rgba(21,101,192,0.07)' } }}
+            className="glass-card"
+            sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: 3, borderColor: 'divider', '& .MuiOutlinedInput-root': { borderRadius: 1.75 }, '& .MuiButton-root': { borderRadius: 1.75 }, transition: 'box-shadow 0.2s', '&:hover': { boxShadow: '0 4px 24px rgba(21,101,192,0.07)' } }}
           >
 
             {/* ── STEP 0: Basics ──────────────────────────────────────── */}

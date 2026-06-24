@@ -114,7 +114,7 @@ interface LandlordOverview {
 
 function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string | number; color: string }) {
   return (
-    <Card variant="outlined" sx={{ height: '100%' }}>
+    <Card elevation={0} className="glass-card" sx={{ height: '100%', borderRadius: 3 }}>
       <CardContent>
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
           <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>{label}</Typography>
@@ -334,7 +334,7 @@ function AdminUsersPageContent() {
 
   return (
     <AdminLayout>
-      <Box sx={{ p: { xs: 2, md: 4 } }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 4 } }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 3, gap: 2 }}>
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Landlords</Typography>
@@ -348,14 +348,14 @@ function AdminUsersPageContent() {
               variant="contained"
               startIcon={<PersonAddRoundedIcon />}
               onClick={() => { setInviteOpen(true); setInviteError(''); }}
-              sx={{ textTransform: 'none', fontWeight: 600 }}
+              sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 1.75, boxShadow: '0 12px 24px rgba(24,104,201,0.18)', transition: 'transform 0.18s ease, box-shadow 0.18s ease', '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 16px 30px rgba(24,104,201,0.22)' } }}
             >
               Add Landlord
             </Button>
           </Stack>
         </Stack>
 
-        <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
+        <Paper variant="outlined" className="glass-card" sx={{ p: 2, mb: 3, borderRadius: 3 }}>
           <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 2, flexWrap: 'wrap' }}>
             <TextField
               size="small"
@@ -363,11 +363,11 @@ function AdminUsersPageContent() {
               placeholder="Landlord name or email"
               value={filters.search}
               onChange={(e) => setFilter('search', e.target.value)}
-              sx={{ flexGrow: 1, minWidth: 220 }}
+              sx={{ flexGrow: 1, minWidth: 220, '& .MuiOutlinedInput-root': { borderRadius: 1.75 } }}
             />
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>City</InputLabel>
-              <Select label="City" value={filters.city} onChange={(e) => setFilter('city', e.target.value)}>
+              <Select label="City" value={filters.city} onChange={(e) => setFilter('city', e.target.value)} sx={{ borderRadius: 1.75 }}>
                 <MenuItem value="all">All Cities</MenuItem>
                 {filterOptions.cities.map((city) => (
                   <MenuItem key={city} value={city}>{city}</MenuItem>
@@ -376,7 +376,7 @@ function AdminUsersPageContent() {
             </FormControl>
             <FormControl size="small" sx={{ minWidth: 220 }}>
               <InputLabel>University or College</InputLabel>
-              <Select label="University or College" value={filters.institution} onChange={(e) => setFilter('institution', e.target.value)}>
+              <Select label="University or College" value={filters.institution} onChange={(e) => setFilter('institution', e.target.value)} sx={{ borderRadius: 1.75 }}>
                 <MenuItem value="all">All Institutions</MenuItem>
                 {filterOptions.institutions.map((institution) => (
                   <MenuItem key={institution} value={institution}>{institution}</MenuItem>
@@ -428,10 +428,22 @@ function AdminUsersPageContent() {
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12, lg: 8 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>Property Portfolio</Typography>
-                    <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
-                      <Table size="small" sx={{ minWidth: 760 }}>
+                    <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto', maxHeight: 360, borderRadius: 3 }}>
+                      <Table
+                        stickyHeader
+                        size="small"
+                        sx={{
+                          minWidth: 760,
+                          '& .MuiTableCell-root': { py: 1.25 },
+                          '& .MuiTableCell-stickyHeader': {
+                            bgcolor: 'rgba(255,255,255,0.94)',
+                            backdropFilter: 'blur(12px)',
+                            boxShadow: 'inset 0 -1px 0 rgba(24,104,201,0.12), 0 10px 22px rgba(17,67,124,0.06)',
+                          },
+                        }}
+                      >
                         <TableHead>
-                          <TableRow sx={{ bgcolor: 'action.hover' }}>
+                          <TableRow>
                             <TableCell sx={{ fontWeight: 700 }}>Property</TableCell>
                             <TableCell sx={{ fontWeight: 700 }}>City</TableCell>
                             <TableCell sx={{ fontWeight: 700 }}>Institution</TableCell>
@@ -448,7 +460,7 @@ function AdminUsersPageContent() {
                               </TableCell>
                             </TableRow>
                           ) : overview.portfolio.map((item) => (
-                            <TableRow key={item.property._id} hover>
+                            <TableRow key={item.property._id} hover sx={{ '&:last-child td': { borderBottom: 0 }, '& td': { transition: 'background-color 0.2s ease' }, '&:hover td': { bgcolor: 'rgba(24,104,201,0.05)' } }}>
                               <TableCell>
                                 <Typography variant="body2" sx={{ fontWeight: 600 }}>{item.property.propertyName}</Typography>
                                 <Typography variant="caption" color="text.secondary">R{Number(item.property.price || 0).toLocaleString()}</Typography>
@@ -501,10 +513,21 @@ function AdminUsersPageContent() {
           </Paper>
         ) : (
           <>
-            <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
-              <Table size="small">
+            <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto', maxHeight: 560, borderRadius: 3 }}>
+              <Table
+                stickyHeader
+                size="small"
+                sx={{
+                  '& .MuiTableCell-root': { py: 1.25 },
+                  '& .MuiTableCell-stickyHeader': {
+                    bgcolor: 'rgba(255,255,255,0.94)',
+                    backdropFilter: 'blur(12px)',
+                    boxShadow: 'inset 0 -1px 0 rgba(24,104,201,0.12), 0 10px 22px rgba(17,67,124,0.06)',
+                  },
+                }}
+              >
                 <TableHead>
-                  <TableRow sx={{ bgcolor: 'action.hover' }}>
+                  <TableRow>
                     <TableCell sx={{ fontWeight: 700 }}>Landlord</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>City</TableCell>
                     <TableCell sx={{ fontWeight: 700, display: { xs: 'none', md: 'table-cell' } }}>Province</TableCell>
@@ -521,7 +544,13 @@ function AdminUsersPageContent() {
                         key={u._id}
                         hover
                         selected={selected}
-                        sx={{ cursor: 'pointer' }}
+                        sx={{
+                          cursor: 'pointer',
+                          '& td': { transition: 'background-color 0.2s ease' },
+                          '&:hover td': { bgcolor: 'rgba(24,104,201,0.05)' },
+                          '&.Mui-selected td': { bgcolor: 'rgba(24,104,201,0.10)' },
+                          '&.Mui-selected:hover td': { bgcolor: 'rgba(24,104,201,0.14)' },
+                        }}
                         onClick={() => fetchOverview(u._id)}
                       >
                         <TableCell>
@@ -538,7 +567,7 @@ function AdminUsersPageContent() {
                         <TableCell>{u.city || '—'}</TableCell>
                         <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{u.province || '—'}</TableCell>
                         <TableCell>
-                          <Chip size="small" label={u.isVerified ? 'Active' : 'Inactive'} color={u.isVerified ? 'success' : 'default'} variant={u.isVerified ? 'filled' : 'outlined'} />
+                          <Chip size="small" label={u.isVerified ? 'Active' : 'Inactive'} color={u.isVerified ? 'success' : 'default'} variant={u.isVerified ? 'filled' : 'outlined'} sx={{ height: 24, fontWeight: 700 }} />
                         </TableCell>
                         <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                           <Typography variant="caption" color="text.secondary">
@@ -554,6 +583,7 @@ function AdminUsersPageContent() {
                                   color={u.isVerified ? 'warning' : 'success'}
                                   disabled={togglingId === u._id}
                                   onClick={() => handleToggle(u)}
+                                  sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}
                                 >
                                   {togglingId === u._id
                                     ? <CircularProgress size={16} />
@@ -570,6 +600,7 @@ function AdminUsersPageContent() {
                                   color="error"
                                   disabled={deletingId === u._id}
                                   onClick={() => setConfirmDelete(u)}
+                                  sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}
                                 >
                                   <DeleteRoundedIcon fontSize="small" />
                                 </IconButton>
@@ -602,8 +633,8 @@ function AdminUsersPageContent() {
         )}
       </Box>
 
-      <Dialog open={!!confirmDelete} onClose={() => setConfirmDelete(null)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700 }}>Delete Landlord</DialogTitle>
+      <Dialog open={!!confirmDelete} onClose={() => setConfirmDelete(null)} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { borderRadius: 3, overflow: 'hidden', boxShadow: '0 28px 60px rgba(15,44,82,0.24)' } } }}>
+        <DialogTitle sx={{ fontWeight: 700, bgcolor: 'rgba(255,248,248,0.9)' }}>Delete Landlord</DialogTitle>
         <Divider />
         <DialogContent>
           <DialogContentText>
@@ -611,22 +642,22 @@ function AdminUsersPageContent() {
             This action cannot be undone.
           </DialogContentText>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setConfirmDelete(null)} variant="outlined" sx={{ textTransform: 'none' }}>Cancel</Button>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button onClick={() => setConfirmDelete(null)} variant="outlined" sx={{ textTransform: 'none', borderRadius: 1.5, fontWeight: 600 }}>Cancel</Button>
           <Button
             onClick={handleDelete}
             variant="contained"
             color="error"
             disabled={!!deletingId}
-            sx={{ textTransform: 'none' }}
+            sx={{ textTransform: 'none', borderRadius: 1.5, fontWeight: 700, boxShadow: '0 10px 20px rgba(211,47,47,0.22)' }}
           >
             {deletingId ? <CircularProgress size={18} color="inherit" /> : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700 }}>Add Landlord</DialogTitle>
+      <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { borderRadius: 3, overflow: 'hidden', boxShadow: '0 28px 60px rgba(15,44,82,0.24)' } } }}>
+        <DialogTitle sx={{ fontWeight: 700, bgcolor: 'rgba(248,252,255,0.92)' }}>Add Landlord</DialogTitle>
         <Divider />
         <DialogContent>
           <Stack sx={{ gap: 2, pt: 1 }}>
@@ -652,15 +683,15 @@ function AdminUsersPageContent() {
             />
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setInviteOpen(false)} variant="outlined" sx={{ textTransform: 'none' }}>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button onClick={() => setInviteOpen(false)} variant="outlined" sx={{ textTransform: 'none', borderRadius: 1.5, fontWeight: 600 }}>
             Cancel
           </Button>
           <Button
             onClick={handleInviteSubmit}
             variant="contained"
             disabled={inviteLoading}
-            sx={{ textTransform: 'none' }}
+            sx={{ textTransform: 'none', borderRadius: 1.5, fontWeight: 700, boxShadow: '0 12px 24px rgba(24,104,201,0.18)' }}
           >
             {inviteLoading ? <CircularProgress size={18} color="inherit" /> : 'Send Invite'}
           </Button>

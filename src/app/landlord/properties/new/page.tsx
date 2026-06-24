@@ -167,16 +167,16 @@ export default function NewLandlordPropertyPage() {
 
   return (
     <LandlordLayout>
-      <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: 'grey.50', minHeight: '100vh' }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 4 }, minHeight: '100vh' }}>
       <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 3, gap: 1.5 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>Add Property</Typography>
           <Typography variant="body2" color="text.secondary">This listing is owned by your landlord account only.</Typography>
         </Box>
-        <Button variant="outlined" onClick={() => router.push('/landlord/properties')} sx={{ textTransform: 'none' }}>Cancel</Button>
+        <Button variant="outlined" onClick={() => router.push('/landlord/properties')} sx={{ textTransform: 'none', borderRadius: 1.75, fontWeight: 600, backdropFilter: 'blur(10px)' }}>Cancel</Button>
       </Stack>
 
-      <Paper variant="outlined" sx={{ p: 3, maxWidth: 860 }} component="form" onSubmit={submit}>
+      <Paper variant="outlined" className="glass-card" sx={{ p: { xs: 2.5, md: 3 }, maxWidth: 860, borderRadius: 3, '& .MuiOutlinedInput-root': { borderRadius: 1.75 }, '& .MuiButton-root': { borderRadius: 1.75 } }} component="form" onSubmit={submit}>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
         <Stack sx={{ gap: 2 }}>
@@ -223,7 +223,7 @@ export default function NewLandlordPropertyPage() {
 
             <TextField label="Communication Channel" helperText="e.g. WhatsApp, email, SMS, in-app chat" value={form.communicationChannel} onChange={(e) => setForm((prev) => ({ ...prev, communicationChannel: e.target.value }))} />
 
-            <Paper variant="outlined" sx={{ p: 2, bgcolor: 'grey.50' }}>
+            <Paper variant="outlined" className="glass-card" sx={{ p: 2, borderRadius: 2.5 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Transportation Setup</Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
                 Configure private residence transport or campus-route schedules visible to students.
@@ -266,7 +266,7 @@ export default function NewLandlordPropertyPage() {
                     {transportSchedules.length === 0 ? (
                       <Typography variant="caption" color="text.secondary">No schedules yet. Add a route to show pickup/return times to students.</Typography>
                     ) : transportSchedules.map((schedule, index) => (
-                      <Paper key={index} variant="outlined" sx={{ p: 1.5 }}>
+                      <Paper key={index} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
                         <Stack sx={{ gap: 1 }}>
                           <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
                             <Typography variant="caption" sx={{ fontWeight: 700 }}>Route {index + 1}</Typography>
@@ -334,8 +334,8 @@ export default function NewLandlordPropertyPage() {
           </Stack>
 
           <Stack direction="row" sx={{ justifyContent: 'flex-end', gap: 1.25 }}>
-            <Button variant="outlined" onClick={() => router.push('/landlord/properties')} sx={{ textTransform: 'none' }}>Cancel</Button>
-            <Button type="submit" variant="contained" disabled={loading} sx={{ textTransform: 'none', fontWeight: 700 }}>
+            <Button variant="outlined" onClick={() => router.push('/landlord/properties')} sx={{ textTransform: 'none', fontWeight: 600 }}>Cancel</Button>
+            <Button type="submit" variant="contained" disabled={loading} sx={{ textTransform: 'none', fontWeight: 700, boxShadow: '0 12px 24px rgba(4,120,87,0.18)', transition: 'transform 0.18s ease, box-shadow 0.18s ease', '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 16px 30px rgba(4,120,87,0.22)' } }}>
               {loading ? <CircularProgress size={18} /> : 'Create Property'}
             </Button>
           </Stack>

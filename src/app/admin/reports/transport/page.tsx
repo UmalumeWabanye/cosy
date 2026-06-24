@@ -76,7 +76,7 @@ function modeLabel(mode: string) {
 
 function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number; color: string }) {
   return (
-    <Card variant="outlined" sx={{ height: '100%' }}>
+    <Card elevation={0} className="glass-card" sx={{ height: '100%', borderRadius: 3 }}>
       <CardContent>
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>{label}</Typography>
@@ -136,7 +136,7 @@ export default function AdminTransportOversightPage() {
 
   return (
     <AdminLayout>
-      <Box sx={{ p: { xs: 2, md: 4 } }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 4 } }}>
         <Box sx={{ mb: 3 }}>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>Transport Oversight</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
@@ -204,10 +204,22 @@ export default function AdminTransportOversightPage() {
                 <Typography color="text.secondary">No listings match the selected filters.</Typography>
               </Paper>
             ) : (
-              <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
-                <Table size="small" sx={{ minWidth: 960 }}>
+              <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto', maxHeight: 600, borderRadius: 3 }}>
+                <Table
+                  stickyHeader
+                  size="small"
+                  sx={{
+                    minWidth: 960,
+                    '& .MuiTableCell-root': { py: 1.25 },
+                    '& .MuiTableCell-stickyHeader': {
+                      bgcolor: 'rgba(255,255,255,0.94)',
+                      backdropFilter: 'blur(12px)',
+                      boxShadow: 'inset 0 -1px 0 rgba(24,104,201,0.12), 0 10px 22px rgba(17,67,124,0.06)',
+                    },
+                  }}
+                >
                   <TableHead>
-                    <TableRow sx={{ bgcolor: 'action.hover' }}>
+                    <TableRow>
                       <TableCell sx={{ fontWeight: 700 }}>Property</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>Landlord</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>Transport Type</TableCell>
@@ -224,7 +236,7 @@ export default function AdminTransportOversightPage() {
                       const partialSchedules = row.transport.scheduleCount > 0 && row.transport.completeScheduleCount < row.transport.scheduleCount;
 
                       return (
-                        <TableRow key={row.propertyId} hover>
+                        <TableRow key={row.propertyId} hover sx={{ '& td': { transition: 'background-color 0.2s ease' }, '&:hover td': { bgcolor: 'rgba(24,104,201,0.05)' } }}>
                           <TableCell>
                             <Typography variant="body2" sx={{ fontWeight: 700 }}>{row.propertyName}</Typography>
                             <Typography variant="caption" color="text.secondary">
@@ -237,7 +249,7 @@ export default function AdminTransportOversightPage() {
                             <Typography variant="caption" color="text.secondary">{row.landlord?.email || ''}</Typography>
                           </TableCell>
                           <TableCell>
-                            <Chip size="small" color="secondary" label={modeLabel(row.transport.mode)} />
+                            <Chip size="small" color="secondary" label={modeLabel(row.transport.mode)} sx={{ height: 24, fontWeight: 700 }} />
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2">{row.transport.providerName || 'Not set'}</Typography>
@@ -250,10 +262,10 @@ export default function AdminTransportOversightPage() {
                           </TableCell>
                           <TableCell>
                             <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap' }}>
-                              {noSchedules && <Chip size="small" color="warning" label="No schedules" />}
-                              {partialSchedules && <Chip size="small" color="warning" label="Partial schedules" />}
-                              {missingProvider && <Chip size="small" color="error" label="Provider info missing" />}
-                              {!noSchedules && !partialSchedules && !missingProvider && <Chip size="small" color="success" label="Complete" />}
+                              {noSchedules && <Chip size="small" color="warning" label="No schedules" sx={{ height: 24, fontWeight: 600 }} />}
+                              {partialSchedules && <Chip size="small" color="warning" label="Partial schedules" sx={{ height: 24, fontWeight: 600 }} />}
+                              {missingProvider && <Chip size="small" color="error" label="Provider info missing" sx={{ height: 24, fontWeight: 600 }} />}
+                              {!noSchedules && !partialSchedules && !missingProvider && <Chip size="small" color="success" label="Complete" sx={{ height: 24, fontWeight: 600 }} />}
                             </Stack>
                           </TableCell>
                           <TableCell>

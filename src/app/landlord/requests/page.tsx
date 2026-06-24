@@ -220,17 +220,17 @@ export default function LandlordRequestsPage() {
 
   return (
     <LandlordLayout>
-      <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: 'grey.50', minHeight: '100vh' }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 4 }, minHeight: '100vh' }}>
       <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 3, gap: 1.5 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>Enquiry Management</Typography>
           <Typography variant="body2" color="text.secondary">Only requests for your own properties are visible here.</Typography>
         </Box>
-        <Button variant="outlined" onClick={() => router.push('/landlord/dashboard')} sx={{ textTransform: 'none' }}>Back to Dashboard</Button>
+        <Button variant="outlined" onClick={() => router.push('/landlord/dashboard')} sx={{ textTransform: 'none', borderRadius: 1.75, fontWeight: 600, backdropFilter: 'blur(10px)' }}>Back to Dashboard</Button>
       </Stack>
 
       <Box sx={{ mb: 2 }}>
-        <ToggleButtonGroup exclusive value={statusFilter} onChange={(_, value) => value && setStatusFilter(value)} size="small">
+        <ToggleButtonGroup exclusive value={statusFilter} onChange={(_, value) => value && setStatusFilter(value)} size="small" sx={{ '& .MuiToggleButton-root': { textTransform: 'none', fontWeight: 700, px: 1.75, borderRadius: '14px !important', borderColor: 'rgba(5,150,105,0.18)', backdropFilter: 'blur(10px)' }, '& .Mui-selected': { boxShadow: '0 10px 20px rgba(4,120,87,0.14)' } }}>
           <ToggleButton value="all">All ({requests.length})</ToggleButton>
           <ToggleButton value="pending">Pending ({requests.filter((request) => request.status === 'pending').length})</ToggleButton>
           <ToggleButton value="approved">Approved ({requests.filter((request) => request.status === 'approved').length})</ToggleButton>
@@ -238,14 +238,14 @@ export default function LandlordRequestsPage() {
         </ToggleButtonGroup>
       </Box>
 
-      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+      <Paper variant="outlined" className="glass-card" sx={{ p: 2, mb: 2, borderRadius: 3 }}>
         <Stack direction={{ xs: 'column', md: 'row' }} sx={{ gap: 1.5, alignItems: { md: 'center' } }}>
           <TextField
             size="small"
             placeholder="Search student, property, room, or message"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            sx={{ flexGrow: 1, minWidth: { xs: '100%', md: 280 } }}
+            sx={{ flexGrow: 1, minWidth: { xs: '100%', md: 280 }, '& .MuiOutlinedInput-root': { borderRadius: 1.75 } }}
             slotProps={{
               input: {
                 startAdornment: (
@@ -256,13 +256,13 @@ export default function LandlordRequestsPage() {
               },
             }}
           />
-          <TextField select size="small" label="Property" value={propertyFilter} onChange={(e) => setPropertyFilter(e.target.value)} sx={{ minWidth: 180 }}>
+          <TextField select size="small" label="Property" value={propertyFilter} onChange={(e) => setPropertyFilter(e.target.value)} sx={{ minWidth: 180, '& .MuiOutlinedInput-root': { borderRadius: 1.75 } }}>
             <MenuItem value="all">All properties</MenuItem>
             {propertyOptions.map((property) => (
               <MenuItem key={property?._id} value={property?._id}>{property?.propertyName || 'Property'}</MenuItem>
             ))}
           </TextField>
-          <TextField select size="small" label="Funding" value={fundingFilter} onChange={(e) => setFundingFilter(e.target.value as typeof fundingFilter)} sx={{ minWidth: 160 }}>
+          <TextField select size="small" label="Funding" value={fundingFilter} onChange={(e) => setFundingFilter(e.target.value as typeof fundingFilter)} sx={{ minWidth: 160, '& .MuiOutlinedInput-root': { borderRadius: 1.75 } }}>
             <MenuItem value="all">All funding</MenuItem>
             <MenuItem value="NSFAS">NSFAS</MenuItem>
             <MenuItem value="Private">Private</MenuItem>
@@ -276,7 +276,7 @@ export default function LandlordRequestsPage() {
               setFundingFilter('all');
               setStatusFilter('all');
             }}
-            sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
+            sx={{ textTransform: 'none', whiteSpace: 'nowrap', borderRadius: 1.75, fontWeight: 600 }}
           >
             Clear filters
           </Button>
@@ -311,10 +311,22 @@ export default function LandlordRequestsPage() {
           <Typography color="text.secondary">No {statusFilter === 'all' ? '' : statusFilter} requests found for your account.</Typography>
         </Paper>
       ) : (
-        <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
-          <Table size="small" sx={{ minWidth: 760 }}>
+        <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto', maxHeight: 640, borderRadius: 3 }}>
+          <Table
+            stickyHeader
+            size="small"
+            sx={{
+              minWidth: 760,
+              '& .MuiTableCell-root': { py: 1.25 },
+              '& .MuiTableCell-stickyHeader': {
+                bgcolor: 'rgba(255,255,255,0.94)',
+                backdropFilter: 'blur(12px)',
+                boxShadow: 'inset 0 -1px 0 rgba(5,150,105,0.14), 0 10px 22px rgba(4,120,87,0.06)',
+              },
+            }}
+          >
             <TableHead>
-              <TableRow sx={{ bgcolor: 'action.hover' }}>
+              <TableRow>
                 <TableCell sx={{ fontWeight: 700 }}>Student</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Property</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Move-in</TableCell>
@@ -326,7 +338,7 @@ export default function LandlordRequestsPage() {
             </TableHead>
             <TableBody>
               {filtered.map((request) => (
-                <TableRow key={request._id} hover sx={{ cursor: 'pointer' }} onClick={() => setDetailTarget(request)}>
+                <TableRow key={request._id} hover sx={{ cursor: 'pointer', '& td': { transition: 'background-color 0.2s ease' }, '&:hover td': { bgcolor: 'rgba(5,150,105,0.05)' } }} onClick={() => setDetailTarget(request)}>
                   <TableCell>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{request.student?.name || 'Student'}</Typography>
                     <Typography variant="caption" color="text.secondary">{request.student?.email || ''}</Typography>
@@ -347,20 +359,20 @@ export default function LandlordRequestsPage() {
                         sx={{ minWidth: 120 }}
                       />
                     ) : request.roomNumber ? (
-                      <Chip size="small" label={`Room ${request.roomNumber}`} color="info" variant="outlined" />
+                      <Chip size="small" label={`Room ${request.roomNumber}`} color="info" variant="outlined" sx={{ height: 24, fontWeight: 600 }} />
                     ) : (
                       '—'
                     )}
                   </TableCell>
-                  <TableCell><Chip size="small" color={statusColor(request.status)} label={request.status} sx={{ textTransform: 'capitalize' }} /></TableCell>
+                  <TableCell><Chip size="small" color={statusColor(request.status)} label={request.status} sx={{ textTransform: 'capitalize', height: 24, fontWeight: 600 }} /></TableCell>
                   <TableCell align="right">
                     <Stack direction="row" sx={{ justifyContent: 'flex-end', gap: 0.75 }}>
                       {request.status === 'pending' && (
                         <>
-                          <Button size="small" color="success" variant="contained" disabled={updatingId === request._id} onClick={() => updateStatus(request._id, 'approved')}>
+                          <Button size="small" color="success" variant="contained" disabled={updatingId === request._id} onClick={() => updateStatus(request._id, 'approved')} sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }}>
                             Approve
                           </Button>
-                          <Button size="small" color="error" variant="outlined" disabled={updatingId === request._id} onClick={() => updateStatus(request._id, 'rejected')}>
+                          <Button size="small" color="error" variant="outlined" disabled={updatingId === request._id} onClick={() => updateStatus(request._id, 'rejected')} sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }}>
                             Reject
                           </Button>
                         </>
@@ -381,8 +393,8 @@ export default function LandlordRequestsPage() {
       )}
     </Box>
 
-      <Dialog open={!!editTarget} onClose={() => !savingEdit && setEditTarget(null)} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit Application</DialogTitle>
+      <Dialog open={!!editTarget} onClose={() => !savingEdit && setEditTarget(null)} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: 3, overflow: 'hidden', boxShadow: '0 28px 60px rgba(15,44,82,0.24)' } } }}>
+        <DialogTitle sx={{ fontWeight: 700, bgcolor: 'rgba(244,251,248,0.92)' }}>Edit Application</DialogTitle>
         <DialogContent>
           <Stack sx={{ gap: 2, mt: 0.5 }}>
             <TextField
@@ -428,14 +440,14 @@ export default function LandlordRequestsPage() {
             />
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditTarget(null)} disabled={savingEdit}>Cancel</Button>
-          <Button onClick={saveEdit} disabled={savingEdit} variant="contained">{savingEdit ? 'Saving…' : 'Save'}</Button>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={() => setEditTarget(null)} disabled={savingEdit} sx={{ textTransform: 'none', borderRadius: 1.5, fontWeight: 600 }}>Cancel</Button>
+          <Button onClick={saveEdit} disabled={savingEdit} variant="contained" sx={{ textTransform: 'none', borderRadius: 1.5, fontWeight: 700, boxShadow: '0 12px 24px rgba(4,120,87,0.18)' }}>{savingEdit ? 'Saving…' : 'Save'}</Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={!!detailTarget} onClose={() => setDetailTarget(null)} maxWidth="sm" fullWidth>
-        <DialogTitle>Application Details</DialogTitle>
+      <Dialog open={!!detailTarget} onClose={() => setDetailTarget(null)} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: 3, overflow: 'hidden', boxShadow: '0 28px 60px rgba(15,44,82,0.24)' } } }}>
+        <DialogTitle sx={{ fontWeight: 700, bgcolor: 'rgba(244,251,248,0.92)' }}>Application Details</DialogTitle>
         <DialogContent>
           {detailTarget ? (
             <Stack sx={{ gap: 2, mt: 0.5 }}>
@@ -494,16 +506,16 @@ export default function LandlordRequestsPage() {
             </Stack>
           ) : null}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDetailTarget(null)}>Close</Button>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={() => setDetailTarget(null)} sx={{ textTransform: 'none', borderRadius: 1.5, fontWeight: 600 }}>Close</Button>
           {detailTarget && detailTarget.status === 'pending' && (
-            <Button onClick={() => { setEditTarget(detailTarget); setDetailTarget(null); }} variant="outlined">Edit</Button>
+            <Button onClick={() => { setEditTarget(detailTarget); setDetailTarget(null); }} variant="outlined" sx={{ textTransform: 'none', borderRadius: 1.5, fontWeight: 600 }}>Edit</Button>
           )}
         </DialogActions>
       </Dialog>
 
-      <Dialog open={!!deleteTarget} onClose={() => !deleting && setDeleteTarget(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>Remove Application?</DialogTitle>
+      <Dialog open={!!deleteTarget} onClose={() => !deleting && setDeleteTarget(null)} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { borderRadius: 3, overflow: 'hidden', boxShadow: '0 28px 60px rgba(15,44,82,0.24)' } } }}>
+        <DialogTitle sx={{ fontWeight: 700, bgcolor: 'rgba(255,248,248,0.92)' }}>Remove Application?</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary">
             This will permanently remove the selected application and free up its room allocation if it was approved.

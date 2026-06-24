@@ -121,18 +121,18 @@ export default function EditPropertyPage() {
 
   return (
     <AdminLayout>
-      <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 760, mx: 'auto' }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 4 }, maxWidth: 760, mx: 'auto' }}>
         <Stack direction="row" sx={{  justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Edit Property</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Update your accommodation listing</Typography>
           </Box>
-          <Button variant="outlined" onClick={() => router.push('/admin/properties')}>Cancel</Button>
+          <Button variant="outlined" onClick={() => router.push('/admin/properties')} sx={{ borderRadius: 1.75, fontWeight: 600, backdropFilter: 'blur(10px)' }}>Cancel</Button>
         </Stack>
 
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-        <Paper variant="outlined" sx={{ p: 3 }} component="form" onSubmit={handleSubmit}>
+        <Paper variant="outlined" className="glass-card" sx={{ p: 3, borderRadius: 3, '& .MuiOutlinedInput-root': { borderRadius: 1.75 }, '& .MuiButton-root': { borderRadius: 1.75 } }} component="form" onSubmit={handleSubmit}>
           <Typography variant="subtitle1"  sx={{ mb: 2, fontWeight: 700 }}>Basic Information</Typography>
           <Stack sx={{ gap: 2.5 }}>
             <TextField required label="Property Name" value={formData.name} onChange={e => set('name', e.target.value)} fullWidth />
@@ -241,10 +241,10 @@ export default function EditPropertyPage() {
 
           <Divider sx={{ my: 3 }} />
           <Stack direction="row" sx={{ gap: 2 }}>
-            <Button type="submit" variant="contained" disabled={loading || uploadingImage} startIcon={loading || uploadingImage ? <CircularProgress size={16} /> : undefined} sx={{ flex: 1 }}>
+            <Button type="submit" variant="contained" disabled={loading || uploadingImage} startIcon={loading || uploadingImage ? <CircularProgress size={16} /> : undefined} sx={{ flex: 1, fontWeight: 700, boxShadow: '0 12px 24px rgba(24,104,201,0.18)', transition: 'transform 0.18s ease, box-shadow 0.18s ease', '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 16px 30px rgba(24,104,201,0.22)' } }}>
               {loading ? 'Saving…' : uploadingImage ? 'Uploading…' : 'Save Changes'}
             </Button>
-            <Button variant="outlined" onClick={() => router.push('/admin/properties')} sx={{ flex: 1 }}>Cancel</Button>
+            <Button variant="outlined" onClick={() => router.push('/admin/properties')} sx={{ flex: 1, fontWeight: 600 }}>Cancel</Button>
           </Stack>
         </Paper>
       </Box>

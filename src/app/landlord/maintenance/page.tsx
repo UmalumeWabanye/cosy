@@ -234,7 +234,7 @@ export default function LandlordMaintenancePage() {
 
   return (
     <LandlordLayout>
-      <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 3 } }}>
         {/* Header */}
         <Stack sx={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 1 }}>
           <Box>
@@ -261,7 +261,7 @@ export default function LandlordMaintenancePage() {
           </Stack>
         </Stack>
 
-        <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Paper variant="outlined" className="glass-card" sx={{ p: 2, mb: 2, borderRadius: 3 }}>
           <Stack direction={{ xs: 'column', md: 'row' }} sx={{ gap: 1.5, alignItems: { md: 'center' } }}>
             <TextField
               select
@@ -312,7 +312,7 @@ export default function LandlordMaintenancePage() {
                 setPropertyFilter('all');
                 setRoomFilter('');
               }}
-              sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
+              sx={{ textTransform: 'none', whiteSpace: 'nowrap', borderRadius: 1.75, fontWeight: 600 }}
             >
               Clear filters
             </Button>
@@ -348,7 +348,8 @@ export default function LandlordMaintenancePage() {
                 <Paper key={s} elevation={0} onClick={() => setStatusFilter(statusFilter === s ? 'all' : s)} sx={{
                   p: 2, borderRadius: 2, border: '1px solid', borderColor: statusFilter === s ? cfg.color : 'divider',
                   cursor: 'pointer', bgcolor: statusFilter === s ? cfg.bg : 'background.paper',
-                  transition: 'all 0.15s',
+                  transition: 'all 0.18s ease',
+                  '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 16px 26px rgba(4,120,87,0.10)' },
                 }}>
                   <Stack direction="row" sx={{ alignItems: 'center', gap: 1, mb: 0.5 }}>
                     <Icon sx={{ fontSize: 18, color: cfg.color }} />
@@ -366,7 +367,7 @@ export default function LandlordMaintenancePage() {
           <ToggleButtonGroup
             value={statusFilter} exclusive
             onChange={(_, v) => v && setStatusFilter(v)}
-            size="small" sx={{ flexWrap: 'nowrap' }}
+            size="small" sx={{ flexWrap: 'nowrap', '& .MuiToggleButton-root': { textTransform: 'none', fontWeight: 700, px: 2, borderRadius: '14px !important', borderColor: 'rgba(5,150,105,0.18)', backdropFilter: 'blur(10px)' }, '& .Mui-selected': { boxShadow: '0 10px 20px rgba(4,120,87,0.14)' } }}
           >
             {(['all', 'open', 'in_progress', 'resolved', 'closed'] as StatusFilter[]).map(f => (
               <ToggleButton key={f} value={f} sx={{ textTransform: 'none', fontWeight: 600, px: 2 }}>
@@ -416,24 +417,24 @@ export default function LandlordMaintenancePage() {
                         <Chip
                           icon={<StatusIcon sx={{ fontSize: '14px !important' }} />}
                           label={sCfg.label} size="small"
-                          sx={{ bgcolor: sCfg.bg, color: sCfg.color, fontWeight: 700, fontSize: 11, '& .MuiChip-icon': { color: sCfg.color } }}
+                          sx={{ bgcolor: sCfg.bg, color: sCfg.color, fontWeight: 700, fontSize: 11, height: 24, '& .MuiChip-icon': { color: sCfg.color } }}
                         />
                         <Chip
                           label={pCfg.label} size="small"
-                          sx={{ bgcolor: pCfg.bg, color: pCfg.color, fontWeight: 700, fontSize: 11 }}
+                          sx={{ bgcolor: pCfg.bg, color: pCfg.color, fontWeight: 700, fontSize: 11, height: 24 }}
                         />
                         <Button
                           size="small" variant="outlined"
                           startIcon={<EditRoundedIcon sx={{ fontSize: '14px !important' }} />}
                           onClick={() => openEdit(ticket)}
-                          sx={{ textTransform: 'none', fontSize: 12, borderRadius: 1.5 }}
+                          sx={{ textTransform: 'none', fontSize: 12, fontWeight: 600, borderRadius: 1.5, transition: 'transform 0.18s ease, box-shadow 0.18s ease', '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 10px 20px rgba(4,120,87,0.12)' } }}
                         >
                           Update
                         </Button>
                         <Button
                           size="small" variant="outlined"
                           onClick={() => openComment(ticket)}
-                          sx={{ textTransform: 'none', fontSize: 12, borderRadius: 1.5 }}
+                          sx={{ textTransform: 'none', fontSize: 12, fontWeight: 600, borderRadius: 1.5, transition: 'transform 0.18s ease, box-shadow 0.18s ease', '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 10px 20px rgba(4,120,87,0.12)' } }}
                         >
                           Reply
                         </Button>
@@ -542,8 +543,8 @@ export default function LandlordMaintenancePage() {
 
       {/* Update dialog */}
       <Dialog open={!!editTarget} onClose={() => !saving && setEditTarget(null)} maxWidth="sm" fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
-        <DialogTitle sx={{ fontWeight: 700 }}>Update Maintenance Request</DialogTitle>
+        slotProps={{ paper: { sx: { borderRadius: 3, overflow: 'hidden', boxShadow: '0 28px 60px rgba(15,44,82,0.24)' } } }}>
+        <DialogTitle sx={{ fontWeight: 700, bgcolor: 'rgba(244,251,248,0.92)' }}>Update Maintenance Request</DialogTitle>
         <DialogContent sx={{ pt: '12px !important' }}>
           {editTarget && (
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -610,8 +611,8 @@ export default function LandlordMaintenancePage() {
       </Dialog>
 
       <Dialog open={!!commentTarget} onClose={() => !commentSubmitting && setCommentTarget(null)} maxWidth="sm" fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
-        <DialogTitle sx={{ fontWeight: 700 }}>Reply to Maintenance Request</DialogTitle>
+        slotProps={{ paper: { sx: { borderRadius: 3, overflow: 'hidden', boxShadow: '0 28px 60px rgba(15,44,82,0.24)' } } }}>
+        <DialogTitle sx={{ fontWeight: 700, bgcolor: 'rgba(244,251,248,0.92)' }}>Reply to Maintenance Request</DialogTitle>
         <DialogContent sx={{ pt: '12px !important' }}>
           {commentTarget && (
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

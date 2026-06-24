@@ -134,7 +134,7 @@ export default function AdminProfilePage() {
 
   return (
     <AdminLayout>
-      <Box sx={{ px: { xs: 2, md: 4 }, pt: { xs: 2, md: 3 }, pb: 4 }}>
+      <Box className="modern-shell" sx={{ px: { xs: 2, md: 4 }, pt: { xs: 2, md: 3 }, pb: 4 }}>
         <Stack direction={{ xs: 'column', md: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { md: 'center' }, mb: 3, gap: 1.5 }}>
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Admin Profile</Typography>
@@ -146,7 +146,7 @@ export default function AdminProfilePage() {
 
         <Grid container spacing={2.5}>
           <Grid size={{ xs: 12, lg: 4 }}>
-            <Card variant="outlined">
+            <Card variant="outlined" className="glass-card" sx={{ borderRadius: 3 }}>
               <CardContent>
                 <Stack sx={{ alignItems: 'center', textAlign: 'center', gap: 1.5 }}>
                   <Box sx={{ position: 'relative' }}>
@@ -167,7 +167,7 @@ export default function AdminProfilePage() {
                   <Typography variant="h6" sx={{ fontWeight: 700 }}>{user?.name}</Typography>
                   <Typography variant="body2" color="text.secondary">{user?.email}</Typography>
 
-                  <Paper variant="outlined" sx={{ p: 2, width: '100%', textAlign: 'left', borderRadius: 2.5 }}>
+                  <Paper variant="outlined" className="glass-card" sx={{ p: 2, width: '100%', textAlign: 'left', borderRadius: 2.5 }}>
                     <Stack direction="row" sx={{ alignItems: 'center', gap: 1, mb: 1 }}>
                       <VerifiedUserRoundedIcon color="primary" />
                       <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Admin Identity</Typography>
@@ -182,7 +182,7 @@ export default function AdminProfilePage() {
           </Grid>
 
           <Grid size={{ xs: 12, lg: 8 }}>
-            <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, borderRadius: 3 }}>
+            <Paper variant="outlined" className="glass-card" sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, '& .MuiOutlinedInput-root': { borderRadius: 1.75 } }}>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Account Details</Typography>
               {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
               {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -208,7 +208,7 @@ export default function AdminProfilePage() {
                   startIcon={savingProfile ? <CircularProgress size={16} color="inherit" /> : <SaveRoundedIcon />}
                   onClick={handleProfileSave}
                   disabled={savingProfile}
-                  sx={{ textTransform: 'none', fontWeight: 600 }}
+                  sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 1.75, boxShadow: '0 12px 24px rgba(24,104,201,0.18)', transition: 'transform 0.18s ease, box-shadow 0.18s ease', '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 16px 30px rgba(24,104,201,0.22)' } }}
                 >
                   {savingProfile ? 'Saving...' : 'Save Admin Profile'}
                 </Button>
@@ -276,7 +276,7 @@ export default function AdminProfilePage() {
                   startIcon={savingPassword ? <CircularProgress size={16} /> : <LockRoundedIcon />}
                   onClick={handlePasswordSave}
                   disabled={savingPassword || !pwForm.currentPassword || !pwForm.newPassword}
-                  sx={{ textTransform: 'none', fontWeight: 600 }}
+                  sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.75 }}
                 >
                   {savingPassword ? 'Updating...' : 'Update Password'}
                 </Button>

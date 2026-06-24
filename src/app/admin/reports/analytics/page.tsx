@@ -40,7 +40,7 @@ const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Se
 
 function StatCard({ icon, label, value, color = 'primary' }: { icon: React.ReactNode; label: string; value: number | string; color?: string }) {
   return (
-    <Card variant="outlined">
+    <Card elevation={0} className="glass-card" sx={{ borderRadius: 3 }}>
       <CardContent>
         <Stack direction="row" sx={{ alignItems: 'center', gap: 2 }}>
           <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: `${color}.50`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: `${color}.main`, flexShrink: 0 }}>
@@ -129,7 +129,7 @@ export default function AnalyticsPage() {
 
   return (
     <AdminLayout>
-      <Box sx={{ p: { xs: 2, md: 4 } }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 4 } }}>
         {/* Header */}
         <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
           <Box>

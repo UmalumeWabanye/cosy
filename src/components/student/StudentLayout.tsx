@@ -44,10 +44,14 @@ const DRAWER_WIDTH = 240;
 
 export const studentTheme = createTheme({
   typography: {
-    fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
+    fontFamily: ['Plus Jakarta Sans', 'Segoe UI', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'].join(','),
   },
-  shape: { borderRadius: 8 },
-  palette: { primary: { main: '#1976d2', dark: '#1565c0' } },
+  shape: { borderRadius: 12 },
+  palette: {
+    primary: { main: '#1868c9', dark: '#104d97' },
+    secondary: { main: '#00897b' },
+    background: { default: '#f4f8ff' },
+  },
 });
 
 const NAV_ITEMS = [
@@ -73,6 +77,7 @@ function getBreadcrumb(pathname: string): string[] {
   if (pathname.startsWith('/roommates')) return ['Home', 'Roommates'];
   if (pathname.startsWith('/saved-listings')) return ['Home', 'Saved Listings'];
   if (pathname.startsWith('/maintenance')) return ['Home', 'Maintenance'];
+  if (pathname.startsWith('/transportation')) return ['Home', 'Transportation'];
   if (pathname.startsWith('/notifications')) return ['Home', 'Notifications'];
   if (pathname.startsWith('/profile')) return ['Home', 'Profile'];
   return ['Home'];
@@ -297,11 +302,12 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
         sx={{
           display: { xs: 'none', md: 'block' },
           [`& .${drawerClasses.paper}`]: {
-            backgroundColor: 'background.paper',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(245,251,255,0.94) 100%)',
             width: DRAWER_WIDTH,
             boxSizing: 'border-box',
             borderRight: '1px solid',
-            borderColor: 'divider',
+            borderColor: 'rgba(24,104,201,0.14)',
+            boxShadow: '4px 0 24px rgba(16,77,151,0.06)',
             display: 'flex',
             flexDirection: 'column',
           },
@@ -348,7 +354,8 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
         ml: { md: `${DRAWER_WIDTH}px` },
         mt: 0,
         minHeight: '100vh',
-        bgcolor: 'grey.50',
+        background:
+          'radial-gradient(850px 450px at 6% -18%, rgba(77,178,255,0.16), transparent 64%), radial-gradient(900px 480px at 96% -20%, rgba(255,196,123,0.12), transparent 66%), linear-gradient(180deg, #f8fcff 0%, #f3f8ff 45%, #fbfdff 100%)',
         display: 'flex',
         flexDirection: 'column',
         overflowX: 'hidden',
@@ -358,11 +365,11 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
         {/* Sticky breadcrumb bar */}
         <Box sx={{
           position: 'sticky', top: 0, zIndex: 100,
-          bgcolor: 'background.paper',
+          bgcolor: 'rgba(255,255,255,0.82)',
           px: { xs: 2, md: 3 }, py: 1.5,
           borderBottom: '1px solid', borderColor: 'divider',
-          boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
-          backdropFilter: 'blur(8px)',
+          boxShadow: '0 6px 18px rgba(17,67,124,0.08)',
+          backdropFilter: 'blur(12px)',
           display: 'flex',
           alignItems: 'center',
           gap: 0.5,

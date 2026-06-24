@@ -92,7 +92,19 @@ function StatCard({
   color: string;
 }) {
   return (
-    <Card variant="outlined" sx={{ height: '100%' }}>
+    <Card
+      elevation={0}
+      className="glass-card"
+      sx={{
+        height: '100%',
+        borderRadius: 3,
+        transition: 'transform 0.24s ease, box-shadow 0.24s ease',
+        '&:hover': {
+          transform: 'translateY(-3px)',
+          boxShadow: '0 22px 42px rgba(17,67,124,0.15)',
+        },
+      }}
+    >
       <CardContent>
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>{title}</Typography>
@@ -307,33 +319,54 @@ export default function LandlordDashboardPage() {
 
   return (
     <LandlordLayout>
-      <Box sx={{ px: { xs: 2, md: 4 }, pt: { xs: 2, md: 3 }, pb: 2 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 3, gap: 1.5 }}>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>Landlord Dashboard</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Manage your listings, enquiries, viewings, occupancy, and verification in one place.
-            </Typography>
-          </Box>
-          <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
-            <Button
-              variant="outlined"
-              startIcon={<InsightsRoundedIcon />}
-              onClick={() => router.push('/landlord/analytics')}
-              sx={{ textTransform: 'none' }}
-            >
-              Analytics
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<AddRoundedIcon />}
-              onClick={() => router.push('/landlord/properties/new')}
-              sx={{ textTransform: 'none', fontWeight: 700 }}
-            >
-              Add Property
-            </Button>
+      <Box className="modern-shell" sx={{ px: { xs: 2, md: 4 }, pt: { xs: 2, md: 3 }, pb: 2 }}>
+        <Paper
+          elevation={0}
+          className="glass-card stagger-in"
+          sx={{
+            p: { xs: 2.25, md: 3 },
+            mb: 3,
+            borderRadius: 3,
+            overflow: 'hidden',
+            position: 'relative',
+          }}
+        >
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              background:
+                'radial-gradient(640px 280px at 0% 0%, rgba(5,150,105,0.14), transparent 65%), radial-gradient(540px 260px at 100% 100%, rgba(14,165,233,0.12), transparent 62%)',
+            }}
+          />
+          <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ position: 'relative', justifyContent: 'space-between', alignItems: { sm: 'center' }, gap: 1.5 }}>
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.2 }}>Landlord Dashboard</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Manage listings, enquiries, viewings, occupancy, and verification in one place.
+              </Typography>
+            </Box>
+            <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+              <Button
+                variant="outlined"
+                startIcon={<InsightsRoundedIcon />}
+                onClick={() => router.push('/landlord/analytics')}
+                sx={{ textTransform: 'none' }}
+              >
+                Analytics
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<AddRoundedIcon />}
+                onClick={() => router.push('/landlord/properties/new')}
+                sx={{ textTransform: 'none', fontWeight: 700 }}
+              >
+                Add Property
+              </Button>
+            </Stack>
           </Stack>
-        </Stack>
+        </Paper>
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 

@@ -147,7 +147,7 @@ function LandlordPropertiesPageContent() {
 
   return (
     <LandlordLayout>
-      <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: 'grey.50', minHeight: '100vh' }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 4 }, minHeight: '100vh' }}>
       <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 3, gap: 1.5 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>My Properties</Typography>
@@ -175,10 +175,22 @@ function LandlordPropertiesPageContent() {
           <Button variant="contained" sx={{ mt: 2, textTransform: 'none' }} onClick={() => router.push('/landlord/properties/new')}>Create your first listing</Button>
         </Paper>
       ) : (
-        <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
-          <Table size="small" sx={{ minWidth: 700 }}>
+        <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto', maxHeight: 620, borderRadius: 3 }}>
+          <Table
+            stickyHeader
+            size="small"
+            sx={{
+              minWidth: 700,
+              '& .MuiTableCell-root': { py: 1.25 },
+              '& .MuiTableCell-stickyHeader': {
+                bgcolor: 'rgba(255,255,255,0.94)',
+                backdropFilter: 'blur(12px)',
+                boxShadow: 'inset 0 -1px 0 rgba(5,150,105,0.14), 0 10px 22px rgba(4,120,87,0.06)',
+              },
+            }}
+          >
             <TableHead>
-              <TableRow sx={{ bgcolor: 'action.hover' }}>
+              <TableRow>
                 <TableCell sx={{ fontWeight: 700 }}>Property</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Location</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Price</TableCell>
@@ -189,7 +201,7 @@ function LandlordPropertiesPageContent() {
             </TableHead>
             <TableBody>
               {visibleProperties.map((property) => (
-                <TableRow key={property._id} hover>
+                <TableRow key={property._id} hover sx={{ '& td': { transition: 'background-color 0.2s ease' }, '&:hover td': { bgcolor: 'rgba(5,150,105,0.05)' } }}>
                   <TableCell>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{property.propertyName}</Typography>
                     <Typography variant="caption" color="text.secondary">{property.universityNearby || ''}</Typography>
@@ -205,10 +217,10 @@ function LandlordPropertiesPageContent() {
                   <TableCell>{property.roomType}</TableCell>
                   <TableCell>
                     <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap' }}>
-                      <Chip size="small" label={property.isAvailable ? 'Available' : 'Unavailable'} color={property.isAvailable ? 'success' : 'default'} />
-                      {property.nsfasAccredited && <Chip size="small" label="NSFAS" color="info" />}
+                      <Chip size="small" label={property.isAvailable ? 'Available' : 'Unavailable'} color={property.isAvailable ? 'success' : 'default'} sx={{ height: 24, fontWeight: 600 }} />
+                      {property.nsfasAccredited && <Chip size="small" label="NSFAS" color="info" sx={{ height: 24, fontWeight: 600 }} />}
                       {property.transportation?.enabled && (
-                        <Chip size="small" label={transportModeLabel(property.transportation.mode)} color="secondary" />
+                        <Chip size="small" label={transportModeLabel(property.transportation.mode)} color="secondary" sx={{ height: 24, fontWeight: 600 }} />
                       )}
                     </Stack>
                   </TableCell>
@@ -216,29 +228,29 @@ function LandlordPropertiesPageContent() {
                     <Stack direction="row" sx={{ justifyContent: 'flex-end', gap: 0.5 }}>
                       <Tooltip title={property.isAvailable ? 'Mark Unavailable' : 'Mark Available'}>
                         <span>
-                          <IconButton size="small" disabled={togglingId === property._id} onClick={() => handleToggleAvailability(property._id)}>
+                          <IconButton size="small" disabled={togglingId === property._id} onClick={() => handleToggleAvailability(property._id)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
                             {togglingId === property._id ? <CircularProgress size={16} /> : property.isAvailable ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
                           </IconButton>
                         </span>
                       </Tooltip>
                       <Tooltip title="Edit">
-                        <IconButton size="small" color="primary" onClick={() => router.push(`/landlord/properties/${property._id}/edit`)}>
+                        <IconButton size="small" color="primary" onClick={() => router.push(`/landlord/properties/${property._id}/edit`)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
                           <EditRoundedIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Allocate Rooms">
-                        <IconButton size="small" color="secondary" onClick={() => router.push(`/landlord/properties/${property._id}/allocate`)}>
+                        <IconButton size="small" color="secondary" onClick={() => router.push(`/landlord/properties/${property._id}/allocate`)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
                           <MeetingRoomRoundedIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Room Inventory">
-                        <IconButton size="small" color="info" onClick={() => router.push(`/landlord/properties/${property._id}/rooms`)}>
+                        <IconButton size="small" color="info" onClick={() => router.push(`/landlord/properties/${property._id}/rooms`)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
                           <ViewModuleRoundedIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Delete">
                         <span>
-                          <IconButton size="small" color="error" disabled={deletingId === property._id} onClick={() => handleDelete(property._id)}>
+                          <IconButton size="small" color="error" disabled={deletingId === property._id} onClick={() => handleDelete(property._id)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
                             {deletingId === property._id ? <CircularProgress size={16} /> : <DeleteRoundedIcon fontSize="small" />}
                           </IconButton>
                         </span>

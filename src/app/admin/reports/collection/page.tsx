@@ -71,7 +71,7 @@ function StatCard({ icon, label, value, sub, color = 'primary' }: {
   icon: React.ReactNode; label: string; value: string | number; sub?: string; color?: string;
 }) {
   return (
-    <Card variant="outlined">
+    <Card elevation={0} className="glass-card" sx={{ borderRadius: 3 }}>
       <CardContent>
         <Stack direction="row" sx={{ alignItems: 'center', gap: 2 }}>
           <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: `${color}.50`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: `${color}.main`, flexShrink: 0 }}>
@@ -156,7 +156,7 @@ export default function MonthlyCollectionPage() {
 
   return (
     <AdminLayout>
-      <Box sx={{ p: { xs: 2, md: 4 } }}>
+      <Box className="modern-shell" sx={{ p: { xs: 2, md: 4 } }}>
         {/* Header */}
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
@@ -271,10 +271,21 @@ export default function MonthlyCollectionPage() {
                 </Typography>
               </Paper>
             ) : (
-              <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
+              <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 620, borderRadius: 3 }}>
+                <Table
+                  stickyHeader
+                  size="small"
+                  sx={{
+                    '& .MuiTableCell-root': { py: 1.25 },
+                    '& .MuiTableCell-stickyHeader': {
+                      bgcolor: 'rgba(255,255,255,0.94)',
+                      backdropFilter: 'blur(12px)',
+                      boxShadow: 'inset 0 -1px 0 rgba(24,104,201,0.12), 0 10px 22px rgba(17,67,124,0.06)',
+                    },
+                  }}
+                >
                   <TableHead>
-                    <TableRow sx={{ bgcolor: 'action.hover' }}>
+                    <TableRow>
                       <TableCell sx={{ fontWeight: 700 }}>Tenant</TableCell>
                       <TableCell sx={{ fontWeight: 700, display: { xs: 'none', md: 'table-cell' } }}>Property</TableCell>
                       <TableCell sx={{ fontWeight: 700, display: { xs: 'none', sm: 'table-cell' } }}>Funding</TableCell>
@@ -286,7 +297,7 @@ export default function MonthlyCollectionPage() {
                   </TableHead>
                   <TableBody>
                     {data.rows.map((row) => (
-                      <TableRow key={row.requestId} hover>
+                      <TableRow key={row.requestId} hover sx={{ '& td': { transition: 'background-color 0.2s ease' }, '&:hover td': { bgcolor: 'rgba(24,104,201,0.05)' } }}>
                         {/* Tenant */}
                         <TableCell>
                           <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5 }}>
@@ -321,6 +332,7 @@ export default function MonthlyCollectionPage() {
                             label={row.fundingType}
                             color={fundingChipColor(row.fundingType)}
                             variant="outlined"
+                            sx={{ height: 24, fontWeight: 600 }}
                           />
                         </TableCell>
 
@@ -360,6 +372,7 @@ export default function MonthlyCollectionPage() {
                               : 'default'
                             }
                             variant="filled"
+                            sx={{ height: 24, fontWeight: 600 }}
                           />
                         </TableCell>
                       </TableRow>
