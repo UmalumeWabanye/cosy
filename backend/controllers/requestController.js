@@ -122,9 +122,92 @@ const updateRequestStatus = async (req, res, next) => {
   }
 };
 
+// @desc   Update editable request details
+// @route  PATCH /api/requests/:id
+// @access Private/Admin|Landlord
+const updateRequestDetails = async (req, res, next) => {
+  try {
+    const currentRequest = await Request.findById(req.params.id).populate('property', 'createdBy').populate('student', '_id');
+    if (!currentRequest) {
+      res.statusCode = 404;
+      throw new Error('Request not found');
+    }
+
+    // Landlords can only edit requests for their own properties.
+    if (
+      req.user.role === 'landlord' &&
+      String(currentRequest.property?.createdBy || '') !== String(req.user._id)
+    ) {
+      return res.status(403).json({ message: 'Not authorized to modify this request' });
+    }
+
+    const allowedUpdates = ['moveInDate', 'leaseDuration', 'fundingType', 'message', 'roomNumber'];
+    const updatePayload = {};
+    allowedUpdates.forEach((field) => {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        updatePayload[field] = req.body[field];
+      }
+    });
+
+    const updatedRequest = await Request.findByIdAndUpdate(
+      req.params.id,
+      updatePayload,
+      { new: true, runValidators: true }
+    )
+      .populate('student', 'name email')
+      .populate('property', 'propertyName city address createdBy');
+
+    await Notification.create({
+      type: 'request_updated',
+      title: 'Request Details Updated',
+      message: 'An accommodation request details record was updated.',
+      link: req.user.role === 'landlord'
+        ? `/landlord/requests?requestId=${updatedRequest._id}`
+        : `/admin/requests?requestId=${updatedRequest._id}`,
+      refModel: 'Request',
+      refId: updatedRequest._id,
+    });
+
+    res.json({ data: updatedRequest });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc   Delete request
+// @route  DELETE /api/requests/:id
+// @access Private
+const deleteRequest = async (req, res, next) => {
+  try {
+    const request = await Request.findById(req.params.id).populate('property', 'createdBy').populate('student', '_id');
+    if (!request) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
+
+    const isAdmin = req.user.role === 'admin';
+    const isLandlordOwner =
+      req.user.role === 'landlord' &&
+      String(request.property?.createdBy || '') === String(req.user._id);
+    const isStudentOwner =
+      String(request.student?._id || '') === String(req.user._id);
+
+    if (!isAdmin && !isLandlordOwner && !isStudentOwner) {
+      return res.status(403).json({ message: 'Not authorized to delete this request' });
+    }
+
+    await Request.findByIdAndDelete(req.params.id);
+
+    res.json({ message: 'Request deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createRequest,
   getMyRequests,
   getAllRequests,
   updateRequestStatus,
+  updateRequestDetails,
+  deleteRequest,
 };
