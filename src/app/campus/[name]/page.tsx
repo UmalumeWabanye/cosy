@@ -35,12 +35,13 @@ const UNIVERSITIES_MAP: Record<string, { city: string; province: string; student
 };
 
 interface PageProps {
-  params: { name: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<{ name: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default function CampusPage({ params }: PageProps) {
-  const slug = params.name.toLowerCase().replace(/ /g, '-');
+export default async function CampusPage({ params }: PageProps) {
+  const { name } = await params;
+  const slug = (name || '').toLowerCase().replace(/ /g, '-');
   const universityData = UNIVERSITIES_MAP[slug];
   const universityName = slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 

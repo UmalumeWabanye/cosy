@@ -7,6 +7,7 @@ const nextConfig = {
   compiler: {
     styledComponents: true,
   },
+  turbopack: {},
   webpack: (config) => {
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
     return config;
