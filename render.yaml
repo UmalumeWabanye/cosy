@@ -1,7 +1,7 @@
 services:
   - type: web
     name: cosy-frontend
-    env: node
+    runtime: node
     rootDir: .
     buildCommand: npm ci && npm run build
     startCommand: npm run start
@@ -12,7 +12,7 @@ services:
 
   - type: web
     name: cosy-backend
-    env: node
+    runtime: node
     rootDir: backend
     buildCommand: npm ci
     startCommand: npm run start

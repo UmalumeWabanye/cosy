@@ -1,16 +1,167 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ─────────────────────────────────────────────────────────────
+   GLOBAL FOUNDATION
+   ──────────────────────────────────────────────────────────── */
 :root {
-  --ink-900: #0f2237;
-  --ink-700: #2a4768;
-  --glow-a: rgba(98, 184, 255, 0.2);
-  --glow-b: rgba(173, 224, 255, 0.2);
-  --modern-shadow: 0 16px 38px rgba(15, 44, 82, 0.12);
-  --glass-stroke: rgba(69, 121, 184, 0.2);
+  /* Legacy compat aliases */
+  --ink-900: #222222;
+  --ink-700: #3f3f3f;
+  --modern-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --glass-stroke: rgba(0, 0, 0, 0.08);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PUBLIC / MARKETPLACE PORTAL  (Airbnb design system)
+   ──────────────────────────────────────────────────────────── */
+:root {
+  --air-primary:          #ff385c;
+  --air-primary-active:   #e00b41;
+  --air-primary-soft:     #ffd1da;
+  --air-ink:              #222222;
+  --air-body:             #3f3f3f;
+  --air-muted:            #6a6a6a;
+  --air-hairline:         #dddddd;
+  --air-hairline-soft:    #ebebeb;
+  --air-canvas:           #ffffff;
+  --air-surface-soft:     #f7f7f7;
+  --air-star:             #222222;
+
+  --air-font: 'Circular', 'Inter', -apple-system, 'Helvetica Neue', sans-serif;
+
+  --air-r-sm:   8px;
+  --air-r-md:   14px;
+  --air-r-lg:   20px;
+  --air-r-xl:   32px;
+  --air-r-full: 9999px;
+
+  --air-shadow-card: 0 2px 16px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06);
+  --air-shadow-hover: 0 6px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   AUTH PORTAL  (Stripe design system)
+   ──────────────────────────────────────────────────────────── */
+:root {
+  --stripe-primary:       #533afd;
+  --stripe-primary-deep:  #4434d4;
+  --stripe-primary-soft:  #665efd;
+  --stripe-navy:          #1c1e54;
+  --stripe-ink:           #0d253d;
+  --stripe-ink-mute:      #64748d;
+  --stripe-canvas:        #ffffff;
+  --stripe-canvas-soft:   #f6f9fc;
+  --stripe-hairline:      #e3e8ee;
+  --stripe-ruby:          #ea2261;
+
+  --stripe-font: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+
+  --stripe-r-sm:   6px;
+  --stripe-r-md:   8px;
+  --stripe-r-lg:   12px;
+  --stripe-r-pill: 9999px;
+
+  --stripe-shadow: 0 2px 8px rgba(13, 37, 61, 0.08), 0 1px 3px rgba(13, 37, 61, 0.06);
+  --stripe-glow:   0 0 0 3px rgba(83, 58, 253, 0.18);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   STUDENT PORTAL  (Notion design system)
+   ──────────────────────────────────────────────────────────── */
+:root {
+  --notion-primary:       #5645d4;
+  --notion-primary-press: #4534b3;
+  --notion-navy:          #0a1530;
+  --notion-ink:           #1a1a1a;
+  --notion-charcoal:      #37352f;
+  --notion-slate:         #5d5b54;
+  --notion-stone:         #a4a097;
+  --notion-muted:         #bbb8b1;
+  --notion-canvas:        #ffffff;
+  --notion-surface:       #f6f5f4;
+  --notion-surface-soft:  #fafaf9;
+  --notion-hairline:      #e5e3df;
+  --notion-tint-lavender: #e6e0f5;
+  --notion-tint-mint:     #d9f3e1;
+  --notion-tint-sky:      #dcecfa;
+  --notion-tint-peach:    #ffe8d4;
+
+  --notion-font: 'Inter', 'Notion Sans', system-ui, sans-serif;
+
+  --notion-r-sm:   6px;
+  --notion-r-md:   8px;
+  --notion-r-lg:   12px;
+  --notion-r-xl:   16px;
+  --notion-r-full: 9999px;
+
+  --notion-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --notion-shadow-hover: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ADMIN PORTAL  (Linear design system — dark shell)
+   ──────────────────────────────────────────────────────────── */
+:root {
+  --linear-primary:       #5e6ad2;
+  --linear-primary-hover: #828fff;
+  --linear-ink:           #f7f8f8;
+  --linear-ink-muted:     #d0d6e0;
+  --linear-ink-subtle:    #8a8f98;
+  --linear-ink-tertiary:  #62666d;
+  --linear-canvas:        #010102;
+  --linear-surface-1:     #0f1011;
+  --linear-surface-2:     #141516;
+  --linear-surface-3:     #18191a;
+  --linear-hairline:      #23252a;
+  --linear-hairline-strong: #34343a;
+  --linear-success:       #27a644;
+
+  --linear-font: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+
+  --linear-r-sm:   6px;
+  --linear-r-md:   8px;
+  --linear-r-lg:   12px;
+  --linear-r-xl:   16px;
+  --linear-r-full: 9999px;
+
+  --linear-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.24);
+  --linear-glow: 0 0 0 2px rgba(94, 106, 210, 0.35);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   LANDLORD PORTAL  (Revolut design system — fintech)
+   ──────────────────────────────────────────────────────────── */
+:root {
+  --rev-primary:        #494fdf;
+  --rev-primary-bright: #4f55f1;
+  --rev-primary-deep:   #3a40c4;
+  --rev-ink:            #191c1f;
+  --rev-body:           #1f2226;
+  --rev-mute:           #505a63;
+  --rev-stone:          #8d969e;
+  --rev-faint:          #c9c9cd;
+  --rev-canvas:         #ffffff;
+  --rev-canvas-dark:    #000000;
+  --rev-surface-soft:   #f4f4f4;
+  --rev-surface-deep:   #0a0a0a;
+  --rev-hairline:       #e2e2e7;
+  --rev-success:        #00a87e;
+  --rev-warning:        #ec7e00;
+  --rev-danger:         #e23b4a;
+
+  --rev-font: 'Inter', 'Aeonik Pro', system-ui, sans-serif;
+
+  --rev-r-sm:   8px;
+  --rev-r-md:   12px;
+  --rev-r-lg:   20px;
+  --rev-r-full: 9999px;
+
+  --rev-shadow: 0 2px 8px rgba(25, 28, 31, 0.06), 0 1px 3px rgba(25, 28, 31, 0.04);
+  --rev-shadow-card: 0 4px 24px rgba(25, 28, 31, 0.1), 0 1px 4px rgba(25, 28, 31, 0.06);
 }
 
 * {
@@ -21,249 +172,393 @@
 
 html {
   scroll-behavior: smooth;
-  background: #f8fcff;
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background:
-    radial-gradient(1200px 700px at 10% -10%, var(--glow-a), transparent 55%),
-    radial-gradient(1000px 600px at 90% 10%, var(--glow-b), transparent 60%),
-    linear-gradient(180deg, #fbfeff 0%, #f4faff 45%, #ffffff 100%);
-  color: var(--ink-900);
+  background: #ffffff;
+  color: #222222;
   min-height: 100vh;
-  position: relative;
 }
 
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(circle at center, black 35%, transparent 85%);
-  z-index: -2;
-}
-
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse at 50% -20%, rgba(255, 255, 255, 0.2), transparent 60%);
-  animation: skyPulse 12s ease-in-out infinite;
-  z-index: -1;
-}
-
-/* Typography */
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Space Grotesk', 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
-  font-weight: 600;
-  color: var(--ink-900);
-  letter-spacing: 0;
-}
-
-h1 { font-size: 30px; line-height: 36px; }
-h2 { font-size: 24px; line-height: 32px; }
-h3 { font-size: 20px; line-height: 28px; }
-h4 { font-size: 18px; line-height: 28px; }
-
-@keyframes skyPulse {
-  0%,
-  100% {
-    opacity: 0.6;
-    transform: translateY(0px);
-  }
-  50% {
-    opacity: 1;
-    transform: translateY(-8px);
-  }
-}
-
+/* ─────────────────────────────────────────────────────────────
+   ANIMATIONS
+   ──────────────────────────────────────────────────────────── */
 @keyframes riseFade {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0px);
-  }
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.cinema-reveal {
-  animation: riseFade 0.7s ease-out both;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cinema-reveal  { animation: riseFade 0.55s ease-out both; }
+.stagger-in     { animation: riseFade 0.55s ease-out both; }
+.fade-in        { animation: fadeIn 0.3s ease-out both; }
+
+/* ─────────────────────────────────────────────────────────────
+   PUBLIC / AIRBNB SHELL
+   ──────────────────────────────────────────────────────────── */
 .cinema-public-page {
   position: relative;
   overflow-x: hidden;
-  background:
-    radial-gradient(900px 520px at 8% -15%, rgba(122, 198, 255, 0.2), transparent 60%),
-    radial-gradient(900px 520px at 92% -10%, rgba(173, 224, 255, 0.2), transparent 62%),
-    linear-gradient(180deg, #fcfeff 0%, #f6fbff 46%, #ffffff 100%);
+  background: var(--air-canvas);
 }
 
-.cinema-public-page::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    radial-gradient(circle at 15% 25%, rgba(255, 255, 255, 0.55), transparent 28%),
-    radial-gradient(circle at 84% 8%, rgba(255, 255, 255, 0.46), transparent 26%);
-  z-index: 0;
+/* ─────────────────────────────────────────────────────────────
+   AIRBNB: property listing card
+   ──────────────────────────────────────────────────────────── */
+.air-card {
+  background: var(--air-canvas);
+  border-radius: var(--air-r-md);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.air-card:hover {
+  box-shadow: var(--air-shadow-hover);
+  transform: translateY(-2px);
 }
 
-.cinema-public-page > * {
-  position: relative;
-  z-index: 1;
+/* Airbnb pill search bar */
+.air-search-pill {
+  display: flex;
+  align-items: center;
+  background: var(--air-canvas);
+  border: 1px solid var(--air-hairline);
+  border-radius: var(--air-r-full);
+  box-shadow: var(--air-shadow-card);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+.air-search-pill:focus-within {
+  box-shadow: var(--air-shadow-hover);
 }
 
-.cinema-panel {
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(15, 108, 189, 0.14);
-  box-shadow: 0 14px 34px rgba(12, 56, 96, 0.1);
-  backdrop-filter: blur(6px);
+/* Airbnb primary CTA button */
+.air-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--air-primary);
+  color: #ffffff;
+  font-family: var(--air-font);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.25;
+  border: none;
+  border-radius: var(--air-r-sm);
+  padding: 14px 24px;
+  height: 48px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.air-btn-primary:hover  { background: var(--air-primary-active); }
+.air-btn-primary:active { transform: scale(0.98); }
+
+/* Airbnb pill CTA */
+.air-btn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--air-primary);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: var(--air-r-full);
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.air-btn-pill:hover { background: var(--air-primary-active); }
+
+/* Airbnb secondary button */
+.air-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--air-canvas);
+  color: var(--air-ink);
+  font-size: 16px;
+  font-weight: 500;
+  border: 1px solid var(--air-ink);
+  border-radius: var(--air-r-sm);
+  padding: 13px 23px;
+  height: 48px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.air-btn-secondary:hover { background: var(--air-surface-soft); }
+
+/* ─────────────────────────────────────────────────────────────
+   STRIPE AUTH: clean form surfaces
+   ──────────────────────────────────────────────────────────── */
+.stripe-shell {
+  min-height: 100vh;
+  background: var(--stripe-canvas-soft);
+  font-family: var(--stripe-font);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.modern-shell {
-  background:
-    radial-gradient(900px 500px at 5% -20%, rgba(83, 185, 255, 0.16), transparent 62%),
-    radial-gradient(900px 500px at 92% -22%, rgba(255, 203, 128, 0.14), transparent 64%),
-    linear-gradient(180deg, #f9fdff 0%, #f2f8ff 45%, #fbfeff 100%);
+.stripe-card {
+  background: var(--stripe-canvas);
+  border: 1px solid var(--stripe-hairline);
+  border-radius: var(--stripe-r-lg);
+  box-shadow: var(--stripe-shadow);
+  padding: 40px;
 }
 
-.glass-card {
-  border: 1px solid var(--glass-stroke);
-  box-shadow: var(--modern-shadow);
-  backdrop-filter: blur(8px);
-  background: rgba(255, 255, 255, 0.78);
+.stripe-input {
+  width: 100%;
+  background: var(--stripe-canvas);
+  color: var(--stripe-ink);
+  font-family: var(--stripe-font);
+  font-size: 15px;
+  font-weight: 300;
+  border: 1px solid var(--stripe-hairline);
+  border-radius: var(--stripe-r-sm);
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.stripe-input:focus {
+  border-color: var(--stripe-primary);
+  box-shadow: var(--stripe-glow);
 }
 
-.stagger-in {
-  animation: riseFade 0.55s ease-out both;
+.stripe-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--stripe-primary);
+  color: #ffffff;
+  font-family: var(--stripe-font);
+  font-size: 16px;
+  font-weight: 400;
+  border: none;
+  border-radius: var(--stripe-r-pill);
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.stripe-btn-primary:hover { background: var(--stripe-primary-deep); }
+
+/* ─────────────────────────────────────────────────────────────
+   NOTION STUDENT: clean workspace surface
+   ──────────────────────────────────────────────────────────── */
+.notion-shell {
+  min-height: 100vh;
+  background: var(--notion-surface-soft);
+  font-family: var(--notion-font);
+  color: var(--notion-ink);
 }
 
-/* Buttons */
-.btn-base {
-  @apply px-4 py-2 rounded-base font-semibold transition-all duration-200 cursor-pointer border-0 focus:outline-none focus:ring-2 focus:ring-offset-2;
+.notion-card {
+  background: var(--notion-canvas);
+  border: 1px solid var(--notion-hairline);
+  border-radius: var(--notion-r-lg);
+  box-shadow: var(--notion-shadow);
+  transition: box-shadow 0.2s ease;
+}
+.notion-card:hover { box-shadow: var(--notion-shadow-hover); }
+
+.notion-card-tint-lavender {
+  background: var(--notion-tint-lavender);
+  border: none;
+  border-radius: var(--notion-r-lg);
+}
+.notion-card-tint-mint    { background: var(--notion-tint-mint); border: none; border-radius: var(--notion-r-lg); }
+.notion-card-tint-sky     { background: var(--notion-tint-sky);  border: none; border-radius: var(--notion-r-lg); }
+.notion-card-tint-peach   { background: var(--notion-tint-peach);border: none; border-radius: var(--notion-r-lg); }
+
+.notion-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--notion-primary);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: var(--notion-r-md);
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.notion-btn-primary:hover { background: var(--notion-primary-press); }
+
+/* ─────────────────────────────────────────────────────────────
+   LINEAR ADMIN: near-black dark shell
+   ──────────────────────────────────────────────────────────── */
+.linear-shell {
+  min-height: 100vh;
+  background: var(--linear-canvas);
+  font-family: var(--linear-font);
+  color: var(--linear-ink);
 }
 
-.btn-primary {
-  @apply btn-base bg-primary text-white hover:bg-blue-700 focus:ring-primary;
+.linear-surface {
+  background: var(--linear-surface-1);
+  border: 1px solid var(--linear-hairline);
+  border-radius: var(--linear-r-lg);
 }
 
-.btn-secondary {
-  @apply btn-base bg-neutral-200 text-neutral-900 hover:bg-neutral-300 focus:ring-neutral-400;
+.linear-surface-2 {
+  background: var(--linear-surface-2);
+  border: 1px solid var(--linear-hairline);
+  border-radius: var(--linear-r-lg);
 }
 
-.btn-ghost {
-  @apply btn-base bg-transparent text-primary hover:bg-blue-50 focus:ring-primary;
+.linear-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--linear-primary);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: var(--linear-r-md);
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.linear-btn-primary:hover { background: var(--linear-primary-hover); }
+.linear-btn-primary:focus { box-shadow: var(--linear-glow); outline: none; }
+
+.linear-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--linear-surface-1);
+  color: var(--linear-ink);
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--linear-hairline);
+  border-radius: var(--linear-r-md);
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.linear-btn-secondary:hover {
+  background: var(--linear-surface-2);
+  border-color: var(--linear-hairline-strong);
 }
 
-.btn-danger {
-  @apply btn-base bg-error text-white hover:bg-red-600 focus:ring-error;
+/* ─────────────────────────────────────────────────────────────
+   REVOLUT LANDLORD: fintech data surface
+   ──────────────────────────────────────────────────────────── */
+.rev-shell {
+  min-height: 100vh;
+  background: var(--rev-surface-soft);
+  font-family: var(--rev-font);
+  color: var(--rev-ink);
 }
 
-.btn-sm {
-  @apply px-3 py-1 text-sm;
+.rev-card {
+  background: var(--rev-canvas);
+  border: 1px solid var(--rev-hairline);
+  border-radius: var(--rev-r-md);
+  box-shadow: var(--rev-shadow);
+  transition: box-shadow 0.2s ease;
 }
+.rev-card:hover { box-shadow: var(--rev-shadow-card); }
 
-.btn-lg {
-  @apply px-6 py-3 text-lg;
+.rev-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--rev-primary);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--rev-r-full);
+  padding: 14px 28px;
+  height: 48px;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
+.rev-btn-primary:hover { background: var(--rev-primary-bright); }
 
-/* Input Fields */
-.input-base {
-  @apply w-full px-4 py-2 rounded-base border border-neutral-300 bg-white text-neutral-900 placeholder-neutral-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+.rev-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--rev-surface-soft);
+  color: var(--rev-ink);
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--rev-r-full);
+  padding: 14px 28px;
+  height: 48px;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
+.rev-btn-secondary:hover { background: #e8e8e8; }
 
-.input-base::placeholder {
-  @apply text-neutral-500;
+/* ─────────────────────────────────────────────────────────────
+   LEGACY COMPAT ALIASES (preserves existing classnames)
+   ──────────────────────────────────────────────────────────── */
+.modern-shell  { background: var(--notion-surface-soft); }
+.glass-card    {
+  background: var(--air-canvas);
+  border: 1px solid var(--air-hairline);
+  box-shadow: var(--air-shadow-card);
+  border-radius: var(--air-r-md);
 }
-
-.input-base:disabled {
-  @apply bg-neutral-100 cursor-not-allowed;
-}
+.cinema-panel  { background: var(--air-canvas); border: 1px solid var(--air-hairline); }
 
 /* Cards */
 .card {
-  @apply bg-white rounded-lg border border-neutral-200 shadow-sm hover:shadow-md transition-all duration-200;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: box-shadow 0.2s ease;
 }
-
-.card-interactive {
-  @apply card cursor-pointer hover:shadow-lg;
-}
+.card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.card-interactive { cursor: pointer; }
 
 /* Layout */
 .container {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 16px;
 }
 
-/* Badge */
-.badge {
-  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
-}
+@media (min-width: 640px)  { .container { padding: 0 24px; } }
+@media (min-width: 1024px) { .container { padding: 0 32px; } }
 
-.badge-primary {
-  @apply badge bg-blue-100 text-primary;
-}
-
-.badge-success {
-  @apply badge bg-green-100 text-green-700;
-}
-
-.badge-warning {
-  @apply badge bg-yellow-100 text-yellow-700;
-}
-
-.badge-error {
-  @apply badge bg-red-100 text-error;
-}
-
-/* Divider */
-.divider {
-  @apply border-t border-neutral-200;
-}
-
-/* Loading Animation */
-@keyframes shimmer {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.animate-shimmer {
-  animation: shimmer 2s infinite;
-}
-
-/* Utility Classes */
+/* Utilities */
 .truncate-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
 .truncate-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.divider { border-top: 1px solid #e5e7eb; }
 
-/* Responsive Container */
-@media (max-width: 768px) {
-  .container {
-    @apply px-4;
-  }
-}
+/* Shimmer */
+@keyframes shimmer { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+.animate-shimmer { animation: shimmer 1.8s infinite; }

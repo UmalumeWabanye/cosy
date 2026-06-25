@@ -12,10 +12,9 @@ import InputBase from '@mui/material/InputBase';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
-import Paper from '@mui/material/Paper';
 import Toolbar from '@mui/material/Toolbar';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
@@ -23,15 +22,20 @@ import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import SearchIcon from '@mui/icons-material/Search';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
 
-const theme = createTheme({
+// Airbnb-flavoured MUI theme for public nav
+const airTheme = createTheme({
   typography: {
     fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
   },
   shape: { borderRadius: 8 },
+  palette: {
+    primary: { main: '#ff385c', dark: '#e00b41' },
+  },
 });
 
 export default function Navbar() {
@@ -47,19 +51,15 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!isHomepage) return;
-    const onScroll = () => setScrolled(window.scrollY > 480);
+    const onScroll = () => setScrolled(window.scrollY > 400);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, [isHomepage]);
 
-  const marketingPaths = ['/', '/about'];
-  const shouldHide = !marketingPaths.includes(pathname);
-  if (shouldHide) return null;
+  const marketingPaths = ['/', '/about', '/for-landlords', '/for-students', '/landlord', '/nsfas'];
+  if (!marketingPaths.includes(pathname) && !pathname.startsWith('/campus')) return null;
 
-  const handleLogout = () => {
-    logout();
-    router.replace('/');
-  };
+  const handleLogout = () => { logout(); router.replace('/'); };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,172 +72,175 @@ export default function Navbar() {
   const showSearch = isHomepage && scrolled;
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={airTheme}>
+      {/* ── Main bar ── */}
       <AppBar
         position="sticky"
         elevation={0}
         sx={{
-          bgcolor: 'rgba(247, 251, 255, 0.76)',
-          color: 'text.primary',
-          borderBottom: '1px solid',
-          borderColor: 'rgba(15, 108, 189, 0.16)',
-          backdropFilter: 'blur(10px)',
-          transition: 'box-shadow 0.3s ease, background-color 0.3s ease',
-          boxShadow: scrolled ? '0 8px 24px rgba(5, 37, 65, 0.12)' : 'none',
+          bgcolor: 'rgba(255,255,255,0.96)',
+          color: '#222222',
+          borderBottom: '1px solid #dddddd',
+          backdropFilter: 'blur(12px)',
+          transition: 'box-shadow 0.25s ease',
+          boxShadow: scrolled ? '0 2px 16px rgba(0,0,0,0.1)' : 'none',
+          zIndex: 1200,
         }}
       >
-        <Toolbar sx={{ maxWidth: 1280, width: '100%', mx: 'auto', px: { xs: 2, sm: 3 }, gap: 1 }}>
-
-          {/* Brand */}
-          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <Toolbar
+          sx={{
+            maxWidth: 1280,
+            width: '100%',
+            mx: 'auto',
+            px: { xs: 2, sm: 3, md: 4 },
+            gap: 1,
+            minHeight: { xs: 64, sm: 72 },
+          }}
+        >
+          {/* Brand wordmark */}
+          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
             <Box
               sx={{
-                width: 32, height: 32, borderRadius: 1.5,
-                background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+                width: 30, height: 30,
+                borderRadius: '50%',
+                background: '#ff385c',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
-              <ApartmentRoundedIcon sx={{ color: 'white', fontSize: 18 }} />
+              <ApartmentRoundedIcon sx={{ color: 'white', fontSize: 17 }} />
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', fontFamily: 'inherit', letterSpacing: '-0.01em' }}>
-              Cosy
+            <Typography
+              sx={{
+                fontWeight: 700,
+                fontSize: 20,
+                color: '#ff385c',
+                fontFamily: 'inherit',
+                letterSpacing: '-0.02em',
+                display: { xs: 'none', sm: 'block' },
+              }}
+            >
+              cosy
             </Typography>
           </Link>
 
-          {/* Animated center slot */}
-          <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', mx: { xs: 1, sm: 2 }, overflow: 'hidden' }}>
-            <Paper
+          {/* Centre pill search (visible after scroll on homepage) */}
+          <Box
+            sx={{
+              flexGrow: 1,
+              display: 'flex',
+              justifyContent: 'center',
+              mx: { xs: 1, sm: 2 },
+              overflow: 'hidden',
+            }}
+          >
+            <Box
               component="form"
               onSubmit={handleSearchSubmit}
-              elevation={0}
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                width: showSearch ? { xs: '100%', sm: 360, md: 440 } : 0,
+                width: showSearch ? { xs: '100%', sm: 380, md: 460 } : { xs: 0, sm: 0 },
                 opacity: showSearch ? 1 : 0,
                 overflow: 'hidden',
-                transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
-                border: showSearch ? '1.5px solid' : 'none',
-                borderColor: 'primary.main',
-                borderRadius: 6,
+                transition: 'width 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease',
+                border: showSearch ? '1px solid #dddddd' : 'none',
+                borderRadius: '9999px',
+                bgcolor: '#fff',
+                boxShadow: showSearch ? '0 2px 12px rgba(0,0,0,0.12)' : 'none',
                 px: showSearch ? 1.5 : 0,
-                height: 38,
-                bgcolor: 'background.paper',
-                pointerEvents: showSearch ? 'auto' : 'none',
+                height: 44,
               }}
             >
+              <SearchIcon sx={{ fontSize: 18, color: '#6a6a6a', mr: 0.75, flexShrink: 0 }} />
               <InputBase
-                placeholder="Search properties, cities…"
+                placeholder="Search cities, universities…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                sx={{ flex: 1, fontSize: '0.875rem', fontFamily: 'inherit' }}
+                sx={{ flex: 1, fontSize: 14, fontFamily: 'inherit', color: '#222' }}
                 inputProps={{ 'aria-label': 'search properties' }}
               />
-              <Tooltip title="Search">
-                <IconButton type="submit" size="small" sx={{ color: 'primary.main', p: 0.5 }}>
-                  <SearchRoundedIcon sx={{ fontSize: 18 }} />
+              {searchQuery && (
+                <IconButton size="small" onClick={() => setSearchQuery('')} sx={{ p: 0.25, mr: 0.25 }}>
+                  <CloseRoundedIcon sx={{ fontSize: 16, color: '#6a6a6a' }} />
                 </IconButton>
-              </Tooltip>
-            </Paper>
+              )}
+              <Box
+                component="button"
+                type="submit"
+                sx={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: '#ff385c', border: 'none', cursor: 'pointer', flexShrink: 0,
+                  transition: 'background 0.15s',
+                  '&:hover': { background: '#e00b41' },
+                }}
+              >
+                <SearchIcon sx={{ fontSize: 16, color: '#fff' }} />
+              </Box>
+            </Box>
             {!showSearch && <Box sx={{ flexGrow: 1 }} />}
           </Box>
 
-          {/* Right nav */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 }, flexShrink: 0 }}>
-
-            {pathname === '/landlord' ? (
-              /* ── Landlord page nav items ── */
+          {/* Right nav links */}
+          <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+            {pathname === '/landlord' || pathname === '/for-landlords' ? (
               <>
                 <Button
-                  component={Link}
-                  href="/"
-                  size="small"
-                  sx={{
-                    textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
-                    color: 'primary.main', bgcolor: 'transparent',
-                    display: { xs: 'none', sm: 'inline-flex' }, px: 1,
-                    '&:hover': { bgcolor: 'transparent', color: 'primary.dark' },
-                  }}
+                  component={Link} href="/"
+                  sx={{ textTransform: 'none', fontFamily: 'inherit', fontWeight: 600, fontSize: 14, color: '#3f3f3f', '&:hover': { bgcolor: '#f7f7f7' }, borderRadius: 6, px: 1.5 }}
                 >
-                  For Tenants
+                  For Students
                 </Button>
                 <Button
-                  component={Link}
-                  href="/register?role=landlord"
-                  size="small"
-                  sx={{
-                    textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
-                    color: 'primary.main', bgcolor: 'transparent',
-                    display: { xs: 'none', sm: 'inline-flex' }, px: 1,
-                    '&:hover': { bgcolor: 'transparent', color: 'primary.dark' },
-                  }}
+                  component={Link} href="/register?role=landlord"
+                  sx={{ textTransform: 'none', fontFamily: 'inherit', fontWeight: 600, fontSize: 14, color: '#3f3f3f', '&:hover': { bgcolor: '#f7f7f7' }, borderRadius: 6, px: 1.5 }}
                 >
-                  Create a Listing
+                  List a Property
                 </Button>
               </>
             ) : (
-              /* ── Default nav items ── */
               <>
                 <Button
-                  component={Link}
-                  href="/about"
-                  size="small"
-                  sx={{
-                    textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
-                    color: 'primary.main', bgcolor: 'transparent',
-                    display: { xs: 'none', md: 'inline-flex' }, px: 1,
-                    '&:hover': { bgcolor: 'transparent', color: 'primary.dark' },
-                  }}
+                  component={Link} href="/browse"
+                  sx={{ textTransform: 'none', fontFamily: 'inherit', fontWeight: 600, fontSize: 14, color: '#3f3f3f', '&:hover': { bgcolor: '#f7f7f7' }, borderRadius: 6, px: 1.5 }}
                 >
-                  About us
+                  Browse
                 </Button>
                 <Button
-                  component={Link}
-                  href="/landlord"
-                  size="small"
-                  sx={{
-                    textTransform: 'none', fontFamily: 'inherit', fontWeight: 600,
-                    color: 'primary.main', bgcolor: 'transparent',
-                    display: { xs: 'none', sm: 'inline-flex' }, px: 1,
-                    '&:hover': { bgcolor: 'transparent', color: 'primary.dark' },
-                  }}
+                  component={Link} href="/for-landlords"
+                  sx={{ textTransform: 'none', fontFamily: 'inherit', fontWeight: 600, fontSize: 14, color: '#3f3f3f', '&:hover': { bgcolor: '#f7f7f7' }, borderRadius: 6, px: 1.5, display: { xs: 'none', md: 'inline-flex' } }}
                 >
-                  Become a Landlord
+                  Landlords
+                </Button>
+                <Button
+                  component={Link} href="/about"
+                  sx={{ textTransform: 'none', fontFamily: 'inherit', fontWeight: 600, fontSize: 14, color: '#3f3f3f', '&:hover': { bgcolor: '#f7f7f7' }, borderRadius: 6, px: 1.5, display: { xs: 'none', lg: 'inline-flex' } }}
+                >
+                  About
                 </Button>
               </>
             )}
 
+            <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 1.5, borderColor: '#dddddd' }} />
+
             {isAuthenticated && user ? (
               <>
                 <Button
-                  component={Link} href="/saved-listings"
-                  startIcon={<BookmarkBorderIcon />} size="small"
-                  sx={{ color: 'text.secondary', textTransform: 'none', fontFamily: 'inherit', display: { xs: 'none', md: 'inline-flex' } }}
-                >
-                  Saved
-                </Button>
-                <Button
-                  component={Link} href="/requests"
-                  startIcon={<AssignmentOutlinedIcon />} size="small"
-                  sx={{ color: 'text.secondary', textTransform: 'none', fontFamily: 'inherit', display: { xs: 'none', md: 'inline-flex' } }}
-                >
-                  Requests
-                </Button>
-                <Button
                   component={Link} href="/dashboard"
-                  startIcon={<DashboardOutlinedIcon />} size="small"
-                  sx={{ color: 'text.secondary', textTransform: 'none', fontFamily: 'inherit', display: { xs: 'none', sm: 'inline-flex' } }}
+                  startIcon={<DashboardOutlinedIcon sx={{ fontSize: 16 }} />}
+                  sx={{ textTransform: 'none', fontFamily: 'inherit', fontWeight: 600, fontSize: 14, color: '#3f3f3f', '&:hover': { bgcolor: '#f7f7f7' }, borderRadius: 6, px: 1.5 }}
                 >
                   Dashboard
                 </Button>
-                <Typography variant="body2" sx={{ color: 'text.secondary', mx: 0.5, fontFamily: 'inherit', display: { xs: 'none', md: 'block' } }}>
-                  {user.name}
-                </Typography>
                 <Button
                   onClick={handleLogout}
-                  startIcon={<LogoutIcon />}
-                  variant="outlined" size="small"
-                  sx={{ textTransform: 'none', fontFamily: 'inherit', borderRadius: 2, display: { xs: 'none', sm: 'inline-flex' } }}
+                  startIcon={<LogoutIcon sx={{ fontSize: 16 }} />}
+                  sx={{
+                    textTransform: 'none', fontFamily: 'inherit', fontWeight: 600, fontSize: 14,
+                    color: '#fff', bgcolor: '#222222',
+                    '&:hover': { bgcolor: '#3f3f3f' },
+                    borderRadius: '9999px', px: 2, py: 0.75,
+                  }}
                 >
                   Logout
                 </Button>
@@ -246,26 +249,31 @@ export default function Navbar() {
               <>
                 <Button
                   component={Link} href="/login"
-                  variant="outlined" size="small"
-                  sx={{ textTransform: 'none', fontFamily: 'inherit', borderRadius: 2, display: { xs: 'none', sm: 'inline-flex' } }}
+                  sx={{ textTransform: 'none', fontFamily: 'inherit', fontWeight: 600, fontSize: 14, color: '#3f3f3f', '&:hover': { bgcolor: '#f7f7f7' }, borderRadius: 6, px: 1.5 }}
                 >
-                  Login
+                  Log in
                 </Button>
                 <Button
                   component={Link} href="/register"
-                  variant="contained" size="small"
-                  sx={{ textTransform: 'none', fontFamily: 'inherit', borderRadius: 2, display: { xs: 'none', sm: 'inline-flex' } }}
+                  sx={{
+                    textTransform: 'none', fontFamily: 'inherit', fontWeight: 600, fontSize: 14,
+                    color: '#fff', bgcolor: '#ff385c',
+                    '&:hover': { bgcolor: '#e00b41' },
+                    borderRadius: '9999px', px: 2, py: 0.75,
+                    boxShadow: 'none',
+                  }}
                 >
-                  Sign Up
+                  Sign up
                 </Button>
               </>
             )}
           </Box>
-          {/* Hamburger for mobile */}
+
+          {/* Mobile hamburger */}
           <IconButton
             size="small"
             onClick={() => setMobileNavOpen(true)}
-            sx={{ display: { xs: 'flex', sm: 'none' }, ml: 0.5, color: 'text.primary' }}
+            sx={{ display: { xs: 'flex', sm: 'none' }, ml: 0.5, color: '#222222' }}
             aria-label="Open menu"
           >
             <MenuRoundedIcon />
@@ -273,50 +281,75 @@ export default function Navbar() {
         </Toolbar>
       </AppBar>
 
-      {/* Mobile Drawer */}
+      {/* ── Mobile drawer ── */}
       <Drawer
         anchor="right"
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
-        slotProps={{ paper: { sx: { width: 260, pt: 1 } } }}
+        slotProps={{ paper: { sx: { width: 280, bgcolor: '#fff' } } }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1, mb: 1 }}>
-          <ApartmentRoundedIcon sx={{ color: 'primary.main', mr: 1 }} />
-          <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.01em' }}>Cosy</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2.5, py: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+            <Box sx={{ width: 26, height: 26, borderRadius: '50%', bgcolor: '#ff385c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 15 }} />
+            </Box>
+            <Typography sx={{ fontWeight: 700, fontSize: 18, color: '#ff385c', letterSpacing: '-0.02em' }}>cosy</Typography>
+          </Box>
+          <IconButton size="small" onClick={() => setMobileNavOpen(false)}>
+            <CloseRoundedIcon sx={{ fontSize: 20, color: '#6a6a6a' }} />
+          </IconButton>
         </Box>
-        <List dense disablePadding>
-          <ListItemButton component={Link} href="/browse" onClick={() => setMobileNavOpen(false)}>
-            <ListItemText primary="Browse Properties" />
-          </ListItemButton>
-          <ListItemButton component={Link} href="/about" onClick={() => setMobileNavOpen(false)}>
-            <ListItemText primary="About Us" />
-          </ListItemButton>
-          <ListItemButton component={Link} href="/landlord" onClick={() => setMobileNavOpen(false)}>
-            <ListItemText primary="Become a Landlord" />
-          </ListItemButton>
+        <Divider sx={{ borderColor: '#ebebeb' }} />
+        <List dense disablePadding sx={{ px: 1, py: 1 }}>
+          {[
+            { label: 'Browse Properties', href: '/browse' },
+            { label: 'For Landlords', href: '/for-landlords' },
+            { label: 'About', href: '/about' },
+          ].map(item => (
+            <ListItemButton
+              key={item.href}
+              component={Link} href={item.href}
+              onClick={() => setMobileNavOpen(false)}
+              sx={{ borderRadius: 2, mb: 0.25 }}
+            >
+              <ListItemText
+                primary={item.label}
+                slotProps={{ primary: { style: { fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 15, color: '#222222' } } }}
+              />
+            </ListItemButton>
+          ))}
+          <Divider sx={{ my: 1, borderColor: '#ebebeb' }} />
           {isAuthenticated && user ? (
             <>
-              <ListItemButton component={Link} href="/dashboard" onClick={() => setMobileNavOpen(false)}>
-                <ListItemText primary="Dashboard" />
+              <ListItemButton component={Link} href="/dashboard" onClick={() => setMobileNavOpen(false)} sx={{ borderRadius: 2, mb: 0.25 }}>
+                <ListItemText primary="Dashboard" slotProps={{ primary: { style: { fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 15, color: '#222222' } } }} />
               </ListItemButton>
-              <ListItemButton component={Link} href="/saved-listings" onClick={() => setMobileNavOpen(false)}>
-                <ListItemText primary="Saved Listings" />
+              <ListItemButton component={Link} href="/saved-listings" onClick={() => setMobileNavOpen(false)} sx={{ borderRadius: 2, mb: 0.25 }}>
+                <ListItemText primary="Saved Listings" slotProps={{ primary: { style: { fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 15, color: '#222222' } } }} />
               </ListItemButton>
-              <ListItemButton component={Link} href="/requests" onClick={() => setMobileNavOpen(false)}>
-                <ListItemText primary="Requests" />
-              </ListItemButton>
-              <ListItemButton onClick={() => { setMobileNavOpen(false); handleLogout(); }}>
-                <ListItemText primary="Logout" slotProps={{ primary: { style: { color: 'red' } }} } />
+              <ListItemButton onClick={() => { setMobileNavOpen(false); handleLogout(); }} sx={{ borderRadius: 2 }}>
+                <ListItemText primary="Log out" slotProps={{ primary: { style: { fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 15, color: '#ff385c' } } }} />
               </ListItemButton>
             </>
           ) : (
             <>
-              <ListItemButton component={Link} href="/login" onClick={() => setMobileNavOpen(false)}>
-                <ListItemText primary="Login" />
+              <ListItemButton component={Link} href="/login" onClick={() => setMobileNavOpen(false)} sx={{ borderRadius: 2, mb: 0.25 }}>
+                <ListItemText primary="Log in" slotProps={{ primary: { style: { fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 15, color: '#222222' } } }} />
               </ListItemButton>
-              <ListItemButton component={Link} href="/register" onClick={() => setMobileNavOpen(false)}>
-                <ListItemText primary="Sign Up" slotProps={{ primary: { style: { color: '#1976d2', fontWeight: 600 } } }} />
-              </ListItemButton>
+              <Box sx={{ px: 1, pt: 0.5 }}>
+                <Button
+                  component={Link} href="/register"
+                  fullWidth
+                  onClick={() => setMobileNavOpen(false)}
+                  sx={{
+                    textTransform: 'none', fontFamily: 'Inter, sans-serif', fontWeight: 600,
+                    bgcolor: '#ff385c', color: '#fff', borderRadius: '9999px',
+                    '&:hover': { bgcolor: '#e00b41' },
+                  }}
+                >
+                  Sign up
+                </Button>
+              </Box>
             </>
           )}
         </List>

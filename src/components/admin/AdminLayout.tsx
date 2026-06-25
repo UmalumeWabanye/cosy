@@ -50,18 +50,21 @@ const DRAWER_WIDTH = 240;
 export const adminTheme = createTheme({
   typography: {
     fontFamily: [
-      'Plus Jakarta Sans',
-      'Segoe UI',
+      'Inter',
+      'SF Pro Display',
       '-apple-system',
       'BlinkMacSystemFont',
       'sans-serif',
     ].join(','),
   },
-  shape: { borderRadius: 12 },
+  shape: { borderRadius: 8 },
   palette: {
-    primary: { main: '#1868c9', dark: '#104d97' },
-    secondary: { main: '#0d9488' },
-    background: { default: '#f4f8ff' },
+    mode: 'dark',
+    primary: { main: '#5e6ad2', dark: '#4a55c4', light: '#828fff' },
+    secondary: { main: '#27a644' },
+    background: { default: '#010102', paper: '#0f1011' },
+    text: { primary: '#f7f8f8', secondary: '#8a8f98', disabled: '#62666d' },
+    divider: '#23252a',
   },
 });
 
@@ -275,26 +278,20 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
       <Stack direction="row" sx={{ alignItems: 'center', gap: 1, p: 2, pt: 2.5 }}>
         <Box
           sx={{
-            width: 30, height: 30, borderRadius: 1.5,
-            background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+            width: 28, height: 28, borderRadius: '6px',
+            background: '#5e6ad2',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            boxShadow: '0 2px 8px rgba(25,118,210,0.35)',
-            transition: 'box-shadow 0.3s, transform 0.2s',
-            '&:hover': {
-              boxShadow: '0 4px 16px rgba(25,118,210,0.55)',
-              transform: 'scale(1.08)',
-            },
           }}
         >
-          <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 17 }} />
+          <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 16 }} />
         </Box>
         <Box>
-          <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.1 }}>Cosy Admin</Typography>
-          <Typography variant="caption" color="text.secondary">Control Center</Typography>
+          <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.1, color: '#f7f8f8', letterSpacing: '-0.01em' }}>Cosy Admin</Typography>
+          <Typography variant="caption" sx={{ color: '#62666d', fontSize: 11 }}>Control Center</Typography>
         </Box>
       </Stack>
 
-      <Divider />
+      <Divider sx={{ borderColor: '#23252a' }} />
 
       {/* Nav */}
       <Box sx={{ pt: 1 }}>
@@ -308,26 +305,22 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
                   selected={selected}
                   onClick={() => onNavigate(path)}
                   sx={{
-                    borderRadius: 1.5,
-                    transition: 'background 0.2s, box-shadow 0.2s, transform 0.15s',
+                    borderRadius: '6px',
+                    transition: 'background 0.15s',
+                    color: selected ? '#f7f8f8' : '#8a8f98',
                     '&:hover': {
-                      transform: 'translateX(2px)',
-                      bgcolor: 'rgba(25,118,210,0.08)',
-                      boxShadow: '0 2px 8px rgba(25,118,210,0.10)',
+                      bgcolor: '#141516',
+                      color: '#d0d6e0',
                     },
                     '&.Mui-selected': {
-                      background: 'linear-gradient(90deg, #1976d2 0%, #1565c0 100%)',
-                      color: '#fff',
-                      boxShadow: '0 2px 12px rgba(25,118,210,0.30)',
-                      '& .MuiListItemIcon-root': { color: '#fff' },
-                      '&:hover': {
-                        background: 'linear-gradient(90deg, #1565c0 0%, #0d47a1 100%)',
-                        transform: 'translateX(2px)',
-                      },
+                      bgcolor: '#18191a',
+                      color: '#f7f8f8',
+                      '& .MuiListItemIcon-root': { color: '#5e6ad2' },
+                      '&:hover': { bgcolor: '#1c1d1e' },
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 36 }}>
+                  <ListItemIcon sx={{ minWidth: 34, color: selected ? '#5e6ad2' : '#62666d' }}>
                     {badge > 0 ? (
                       <Badge badgeContent={badge} color="error" variant="dot">
                         {icon}
@@ -336,81 +329,72 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
                   </ListItemIcon>
                   <ListItemText
                     primary={label}
-                    slotProps={{ primary: { sx: { fontSize: 14, fontWeight: selected ? 600 : 400 } } }}
+                    slotProps={{ primary: { sx: { fontSize: 13, fontWeight: selected ? 500 : 400, letterSpacing: '-0.01em' } } }}
                   />
                 </ListItemButton>
               </ListItem>
             );
           })}
 
-          {/* Reports — collapsible, no navigation on parent */}
+          {/* Reports — collapsible */}
           <ListItem disablePadding sx={{ px: 1, mb: 0.25 }}>
             <ListItemButton
               onClick={() => setReportsExpanded(v => !v)}
               sx={{
-                borderRadius: 1.5,
-                transition: 'background 0.2s, box-shadow 0.2s',
-                ...(pathname.startsWith('/admin/reports') && {
-                  bgcolor: 'rgba(25,118,210,0.08)',
-                }),
-                '&:hover': {
-                  bgcolor: 'rgba(25,118,210,0.10)',
-                  boxShadow: '0 2px 8px rgba(25,118,210,0.10)',
-                },
+                borderRadius: '6px',
+                transition: 'background 0.15s',
+                color: pathname.startsWith('/admin/reports') ? '#f7f8f8' : '#8a8f98',
+                ...(pathname.startsWith('/admin/reports') && { bgcolor: '#18191a' }),
+                '&:hover': { bgcolor: '#141516', color: '#d0d6e0' },
               }}
             >
-              <ListItemIcon sx={{ minWidth: 36, color: pathname.startsWith('/admin/reports') ? 'primary.main' : 'inherit', transition: 'color 0.2s' }}>
+              <ListItemIcon sx={{ minWidth: 34, color: pathname.startsWith('/admin/reports') ? '#5e6ad2' : '#62666d' }}>
                 <BarChartRoundedIcon />
               </ListItemIcon>
               <ListItemText
                 primary="Reports"
-                slotProps={{ primary: { sx: { fontSize: 14, fontWeight: pathname.startsWith('/admin/reports') ? 600 : 400, color: pathname.startsWith('/admin/reports') ? 'primary.main' : 'inherit', transition: 'color 0.2s' } } }}
+                slotProps={{ primary: { sx: { fontSize: 13, fontWeight: pathname.startsWith('/admin/reports') ? 500 : 400, letterSpacing: '-0.01em' } } }}
               />
               <ExpandMoreRoundedIcon
                 fontSize="small"
                 sx={{
-                  color: pathname.startsWith('/admin/reports') ? 'primary.main' : 'text.secondary',
-                  transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1), color 0.2s',
+                  color: '#62666d',
+                  transition: 'transform 0.25s',
                   transform: reportsExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                  fontSize: 16,
                 }}
               />
             </ListItemButton>
           </ListItem>
 
-          <Collapse in={reportsExpanded} timeout={300} unmountOnExit>
+          <Collapse in={reportsExpanded} timeout={250} unmountOnExit>
             <List dense disablePadding>
               {REPORT_SUB_ITEMS.map(({ label, icon, path }) => {
                 const selected = pathname === path || pathname.startsWith(path);
                 return (
-                  <ListItem key={label} disablePadding sx={{ pl: 3, pr: 1, mb: 0.25 }}>
+                  <ListItem key={label} disablePadding sx={{ pl: 2.5, pr: 1, mb: 0.25 }}>
                     <ListItemButton
                       selected={selected}
                       onClick={() => onNavigate(path)}
                       sx={{
-                        borderRadius: 1.5,
-                        transition: 'background 0.2s, box-shadow 0.2s, transform 0.15s',
-                        '&:hover': {
-                          transform: 'translateX(2px)',
-                          boxShadow: '0 2px 8px rgba(25,118,210,0.12)',
-                        },
+                        borderRadius: '6px',
+                        transition: 'background 0.15s',
+                        color: selected ? '#f7f8f8' : '#8a8f98',
+                        '&:hover': { bgcolor: '#141516', color: '#d0d6e0' },
                         '&.Mui-selected': {
-                          background: 'linear-gradient(90deg, #1976d2 0%, #1565c0 100%)',
-                          color: '#fff',
-                          boxShadow: '0 2px 12px rgba(25,118,210,0.30)',
-                          '& .MuiListItemIcon-root': { color: '#fff' },
-                          '&:hover': {
-                            background: 'linear-gradient(90deg, #1565c0 0%, #0d47a1 100%)',
-                            transform: 'translateX(2px)',
-                          },
+                          bgcolor: '#18191a',
+                          color: '#f7f8f8',
+                          '& .MuiListItemIcon-root': { color: '#5e6ad2' },
+                          '&:hover': { bgcolor: '#1c1d1e' },
                         },
                       }}
                     >
-                      <ListItemIcon sx={{ minWidth: 32, '& svg': { fontSize: 18 } }}>
+                      <ListItemIcon sx={{ minWidth: 30, color: selected ? '#5e6ad2' : '#62666d', '& svg': { fontSize: 16 } }}>
                         {icon}
                       </ListItemIcon>
                       <ListItemText
                         primary={label}
-                        slotProps={{ primary: { sx: { fontSize: 13, fontWeight: selected ? 600 : 400 } } }}
+                        slotProps={{ primary: { sx: { fontSize: 12, fontWeight: selected ? 500 : 400 } } }}
                       />
                     </ListItemButton>
                   </ListItem>
@@ -423,31 +407,32 @@ function SideMenuInner({ user, pendingCount = 0, pathname, onNavigate, onLogout 
 
       <Box sx={{ flexGrow: 1 }} />
 
-      <Divider />
+      <Divider sx={{ borderColor: '#23252a' }} />
 
-      {/* User footer — matches dashboard exactly */}
+      {/* User footer */}
       <Stack
         direction="row"
         onClick={() => onNavigate('/admin/profile')}
-        sx={{ p: 1.5, gap: 1, alignItems: 'center', cursor: 'pointer', borderRadius: 1.5, transition: 'bgcolor 0.2s', '&:hover': { bgcolor: 'rgba(25,118,210,0.08)' } }}
+        sx={{
+          p: 1.5, gap: 1, alignItems: 'center', cursor: 'pointer',
+          borderRadius: '6px', mx: 1, mb: 1,
+          transition: 'background 0.15s',
+          '&:hover': { bgcolor: '#141516' },
+        }}
       >
-        <Avatar sx={{
-          width: 34, height: 34, bgcolor: 'primary.main', fontSize: 13, flexShrink: 0,
-          transition: 'box-shadow 0.2s, transform 0.2s',
-          '&:hover': { boxShadow: '0 0 0 3px rgba(25,118,210,0.25)', transform: 'scale(1.08)' },
-        }}>
+        <Avatar sx={{ width: 30, height: 30, bgcolor: '#5e6ad2', fontSize: 12, flexShrink: 0, fontFamily: 'Inter, sans-serif' }}>
           {(user?.name ?? user?.email ?? 'A')[0].toUpperCase()}
         </Avatar>
         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }} noWrap>
+          <Typography variant="body2" sx={{ fontWeight: 500, lineHeight: 1.2, color: '#d0d6e0', fontSize: 13 }} noWrap>
             {user?.name ?? 'Admin'}
           </Typography>
-          <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+          <Typography variant="caption" sx={{ color: '#62666d', display: 'block', fontSize: 11 }} noWrap>
             {user?.email ?? ''}
           </Typography>
         </Box>
         <Tooltip title="Sign out">
-          <IconButton size="small" onClick={(e) => { e.stopPropagation(); onLogout(); }}>
+          <IconButton size="small" onClick={(e) => { e.stopPropagation(); onLogout(); }} sx={{ color: '#62666d', '&:hover': { color: '#8a8f98' } }}>
             <LogoutRoundedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -494,12 +479,10 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
         sx={{
           display: { xs: 'none', md: 'block' },
           [`& .${drawerClasses.paper}`]: {
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(245,251,255,0.94) 100%)',
+            background: '#0f1011',
             width: DRAWER_WIDTH,
             boxSizing: 'border-box',
-            borderRight: '1px solid',
-            borderColor: 'rgba(24,104,201,0.14)',
-            boxShadow: '4px 0 24px rgba(16,77,151,0.06)',
+            borderRight: '1px solid #23252a',
             display: 'flex',
             flexDirection: 'column',
           },
@@ -525,6 +508,8 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
           [`& .${drawerClasses.paper}`]: {
             width: DRAWER_WIDTH,
             boxSizing: 'border-box',
+            background: '#0f1011',
+            borderRight: '1px solid #23252a',
             display: 'flex',
             flexDirection: 'column',
           },
@@ -545,10 +530,8 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
         sx={{
           flexGrow: 1,
           ml: { md: `${DRAWER_WIDTH}px` },
-          mt: 0,
           minHeight: '100vh',
-          background:
-            'radial-gradient(850px 450px at 6% -18%, rgba(77,178,255,0.16), transparent 64%), radial-gradient(900px 480px at 96% -20%, rgba(255,196,123,0.12), transparent 66%), linear-gradient(180deg, #f8fcff 0%, #f3f8ff 45%, #fbfdff 100%)',
+          background: '#010102',
           display: 'flex',
           flexDirection: 'column',
           overflowX: 'hidden',
@@ -562,14 +545,12 @@ function AdminLayoutInner({ children, pendingCount = 0 }: AdminLayoutProps) {
             position: 'sticky',
             top: 0,
             zIndex: 100,
-            bgcolor: 'rgba(255,255,255,0.82)',
+            bgcolor: 'rgba(15,16,17,0.92)',
             px: { xs: 2, md: 3 },
             pt: { xs: 1.5, md: 2 },
             pb: 0,
-            backdropFilter: 'blur(12px)',
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            boxShadow: '0 6px 18px rgba(17,67,124,0.08)',
+            backdropFilter: 'blur(10px)',
+            borderBottom: '1px solid #23252a',
           }}
         >
           <ContentHeader pathname={pathname} onNavigate={handleNavigate} onOpenMenu={() => setMobileOpen(true)} />

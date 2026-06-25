@@ -44,13 +44,15 @@ const DRAWER_WIDTH = 240;
 
 export const studentTheme = createTheme({
   typography: {
-    fontFamily: ['Plus Jakarta Sans', 'Segoe UI', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'].join(','),
+    fontFamily: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'].join(','),
   },
-  shape: { borderRadius: 12 },
+  shape: { borderRadius: 8 },
   palette: {
-    primary: { main: '#1868c9', dark: '#104d97' },
-    secondary: { main: '#00897b' },
-    background: { default: '#f4f8ff' },
+    primary: { main: '#5645d4', dark: '#4534b3' },
+    secondary: { main: '#1aae39' },
+    background: { default: '#fafaf9', paper: '#ffffff' },
+    text: { primary: '#1a1a1a', secondary: '#5d5b54', disabled: '#a4a097' },
+    divider: '#e5e3df',
   },
 });
 
@@ -106,18 +108,15 @@ function SideMenu({ user, messageCount, notificationCount, canAccessMaintenance,
       {/* Brand */}
       <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1, p: 2, pt: 2.5 }}>
         <Box sx={{
-          width: 30, height: 30, borderRadius: 1.5,
-          background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+          width: 28, height: 28, borderRadius: '6px',
+          background: '#5645d4',
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          boxShadow: '0 2px 8px rgba(25,118,210,0.35)',
-          transition: 'box-shadow 0.3s, transform 0.2s',
-          '&:hover': { boxShadow: '0 4px 16px rgba(25,118,210,0.55)', transform: 'scale(1.08)' },
         }}>
-          <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 17 }} />
+          <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 16 }} />
         </Box>
         <Box>
-          <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.1 }}>Cosy</Typography>
-          <Typography variant="caption" color="text.secondary">Student Portal</Typography>
+          <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.1, color: '#1a1a1a', letterSpacing: '-0.01em' }}>Cosy</Typography>
+          <Typography variant="caption" sx={{ color: '#a4a097', fontSize: 11 }}>Student Portal</Typography>
         </Box>
       </Stack>
 
@@ -135,33 +134,26 @@ function SideMenu({ user, messageCount, notificationCount, canAccessMaintenance,
                   selected={selected}
                   onClick={() => onNavigate(path)}
                   sx={{
-                    borderRadius: 1.5,
-                    transition: 'background 0.2s, box-shadow 0.2s, transform 0.15s',
-                    '&:hover': {
-                      transform: 'translateX(2px)',
-                      bgcolor: 'rgba(25,118,210,0.08)',
-                      boxShadow: '0 2px 8px rgba(25,118,210,0.10)',
-                    },
+                    borderRadius: '6px',
+                    transition: 'background 0.15s',
+                    color: selected ? '#1a1a1a' : '#5d5b54',
+                    '&:hover': { bgcolor: '#f0eeec' },
                     '&.Mui-selected': {
-                      background: 'linear-gradient(90deg, #1976d2 0%, #1565c0 100%)',
-                      color: '#fff',
-                      boxShadow: '0 2px 12px rgba(25,118,210,0.30)',
-                      '& .MuiListItemIcon-root': { color: '#fff' },
-                      '&:hover': {
-                        background: 'linear-gradient(90deg, #1565c0 0%, #0d47a1 100%)',
-                        transform: 'translateX(2px)',
-                      },
+                      bgcolor: '#ede9f5',
+                      color: '#5645d4',
+                      '& .MuiListItemIcon-root': { color: '#5645d4' },
+                      '&:hover': { bgcolor: '#e6e0f5' },
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 36 }}>
+                  <ListItemIcon sx={{ minWidth: 34, color: selected ? '#5645d4' : '#a4a097' }}>
                     {count > 0 ? (
                       <Badge badgeContent={count} color="error" max={99}>{icon}</Badge>
                     ) : icon}
                   </ListItemIcon>
                             <ListItemText
                     primary={label}
-                    slotProps={{ primary: { sx: { fontSize: 14, fontWeight: selected ? 600 : 400 } } }}
+                    slotProps={{ primary: { sx: { fontSize: 13, fontWeight: selected ? 500 : 400, letterSpacing: '-0.01em' } } }}
                   />
                 </ListItemButton>
               </ListItem>
@@ -170,18 +162,17 @@ function SideMenu({ user, messageCount, notificationCount, canAccessMaintenance,
         </List>
       </Box>
 
-      <Divider />
+      <Divider sx={{ borderColor: '#e5e3df' }} />
 
-      {/* User footer — click avatar/name to go to profile */}
+      {/* User footer */}
       <Stack sx={{ flexDirection: 'row', p: 1.5, gap: 1, alignItems: 'center' }}>
         <Tooltip title="View Profile">
           <Avatar
             onClick={() => onNavigate('/profile')}
             sx={{
-              width: 34, height: 34, bgcolor: 'primary.main', fontSize: 13, flexShrink: 0,
+              width: 30, height: 30, bgcolor: '#5645d4', fontSize: 12, flexShrink: 0,
               cursor: 'pointer',
-              transition: 'box-shadow 0.2s, transform 0.2s',
-              '&:hover': { boxShadow: '0 0 0 3px rgba(25,118,210,0.25)', transform: 'scale(1.08)' },
+              fontFamily: 'Inter, sans-serif',
             }}>
             {(user?.name ?? user?.email ?? 'S')[0].toUpperCase()}
           </Avatar>
@@ -190,10 +181,10 @@ function SideMenu({ user, messageCount, notificationCount, canAccessMaintenance,
           sx={{ flexGrow: 1, minWidth: 0, cursor: 'pointer' }}
           onClick={() => onNavigate('/profile')}
         >
-          <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }} noWrap>
+          <Typography variant="body2" sx={{ fontWeight: 500, lineHeight: 1.2, fontSize: 13, color: '#1a1a1a', letterSpacing: '-0.01em' }} noWrap>
             {user?.name ?? 'Student'}
           </Typography>
-          <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+          <Typography variant="caption" sx={{ color: '#a4a097', display: 'block', fontSize: 11 }} noWrap>
             {user?.email ?? ''}
           </Typography>
           {user?.isVerified ? (
@@ -302,12 +293,10 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
         sx={{
           display: { xs: 'none', md: 'block' },
           [`& .${drawerClasses.paper}`]: {
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(245,251,255,0.94) 100%)',
+            background: '#ffffff',
             width: DRAWER_WIDTH,
             boxSizing: 'border-box',
-            borderRight: '1px solid',
-            borderColor: 'rgba(24,104,201,0.14)',
-            boxShadow: '4px 0 24px rgba(16,77,151,0.06)',
+            borderRight: '1px solid #e5e3df',
             display: 'flex',
             flexDirection: 'column',
           },
@@ -352,10 +341,8 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
       <Box component="main" sx={{
         flexGrow: 1,
         ml: { md: `${DRAWER_WIDTH}px` },
-        mt: 0,
         minHeight: '100vh',
-        background:
-          'radial-gradient(850px 450px at 6% -18%, rgba(77,178,255,0.16), transparent 64%), radial-gradient(900px 480px at 96% -20%, rgba(255,196,123,0.12), transparent 66%), linear-gradient(180deg, #f8fcff 0%, #f3f8ff 45%, #fbfdff 100%)',
+        background: '#fafaf9',
         display: 'flex',
         flexDirection: 'column',
         overflowX: 'hidden',
@@ -365,11 +352,10 @@ function StudentLayoutInner({ children }: StudentLayoutProps) {
         {/* Sticky breadcrumb bar */}
         <Box sx={{
           position: 'sticky', top: 0, zIndex: 100,
-          bgcolor: 'rgba(255,255,255,0.82)',
+          bgcolor: 'rgba(255,255,255,0.92)',
           px: { xs: 2, md: 3 }, py: 1.5,
-          borderBottom: '1px solid', borderColor: 'divider',
-          boxShadow: '0 6px 18px rgba(17,67,124,0.08)',
-          backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid #e5e3df',
+          backdropFilter: 'blur(10px)',
           display: 'flex',
           alignItems: 'center',
           gap: 0.5,

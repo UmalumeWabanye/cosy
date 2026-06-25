@@ -46,18 +46,19 @@ const DRAWER_WIDTH = 240;
 export const landlordTheme = createTheme({
   typography: {
     fontFamily: [
-      'Plus Jakarta Sans',
-      'Segoe UI',
+      'Inter',
       '-apple-system',
       'BlinkMacSystemFont',
       'sans-serif',
     ].join(','),
   },
-  shape: { borderRadius: 12 },
+  shape: { borderRadius: 8 },
   palette: {
-    primary: { main: '#059669', dark: '#047857' },
-    secondary: { main: '#0ea5e9' },
-    background: { default: '#f2fbf8' },
+    primary: { main: '#494fdf', dark: '#3a40c4', light: '#4f55f1' },
+    secondary: { main: '#00a87e' },
+    background: { default: '#f4f4f4', paper: '#ffffff' },
+    text: { primary: '#191c1f', secondary: '#505a63', disabled: '#8d969e' },
+    divider: '#e2e2e7',
   },
 });
 
@@ -272,26 +273,20 @@ function SideMenuInner({ user, pathname, onNavigate, onLogout }: SideMenuInnerPr
       <Stack direction="row" sx={{ alignItems: 'center', gap: 1, p: 2, pt: 2.5 }}>
         <Box
           sx={{
-            width: 30, height: 30, borderRadius: 1.5,
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            width: 28, height: 28, borderRadius: '50%',
+            background: '#494fdf',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
-            transition: 'box-shadow 0.3s, transform 0.2s',
-            '&:hover': {
-              boxShadow: '0 4px 16px rgba(16,185,129,0.55)',
-              transform: 'scale(1.08)',
-            },
           }}
         >
-          <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 17 }} />
+          <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 16 }} />
         </Box>
         <Box>
-          <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.1 }}>Cosy Landlord</Typography>
-          <Typography variant="caption" color="text.secondary">Property Manager</Typography>
+          <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.1, color: '#191c1f', letterSpacing: '-0.01em' }}>Cosy Landlord</Typography>
+          <Typography variant="caption" sx={{ color: '#8d969e', fontSize: 11 }}>Property Manager</Typography>
         </Box>
       </Stack>
 
-      <Divider />
+      <Divider sx={{ borderColor: '#e2e2e7' }} />
 
       {/* Nav */}
       <Box sx={{ pt: 1 }}>
@@ -304,31 +299,24 @@ function SideMenuInner({ user, pathname, onNavigate, onLogout }: SideMenuInnerPr
                   selected={selected}
                   onClick={() => onNavigate(path)}
                   sx={{
-                    borderRadius: 1.5,
-                    transition: 'background 0.2s, box-shadow 0.2s, transform 0.15s',
-                    '&:hover': {
-                      transform: 'translateX(2px)',
-                      bgcolor: 'rgba(16,185,129,0.08)',
-                      boxShadow: '0 2px 8px rgba(16,185,129,0.10)',
-                    },
+                    borderRadius: '6px',
+                    transition: 'background 0.15s',
+                    color: selected ? '#191c1f' : '#505a63',
+                    '&:hover': { bgcolor: '#f0f0f0' },
                     '&.Mui-selected': {
-                      background: 'linear-gradient(90deg, #10b981 0%, #059669 100%)',
-                      color: '#fff',
-                      boxShadow: '0 2px 12px rgba(16,185,129,0.30)',
-                      '& .MuiListItemIcon-root': { color: '#fff' },
-                      '&:hover': {
-                        background: 'linear-gradient(90deg, #059669 0%, #047857 100%)',
-                        transform: 'translateX(2px)',
-                      },
+                      bgcolor: '#eeeeff',
+                      color: '#494fdf',
+                      '& .MuiListItemIcon-root': { color: '#494fdf' },
+                      '&:hover': { bgcolor: '#e8e8ff' },
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 36 }}>
+                  <ListItemIcon sx={{ minWidth: 34, color: selected ? '#494fdf' : '#8d969e' }}>
                     {icon}
                   </ListItemIcon>
                   <ListItemText
                     primary={label}
-                    slotProps={{ primary: { sx: { fontSize: 14, fontWeight: selected ? 600 : 400 } } }}
+                    slotProps={{ primary: { sx: { fontSize: 13, fontWeight: selected ? 600 : 400, letterSpacing: '-0.01em' } } }}
                   />
                 </ListItemButton>
               </ListItem>
@@ -339,31 +327,27 @@ function SideMenuInner({ user, pathname, onNavigate, onLogout }: SideMenuInnerPr
 
       <Box sx={{ flexGrow: 1 }} />
 
-      <Divider />
+      <Divider sx={{ borderColor: '#e2e2e7' }} />
 
       {/* User footer */}
       <Stack
         direction="row"
         onClick={() => onNavigate('/landlord/profile')}
-        sx={{ p: 1.5, gap: 1, alignItems: 'center', cursor: 'pointer', borderRadius: 1.5, transition: 'bgcolor 0.2s', '&:hover': { bgcolor: 'rgba(16,185,129,0.08)' } }}
+        sx={{ p: 1.5, gap: 1, alignItems: 'center', cursor: 'pointer', borderRadius: '6px', mx: 1, mb: 1, transition: 'background 0.15s', '&:hover': { bgcolor: '#f4f4f4' } }}
       >
-        <Avatar sx={{
-          width: 34, height: 34, bgcolor: '#10b981', fontSize: 13, flexShrink: 0,
-          transition: 'box-shadow 0.2s, transform 0.2s',
-          '&:hover': { boxShadow: '0 0 0 3px rgba(16,185,129,0.25)', transform: 'scale(1.08)' },
-        }}>
+        <Avatar sx={{ width: 30, height: 30, bgcolor: '#494fdf', fontSize: 12, flexShrink: 0, fontFamily: 'Inter, sans-serif' }}>
           {(user?.name ?? user?.email ?? 'L')[0].toUpperCase()}
         </Avatar>
         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }} noWrap>
+          <Typography variant="body2" sx={{ fontWeight: 500, lineHeight: 1.2, color: '#191c1f', fontSize: 13 }} noWrap>
             {user?.name ?? 'Landlord'}
           </Typography>
-          <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+          <Typography variant="caption" sx={{ color: '#8d969e', display: 'block', fontSize: 11 }} noWrap>
             {user?.email ?? ''}
           </Typography>
         </Box>
         <Tooltip title="Sign out">
-          <IconButton size="small" onClick={(e) => { e.stopPropagation(); onLogout(); }}>
+          <IconButton size="small" onClick={(e) => { e.stopPropagation(); onLogout(); }} sx={{ color: '#8d969e', '&:hover': { color: '#505a63' } }}>
             <LogoutRoundedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -400,12 +384,10 @@ function LandlordLayoutInner({ children }: LandlordLayoutProps) {
         sx={{
           display: { xs: 'none', md: 'block' },
           [`& .${drawerClasses.paper}`]: {
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(239,252,247,0.94) 100%)',
+            background: '#ffffff',
             width: DRAWER_WIDTH,
             boxSizing: 'border-box',
-            borderRight: '1px solid',
-            borderColor: 'rgba(5,150,105,0.16)',
-            boxShadow: '4px 0 24px rgba(4,120,87,0.08)',
+            borderRight: '1px solid #e2e2e7',
             display: 'flex',
             flexDirection: 'column',
           },
@@ -430,6 +412,8 @@ function LandlordLayoutInner({ children }: LandlordLayoutProps) {
           [`& .${drawerClasses.paper}`]: {
             width: DRAWER_WIDTH,
             boxSizing: 'border-box',
+            background: '#ffffff',
+            borderRight: '1px solid #e2e2e7',
             display: 'flex',
             flexDirection: 'column',
           },
@@ -449,10 +433,8 @@ function LandlordLayoutInner({ children }: LandlordLayoutProps) {
         sx={{
           flexGrow: 1,
           ml: { md: `${DRAWER_WIDTH}px` },
-          mt: 0,
           minHeight: '100vh',
-          background:
-            'radial-gradient(850px 450px at 6% -18%, rgba(16,185,129,0.14), transparent 64%), radial-gradient(900px 480px at 96% -20%, rgba(14,165,233,0.12), transparent 66%), linear-gradient(180deg, #f5fcf9 0%, #edf8f3 45%, #fafffd 100%)',
+          background: '#f4f4f4',
           display: 'flex',
           flexDirection: 'column',
           overflowX: 'hidden',
@@ -466,14 +448,12 @@ function LandlordLayoutInner({ children }: LandlordLayoutProps) {
             position: 'sticky',
             top: 0,
             zIndex: 100,
-            bgcolor: 'rgba(255,255,255,0.82)',
+            bgcolor: 'rgba(255,255,255,0.92)',
             px: { xs: 2, md: 3 },
             pt: { xs: 1.5, md: 2 },
             pb: 0,
-            backdropFilter: 'blur(12px)',
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            boxShadow: '0 6px 18px rgba(4,120,87,0.1)',
+            backdropFilter: 'blur(10px)',
+            borderBottom: '1px solid #e2e2e7',
           }}
         >
           <ContentHeader pathname={pathname} onNavigate={handleNavigate} onOpenMenu={() => setMobileOpen(true)} />
