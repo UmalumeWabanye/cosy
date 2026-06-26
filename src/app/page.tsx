@@ -257,12 +257,12 @@ export default function HomePage() {
       </Box>
 
       {/* ─── FEATURED LISTINGS ────────────────────────────── */}
-      <Box sx={{ bgcolor: '#fff', pt: { xs: 6, md: 10 }, pb: { xs: 8, md: 12 } }}>
+      <Box sx={{ bgcolor: '#fff', py: { xs: 8, md: 12 } }}>
         <Container maxWidth="lg">
-          <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', mb: 6, flexWrap: 'wrap', gap: 2 }}>
             <Box>
-              <Typography sx={{ fontSize: 22, fontWeight: 700, color: '#222222', letterSpacing: '-0.02em' }}>Places to stay</Typography>
-              <Typography sx={{ color: '#717171', fontSize: 13, mt: 0.25 }}>Verified student accommodation across South Africa</Typography>
+              <Typography sx={{ fontSize: { xs: 22, md: 28 }, fontWeight: 700, color: '#222222', letterSpacing: '-0.02em' }}>Places to stay</Typography>
+              <Typography sx={{ color: '#717171', fontSize: 14, mt: 0.5 }}>Verified student accommodation across South Africa</Typography>
             </Box>
             <Button component={Link} href="/browse?source=homepage-featured" endIcon={<ArrowForwardRoundedIcon />}
               onClick={() => trackEvent('cta-click', { button: 'show-all' })}
