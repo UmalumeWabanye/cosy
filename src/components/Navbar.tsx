@@ -27,14 +27,14 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
 
-// Airbnb-flavoured MUI theme for public nav
+// Cosy public-nav MUI theme
 const airTheme = createTheme({
   typography: {
     fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
   },
   shape: { borderRadius: 8 },
   palette: {
-    primary: { main: '#ff385c', dark: '#e00b41' },
+    primary: { main: '#1976d2', dark: '#1565c0' },
   },
 });
 
@@ -103,7 +103,7 @@ export default function Navbar() {
               sx={{
                 width: 30, height: 30,
                 borderRadius: '50%',
-                background: '#ff385c',
+                background: '#1976d2',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
@@ -113,7 +113,7 @@ export default function Navbar() {
               sx={{
                 fontWeight: 700,
                 fontSize: 20,
-                color: '#ff385c',
+                color: '#1976d2',
                 fontFamily: 'inherit',
                 letterSpacing: '-0.02em',
                 display: { xs: 'none', sm: 'block' },
@@ -170,9 +170,9 @@ export default function Navbar() {
                 sx={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: 32, height: 32, borderRadius: '50%',
-                  background: '#ff385c', border: 'none', cursor: 'pointer', flexShrink: 0,
+                  background: '#1976d2', border: 'none', cursor: 'pointer', flexShrink: 0,
                   transition: 'background 0.15s',
-                  '&:hover': { background: '#e00b41' },
+                  '&:hover': { background: '#1565c0' },
                 }}
               >
                 <SearchIcon sx={{ fontSize: 16, color: '#fff' }} />
@@ -255,10 +255,9 @@ export default function Navbar() {
                 </Button>
                 <Button
                   component={Link} href="/register"
-                  sx={{
-                    textTransform: 'none', fontFamily: 'inherit', fontWeight: 600, fontSize: 14,
-                    color: '#fff', bgcolor: '#ff385c',
-                    '&:hover': { bgcolor: '#e00b41' },
+                  sx={{ textTransform: 'none', fontFamily: 'inherit', fontWeight: 600, fontSize: 14,
+                    color: '#fff', bgcolor: '#1976d2',
+                    '&:hover': { bgcolor: '#1565c0' },
                     borderRadius: '9999px', px: 2, py: 0.75,
                     boxShadow: 'none',
                   }}
@@ -290,10 +289,10 @@ export default function Navbar() {
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2.5, py: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-            <Box sx={{ width: 26, height: 26, borderRadius: '50%', bgcolor: '#ff385c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ width: 26, height: 26, borderRadius: '50%', bgcolor: '#1976d2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <ApartmentRoundedIcon sx={{ color: '#fff', fontSize: 15 }} />
             </Box>
-            <Typography sx={{ fontWeight: 700, fontSize: 18, color: '#ff385c', letterSpacing: '-0.02em' }}>cosy</Typography>
+            <Typography sx={{ fontWeight: 700, fontSize: 18, color: '#1976d2', letterSpacing: '-0.02em' }}>cosy</Typography>
           </Box>
           <IconButton size="small" onClick={() => setMobileNavOpen(false)}>
             <CloseRoundedIcon sx={{ fontSize: 20, color: '#6a6a6a' }} />
@@ -341,10 +340,8 @@ export default function Navbar() {
                   component={Link} href="/register"
                   fullWidth
                   onClick={() => setMobileNavOpen(false)}
-                  sx={{
-                    textTransform: 'none', fontFamily: 'Inter, sans-serif', fontWeight: 600,
-                    bgcolor: '#ff385c', color: '#fff', borderRadius: '9999px',
-                    '&:hover': { bgcolor: '#e00b41' },
+                  sx={{ bgcolor: '#1976d2', color: '#fff', borderRadius: '9999px',
+                    '&:hover': { bgcolor: '#1565c0' },
                   }}
                 >
                   Sign up
