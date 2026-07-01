@@ -36,7 +36,7 @@ const theme = createTheme({
     fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
   },
   palette: { primary: { main: '#1976d2', dark: '#1565c0' } },
-  shape: { borderRadius: 8 },
+  shape: { borderRadius: 12 },
   components: {
     MuiButton: {
       defaultProps: { disableElevation: true },
@@ -172,7 +172,7 @@ export default function LandlordPage() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box className="cinema-reveal cinema-public-page" sx={{ bgcolor: '#f8fafc', minHeight: '100vh' }}>
+      <Box className="cinema-reveal cinema-public-page" sx={{ bgcolor: '#f8f9fa', minHeight: '100vh' }}>
 
         {/* ─── LANDLORD NAVBAR ───────────────────────────────────── */}
         <Box
@@ -182,12 +182,12 @@ export default function LandlordPage() {
             top: 0,
             zIndex: 50,
             borderBottom: '1px solid',
-            borderColor: 'rgba(25,118,210,0.2)',
+            borderColor: 'rgba(255,255,255,0.12)',
             bgcolor: 'rgba(247, 252, 255, 0.85)',
             backdropFilter: 'blur(8px)',
           }}
         >
-          <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.4, px: 2 }}>
+          <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5, px: 2 }}>
             <Link href="/" style={{ textDecoration: 'none' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box
@@ -214,10 +214,10 @@ export default function LandlordPage() {
               <Button component={Link} href="/about" sx={{ textTransform: 'none', fontWeight: 600, color: '#1565c0', display: { xs: 'none', md: 'inline-flex' } }}>
                 About
               </Button>
-              <Button component={Link} href="/login" variant="outlined" sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, display: { xs: 'none', sm: 'inline-flex' } }}>
+              <Button component={Link} href="/login" variant="outlined" sx={{ textTransform: 'none', borderRadius: '9999px', fontWeight: 600, display: { xs: 'none', sm: 'inline-flex' } }}>
                 Login
               </Button>
-              <Button component={Link} href="/register?role=landlord" variant="contained" sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 700 }}>
+              <Button component={Link} href="/register?role=landlord" variant="contained" sx={{ textTransform: 'none', borderRadius: '9999px', fontWeight: 700, px: 2.5 }}>
                 List Property
               </Button>
             </Box>
@@ -278,7 +278,7 @@ export default function LandlordPage() {
                 endIcon={<ArrowForwardRoundedIcon />}
                 sx={{
                   bgcolor: 'white', color: '#1565c0', fontWeight: 700,
-                  px: 4, py: 1.6, borderRadius: 2, fontSize: '1rem',
+                  px: 4, py: 1.6, borderRadius: '9999px', fontSize: '1rem',
                   boxShadow: '0 6px 24px rgba(0,0,0,0.2)',
                   '&:hover': { bgcolor: '#f0f7ff' },
                 }}
@@ -292,7 +292,7 @@ export default function LandlordPage() {
                 size="large"
                 sx={{
                   borderColor: 'rgba(255,255,255,0.6)', color: 'white',
-                  fontWeight: 600, px: 4, py: 1.6, borderRadius: 2, fontSize: '1rem',
+                  fontWeight: 600, px: 4, py: 1.6, borderRadius: '9999px', fontSize: '1rem',
                   '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' },
                 }}
               >
@@ -345,7 +345,7 @@ export default function LandlordPage() {
                   <Paper
                     variant="outlined"
                     sx={{
-                      p: 3.5, borderRadius: 3, height: '100%', bgcolor: 'white',
+                      p: 3.5, borderRadius: '16px', height: '100%', bgcolor: 'white',
                       transition: 'box-shadow 0.2s, transform 0.2s',
                       '&:hover': { boxShadow: '0 8px 28px rgba(25,118,210,0.12)', transform: 'translateY(-2px)' },
                     }}
@@ -414,7 +414,7 @@ export default function LandlordPage() {
         </Box>
 
         {/* ─── RENTAL INCOME CALCULATOR ─────────────────────────── */}
-        <Box sx={{ bgcolor: '#f0f4f8', py: { xs: 6, md: 8 }, px: 2 }}>
+        <Box sx={{ bgcolor: '#f8f9fa', py: { xs: 8, md: 12 }, px: 2 }}>
           <Container maxWidth="md">
             {/* Header */}
             <Box sx={{ textAlign: 'center', mb: { xs: 4, md: 5 } }}>
@@ -435,7 +435,7 @@ export default function LandlordPage() {
             <Grid container spacing={{ xs: 3, md: 4 }} sx={{ alignItems: 'stretch' }}>
               {/* Controls */}
               <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex' }}>
-                <Paper elevation={0} sx={{ width: '100%', border: '1px solid', borderColor: 'divider', borderRadius: 3, p: { xs: 2.5, md: 3 } }}>
+                <Paper elevation={0} sx={{ width: '100%', border: '1px solid', borderColor: 'divider', borderRadius: '16px', p: { xs: 2.5, md: 3 } }}>
 
                   {/* Rooms */}
                   <Box sx={{ mb: 3 }}>
@@ -531,7 +531,7 @@ export default function LandlordPage() {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
 
                   {/* Monthly income */}
-                  <Paper elevation={0} sx={{ flex: 1, border: '1px solid', borderColor: 'divider', borderRadius: 3, p: { xs: 2.5, md: 3 } }}>
+                  <Paper elevation={0} sx={{ flex: 1, border: '1px solid', borderColor: 'divider', borderRadius: '16px', p: { xs: 2.5, md: 3 } }}>
                     <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.75rem', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>
                       Monthly Income
                     </Typography>
@@ -544,7 +544,7 @@ export default function LandlordPage() {
                   </Paper>
 
                   {/* Annual income */}
-                  <Paper elevation={0} sx={{ flex: 1, border: '2px solid', borderColor: 'primary.main', borderRadius: 3, p: { xs: 2.5, md: 3 }, bgcolor: 'rgba(25,118,210,0.04)', position: 'relative' }}>
+                  <Paper elevation={0} sx={{ flex: 1, border: '2px solid', borderColor: 'primary.main', borderRadius: '16px', p: { xs: 2.5, md: 3 }, bgcolor: 'rgba(25,118,210,0.04)', position: 'relative' }}>
                     <Chip label="Best value" size="small" sx={{ position: 'absolute', top: 12, right: 12, bgcolor: 'primary.main', color: 'white', fontWeight: 700, fontSize: '0.68rem', height: 20 }} />
                     <Typography sx={{ color: 'primary.main', fontWeight: 600, fontSize: '0.75rem', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>
                       Annual Income
@@ -558,7 +558,7 @@ export default function LandlordPage() {
                   </Paper>
 
                   {/* NSFAS estimate */}
-                  <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: { xs: 2, md: 2.5 }, bgcolor: 'white' }}>
+                  <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '16px', p: { xs: 2, md: 2.5 }, bgcolor: 'white' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                       <SchoolRoundedIcon sx={{ color: 'primary.main', fontSize: 16 }} />
                       <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.75rem', letterSpacing: 0.5, textTransform: 'uppercase' }}>
@@ -578,7 +578,7 @@ export default function LandlordPage() {
                     variant="contained" size="large" fullWidth
                     endIcon={<ArrowForwardRoundedIcon />}
                     sx={{
-                      py: 1.5, fontWeight: 700, fontSize: '0.95rem', borderRadius: 2,
+                      py: 1.5, fontWeight: 700, fontSize: '0.95rem', borderRadius: '9999px',
                       background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
                       '&:hover': { background: 'linear-gradient(135deg, #0d47a1 0%, #1565c0 100%)' },
                     }}
@@ -615,7 +615,7 @@ export default function LandlordPage() {
         </Box>
 
         {/* ─── TESTIMONIALS ─────────────────────────────────────── */}
-        <Box sx={{ bgcolor: '#f0f4f8', py: { xs: 8, md: 12 }, px: 2 }}>
+        <Box sx={{ bgcolor: '#fff', py: { xs: 8, md: 12 }, px: 2 }}>
           <Container maxWidth="lg">
             <Box sx={{ textAlign: 'center', mb: 8 }}>
               <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 2 }}>
@@ -631,7 +631,7 @@ export default function LandlordPage() {
                   <Paper
                     variant="outlined"
                     sx={{
-                      p: 3.5, borderRadius: 3, height: '100%', bgcolor: 'white',
+                      p: 3.5, borderRadius: '16px', height: '100%', bgcolor: 'white',
                       transition: 'box-shadow 0.2s',
                       '&:hover': { boxShadow: '0 8px 24px rgba(0,0,0,0.08)' },
                     }}
@@ -672,7 +672,7 @@ export default function LandlordPage() {
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {FAQS.map((faq, i) => (
-                <Paper key={i} variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+                <Paper key={i} variant="outlined" sx={{ p: 3, borderRadius: '16px' }}>
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
                     <CheckCircleRoundedIcon sx={{ color: '#1976d2', fontSize: 22, mt: 0.2, flexShrink: 0 }} />
                     <Box>
@@ -709,7 +709,7 @@ export default function LandlordPage() {
               endIcon={<ArrowForwardRoundedIcon />}
               sx={{
                 bgcolor: 'white', color: '#1565c0', fontWeight: 700,
-                textTransform: 'none', px: 5, py: 1.7, borderRadius: 2, fontSize: '1rem',
+                textTransform: 'none', px: 5, py: 1.7, borderRadius: '9999px', fontSize: '1rem',
                 boxShadow: '0 6px 24px rgba(0,0,0,0.2)',
                 '&:hover': { bgcolor: '#f0f7ff' },
               }}
@@ -723,38 +723,38 @@ export default function LandlordPage() {
         </Box>
 
         {/* ─── LANDLORD FOOTER ───────────────────────────────────── */}
-        <Box component="footer" sx={{ bgcolor: '#0f2740', color: '#bfd2e8', py: { xs: 6, md: 7 }, px: 2 }}>
+        <Box component="footer" sx={{ bgcolor: '#0a1929', color: '#fff', py: { xs: 6, md: 8 }, px: 2, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <Container maxWidth="lg">
             <Grid container spacing={4}>
               <Grid size={{ xs: 12, md: 5 }}>
-                <Typography sx={{ fontWeight: 800, color: '#ffffff', mb: 1 }}>Cosy Landlords</Typography>
-                <Typography variant="body2" sx={{ color: '#bfd2e8', maxWidth: 420, lineHeight: 1.75 }}>
+                <Typography sx={{ fontWeight: 800, color: '#ffffff', mb: 1, fontSize: 20 }}>Cosy Landlords</Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.65)', maxWidth: 420, lineHeight: 1.75 }}>
                   Built for South African property owners who want quality student tenants, reliable occupancy, and easy portfolio management.
                 </Typography>
               </Grid>
               <Grid size={{ xs: 6, md: 2.5 }}>
-                <Typography sx={{ fontWeight: 700, color: '#ffffff', mb: 1.2 }}>Landlord</Typography>
+                <Typography sx={{ fontWeight: 700, color: '#ffffff', mb: 1.2, fontSize: 14 }}>Landlord</Typography>
                 <Stack spacing={0.8}>
-                  <Link href="/register?role=landlord" style={{ color: '#bfd2e8', textDecoration: 'none' }}>Create Account</Link>
-                  <Link href="/login" style={{ color: '#bfd2e8', textDecoration: 'none' }}>Sign In</Link>
-                  <Link href="/landlord/dashboard" style={{ color: '#bfd2e8', textDecoration: 'none' }}>Dashboard</Link>
+                  <Link href="/register?role=landlord" style={{ color: 'rgba(255,255,255,0.65)', textDecoration: 'none', fontSize: 13 }}>Create Account</Link>
+                  <Link href="/login" style={{ color: 'rgba(255,255,255,0.65)', textDecoration: 'none', fontSize: 13 }}>Sign In</Link>
+                  <Link href="/landlord/dashboard" style={{ color: 'rgba(255,255,255,0.65)', textDecoration: 'none', fontSize: 13 }}>Dashboard</Link>
                 </Stack>
               </Grid>
               <Grid size={{ xs: 6, md: 2.5 }}>
-                <Typography sx={{ fontWeight: 700, color: '#ffffff', mb: 1.2 }}>Company</Typography>
+                <Typography sx={{ fontWeight: 700, color: '#ffffff', mb: 1.2, fontSize: 14 }}>Company</Typography>
                 <Stack spacing={0.8}>
-                  <Link href="/about" style={{ color: '#bfd2e8', textDecoration: 'none' }}>About</Link>
-                  <Link href="/browse" style={{ color: '#bfd2e8', textDecoration: 'none' }}>Browse Listings</Link>
-                  <Link href="/" style={{ color: '#bfd2e8', textDecoration: 'none' }}>Home</Link>
+                  <Link href="/about" style={{ color: 'rgba(255,255,255,0.65)', textDecoration: 'none', fontSize: 13 }}>About</Link>
+                  <Link href="/browse" style={{ color: 'rgba(255,255,255,0.65)', textDecoration: 'none', fontSize: 13 }}>Browse Listings</Link>
+                  <Link href="/" style={{ color: 'rgba(255,255,255,0.65)', textDecoration: 'none', fontSize: 13 }}>Home</Link>
                 </Stack>
               </Grid>
               <Grid size={{ xs: 12, md: 2 }}>
-                <Typography sx={{ fontWeight: 700, color: '#ffffff', mb: 1.2 }}>Contact</Typography>
-                <Typography variant="body2" sx={{ color: '#bfd2e8', lineHeight: 1.7 }}>support@cosy.com</Typography>
+                <Typography sx={{ fontWeight: 700, color: '#ffffff', mb: 1.2, fontSize: 14 }}>Contact</Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, fontSize: 13 }}>support@cosy.com</Typography>
               </Grid>
             </Grid>
-            <Divider sx={{ my: 3, borderColor: 'rgba(191,210,232,0.24)' }} />
-            <Typography variant="caption" sx={{ color: '#9fb8d2' }}>
+            <Divider sx={{ my: 3, borderColor: 'rgba(255,255,255,0.08)' }} />
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>
               © {new Date().getFullYear()} Cosy. All rights reserved.
             </Typography>
           </Container>

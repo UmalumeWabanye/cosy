@@ -360,7 +360,7 @@ export default function BrowsePage() {
 
   return (
     <StudentLayout>
-    <Box sx={{ bgcolor: '#f8fafc', display: 'flex', flexDirection: 'column', height: { xs: 'auto', md: 'calc(100vh - 48px)' }, minHeight: { xs: '100vh', md: 'unset' } }}>
+    <Box sx={{ bgcolor: '#f8f9fa', display: 'flex', flexDirection: 'column', height: { xs: 'auto', md: 'calc(100vh - 48px)' }, minHeight: { xs: '100vh', md: 'unset' } }}>
 
         {/* ── FILTER BAR ──────────────────────────────────────── */}
         <Box sx={{ bgcolor: 'white', borderBottom: '1px solid', borderColor: 'divider', boxShadow: '0 1px 6px rgba(0,0,0,0.05)', flexShrink: 0, zIndex: 10 }}>
@@ -369,26 +369,26 @@ export default function BrowsePage() {
               size="small" placeholder="Search city, university, property…"
               value={filters.search} onChange={(e) => set('search', e.target.value)}
               slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchRoundedIcon sx={{ fontSize: 18, color: 'text.secondary' }} /></InputAdornment> } }}
-              sx={{ width: { xs: '100%', sm: 260, md: 300 }, flexShrink: 0 }}
+              sx={{ width: { xs: '100%', sm: 260, md: 300 }, flexShrink: 0, '& .MuiOutlinedInput-root': { borderRadius: '9999px' } }}
             />
             <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', md: 'block' } }} />
             <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1.5, flex: 1, overflow: 'hidden' }}>
-              <TextField select size="small" value={filters.city} onChange={(e) => set('city', e.target.value)} slotProps={{ select: { displayEmpty: true } }} sx={{ minWidth: 140 }}>
+              <TextField select size="small" value={filters.city} onChange={(e) => set('city', e.target.value)} slotProps={{ select: { displayEmpty: true } }} sx={{ minWidth: 140, '& .MuiOutlinedInput-root': { borderRadius: '9999px' } }}>
                 <MenuItem value="">All Cities</MenuItem>
                 {CITIES.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
               </TextField>
-              <TextField select size="small" value={filters.university} onChange={(e) => set('university', e.target.value)} slotProps={{ select: { displayEmpty: true } }} sx={{ minWidth: 200 }}>
+              <TextField select size="small" value={filters.university} onChange={(e) => set('university', e.target.value)} slotProps={{ select: { displayEmpty: true } }} sx={{ minWidth: 200, '& .MuiOutlinedInput-root': { borderRadius: '9999px' } }}>
                 <MenuItem value="">All Universities</MenuItem>
                 {UNIVERSITIES.map((u) => <MenuItem key={u} value={u}>{u}</MenuItem>)}
               </TextField>
-              <TextField select size="small" value={filters.roomType} onChange={(e) => set('roomType', e.target.value)} slotProps={{ select: { displayEmpty: true } }} sx={{ minWidth: 130 }}>
+              <TextField select size="small" value={filters.roomType} onChange={(e) => set('roomType', e.target.value)} slotProps={{ select: { displayEmpty: true } }} sx={{ minWidth: 130, '& .MuiOutlinedInput-root': { borderRadius: '9999px' } }}>
                 <MenuItem value="">Room Type</MenuItem>
                 {ROOM_TYPES.map((r) => <MenuItem key={r} value={r}>{r}</MenuItem>)}
               </TextField>
               <Chip label="NSFAS" clickable onClick={() => set('nsfas', !filters.nsfas)}
-                sx={{ fontWeight: 600, fontSize: '0.8rem', bgcolor: filters.nsfas ? 'primary.main' : 'transparent', color: filters.nsfas ? 'white' : 'text.secondary', border: '1px solid', borderColor: filters.nsfas ? 'primary.main' : 'divider' }}
+                sx={{ fontWeight: 600, fontSize: '0.8rem', borderRadius: '9999px', bgcolor: filters.nsfas ? 'primary.main' : 'transparent', color: filters.nsfas ? 'white' : 'text.secondary', border: '1px solid', borderColor: filters.nsfas ? 'primary.main' : 'divider' }}
               />
-              {hasActiveFilters && <Chip label="Clear all" size="small" clickable onClick={clearFilters} onDelete={clearFilters} sx={{ fontWeight: 600, color: 'error.main', border: '1px solid', borderColor: 'error.light' }} />}
+              {hasActiveFilters && <Chip label="Clear all" size="small" clickable onClick={clearFilters} onDelete={clearFilters} sx={{ fontWeight: 600, color: 'error.main', borderRadius: '9999px', border: '1px solid', borderColor: 'error.light' }} />}
             </Box>
             <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
               <TextField
@@ -398,17 +398,17 @@ export default function BrowsePage() {
                 onChange={(e) => setSavedSearchName(e.target.value)}
                 sx={{ display: { xs: 'none', md: 'block' }, width: 170 }}
               />
-              <Button size="small" variant="outlined" onClick={saveCurrentSearch} sx={{ borderRadius: 2, display: { xs: 'none', md: 'inline-flex' } }}>Save Search</Button>
+              <Button size="small" variant="outlined" onClick={saveCurrentSearch} sx={{ borderRadius: '9999px', display: { xs: 'none', md: 'inline-flex' } }}>Save Search</Button>
               <Typography variant="body2" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' }, whiteSpace: 'nowrap' }}>
                 {loading ? '…' : `${properties.length} found`}
               </Typography>
               <Button size="small" variant="outlined" startIcon={showMap ? <ViewListRoundedIcon /> : <MapRoundedIcon />}
                 onClick={() => setShowMap(!showMap)}
-                sx={{ borderRadius: 2, display: { xs: 'none', md: 'inline-flex' }, whiteSpace: 'nowrap' }}>
+                sx={{ borderRadius: '9999px', display: { xs: 'none', md: 'inline-flex' }, whiteSpace: 'nowrap' }}>
                 {showMap ? 'List only' : 'Show map'}
               </Button>
               <Button variant="outlined" size="small" startIcon={<TuneRoundedIcon />} onClick={() => setMobileDrawerOpen(true)}
-                sx={{ borderRadius: 2, display: { xs: 'flex', md: 'none' }, flexShrink: 0 }}>
+                sx={{ borderRadius: '9999px', display: { xs: 'flex', md: 'none' }, flexShrink: 0 }}>
                 Filters{hasActiveFilters ? ` (${[filters.city, filters.university, filters.roomType, filters.nsfas ? 'N' : '', filters.minPrice || filters.maxPrice ? 'P' : ''].filter(Boolean).length})` : ''}
               </Button>
             </Box>
@@ -423,7 +423,7 @@ export default function BrowsePage() {
           </Box>
           <FilterPanel />
           <Box sx={{ px: 2.5, pb: 3, pt: 1 }}>
-            <Button variant="contained" fullWidth onClick={() => setMobileDrawerOpen(false)} sx={{ borderRadius: 2 }}>Show {properties.length} Results</Button>
+            <Button variant="contained" fullWidth onClick={() => setMobileDrawerOpen(false)} sx={{ borderRadius: '9999px' }}>Show {properties.length} Results</Button>
           </Box>
         </Drawer>
 
@@ -436,7 +436,7 @@ export default function BrowsePage() {
 
               {hasActiveFilters && (
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                  {filters.nsfas && <Chip label="NSFAS" size="small" onDelete={() => set('nsfas', false)} sx={{ bgcolor: '#e3f2fd', color: '#1565c0', fontWeight: 600 }} />}
+                  {filters.nsfas && <Chip label="NSFAS" size="small" onDelete={() => set('nsfas', false)} sx={{ bgcolor: '#e3f2fd', color: '#1565c0', fontWeight: 600, borderRadius: '9999px' }} />}
                   {filters.city && <Chip label={filters.city} size="small" onDelete={() => set('city', '')} />}
                   {filters.university && <Chip label={filters.university} size="small" onDelete={() => set('university', '')} />}
                   {filters.roomType && <Chip label={filters.roomType} size="small" onDelete={() => set('roomType', '')} sx={{ textTransform: 'capitalize' }} />}
@@ -462,11 +462,11 @@ export default function BrowsePage() {
               ) : null}
 
               {compareProperties.length > 0 ? (
-                <Paper variant="outlined" sx={{ p: 1.25, mb: 2, borderRadius: 2 }}>
+                  <Paper variant="outlined" sx={{ p: 1.25, mb: 2, borderRadius: '16px' }}>
                   <Typography sx={{ fontWeight: 700, fontSize: '0.86rem', mb: 1 }}>Affordability Compare ({compareProperties.length}/3)</Typography>
                   <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: `repeat(${compareProperties.length}, 1fr)` }, gap: 1 }}>
                     {compareProperties.map((item) => (
-                      <Paper key={item._id} variant="outlined" sx={{ p: 1, borderRadius: 1.5 }}>
+                      <Paper key={item._id} variant="outlined" sx={{ p: 1, borderRadius: 2 }}>
                         <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>{getTitle(item)}</Typography>
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{item.city || 'Unknown city'}</Typography>
                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>Rent: R{Number(item.price || 0).toLocaleString()}</Typography>
@@ -487,7 +487,7 @@ export default function BrowsePage() {
                 <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: 'text.primary' }}>
                   {loading ? 'Searching…' : `${properties.length} propert${properties.length === 1 ? 'y' : 'ies'} found`}
                 </Typography>
-                <TextField select size="small" value={filters.sortBy} onChange={(e) => set('sortBy', e.target.value)} sx={{ minWidth: 160, '& .MuiInputBase-root': { fontSize: '0.82rem' } }}>
+                <TextField select size="small" value={filters.sortBy} onChange={(e) => set('sortBy', e.target.value)} sx={{ minWidth: 160, '& .MuiInputBase-root': { fontSize: '0.82rem', borderRadius: '9999px' } }}>
                   <MenuItem value="newest">Newest First</MenuItem>
                   <MenuItem value="price_asc">Price: Low → High</MenuItem>
                   <MenuItem value="price_desc">Price: High → Low</MenuItem>
@@ -499,7 +499,7 @@ export default function BrowsePage() {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
-                    <Paper key={i} variant="outlined" sx={{ borderRadius: 2.5, overflow: 'hidden', display: 'flex', height: 140 }}>
+                    <Paper key={i} variant="outlined" sx={{ borderRadius: '16px', overflow: 'hidden', display: 'flex', height: 140 }}>
                       <Skeleton variant="rectangular" width={160} height={140} sx={{ flexShrink: 0 }} />
                       <Box sx={{ p: 2, flex: 1 }}>
                         <Skeleton variant="text" width="60%" height={22} />
@@ -514,8 +514,8 @@ export default function BrowsePage() {
                     <ApartmentRoundedIcon sx={{ fontSize: 56, color: 'text.disabled', mb: 2 }} />
                     <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>No properties found</Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>Try adjusting your filters.</Typography>
-                    <Button variant="outlined" onClick={clearFilters} sx={{ borderRadius: 2, mr: 1 }}>Clear Filters</Button>
-                    <Button variant="contained" component={Link} href="/" sx={{ borderRadius: 2 }}>Back to Home</Button>
+                    <Button variant="outlined" onClick={clearFilters} sx={{ borderRadius: '9999px', mr: 1 }}>Clear Filters</Button>
+                    <Button variant="contained" component={Link} href="/" sx={{ borderRadius: '9999px' }}>Back to Home</Button>
                   </Box>
                 ) : properties.map((prop, idx) => (
                   <Paper
@@ -533,7 +533,7 @@ export default function BrowsePage() {
                     onMouseEnter={() => setHoveredId(prop._id)}
                     onMouseLeave={() => setHoveredId(null)}
                     sx={{
-                      borderRadius: 2.5, overflow: 'hidden', textDecoration: 'none',
+                      borderRadius: '16px', overflow: 'hidden', textDecoration: 'none',
                       display: 'flex', flexDirection: 'row', minHeight: 138, transition: 'border-color 0.2s, box-shadow 0.2s', cursor: 'pointer',
                       '&:hover': { borderColor: 'primary.main', boxShadow: '0 4px 18px rgba(25,118,210,0.12)' },
                     }}
@@ -542,8 +542,8 @@ export default function BrowsePage() {
                       <Box component="img" src={getImage(prop, idx)} alt={getTitle(prop)}
                         sx={{ width: '100%', height: '100%', minHeight: 138, objectFit: 'cover', display: 'block' }} />
                       {isNsfas(prop) && (
-                        <Chip icon={<VerifiedRoundedIcon sx={{ fontSize: 12, color: '#1565c0 !important' }} />} label="NSFAS" size="small"
-                          sx={{ position: 'absolute', bottom: 7, left: 7, bgcolor: 'white', color: '#1565c0', fontWeight: 700, fontSize: '0.66rem', height: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.18)' }} />
+                          <Chip icon={<VerifiedRoundedIcon sx={{ fontSize: 12, color: '#1565c0 !important' }} />} label="NSFAS" size="small"
+                          sx={{ position: 'absolute', bottom: 7, left: 7, borderRadius: '9999px', bgcolor: 'white', color: '#1565c0', fontWeight: 700, fontSize: '0.66rem', height: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.18)' }} />
                       )}
                     </Box>
                     <Box sx={{ flex: 1, p: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>

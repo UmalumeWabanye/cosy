@@ -53,7 +53,8 @@ const Card = styled(MuiCard)(({ theme }) => ({
   padding: theme.spacing(4),
   gap: theme.spacing(2),
   margin: 'auto',
-  [theme.breakpoints.up('sm')]: { maxWidth: '450px' },
+  [theme.breakpoints.up('sm')]: { maxWidth: '480px' },
+  borderRadius: 16,
   boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
 }));
 
@@ -67,14 +68,14 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
     position: 'absolute',
     zIndex: -1,
     inset: 0,
-    backgroundImage: 'radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))',
+    backgroundImage: 'linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%)',
     backgroundRepeat: 'no-repeat',
   },
 }));
 
 const theme = createTheme({
   typography: { fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(',') },
-  shape: { borderRadius: 8 },
+  shape: { borderRadius: 12 },
 });
 
 // ── Main page ──────────────────────────────────────────────────────────────────
@@ -235,7 +236,7 @@ function RegisterForm() {
 
           {serverError && <Alert severity="error" sx={{ width: '100%' }}>{serverError}</Alert>}
 
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ display: 'flex', flexDirection: 'column', gap: 2, '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}>
             <FormControl>
               <FormLabel htmlFor="name">Full name</FormLabel>
               <TextField
@@ -375,7 +376,7 @@ function RegisterForm() {
             )}
 
             <Button type="submit" fullWidth variant="contained" disabled={loading}
-              sx={{ py: 1.2, fontWeight: 600, textTransform: 'none' }}>
+              sx={{ py: 1.25, fontWeight: 700, textTransform: 'none', borderRadius: '9999px' }}>
               {loading ? <CircularProgress size={22} color="inherit" /> : (isLandlord ? 'Create Landlord Account' : 'Sign up')}
             </Button>
 
@@ -384,7 +385,7 @@ function RegisterForm() {
               <Link
                 href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}${isLandlord ? '&role=landlord' : ''}` : isLandlord ? '/login?role=landlord' : '/login'}
                 variant="body2"
-                sx={{ alignSelf: 'center' }}
+                sx={{ alignSelf: 'center', color: '#1976d2', fontWeight: 600 }}
               >
                 Sign in
               </Link>

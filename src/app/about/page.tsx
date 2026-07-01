@@ -27,12 +27,12 @@ const theme = createTheme({
   typography: {
     fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(','),
   },
-  shape: { borderRadius: 8 },
+  shape: { borderRadius: 12 },
 });
 
-const BLUE = '#1565c0';
+const BLUE = '#1976d2';
 const DARK = '#0d1b2a';
-const LIGHT_BG = '#f5f8ff';
+const LIGHT_BG = '#f8f9fa';
 
 const STATS = [
   { value: '50 000+', label: 'Students helped' },
@@ -195,7 +195,7 @@ export default function AboutPage() {
             <Grid container spacing={{ xs: 6, md: 10 }} sx={{ alignItems: 'flex-start', flexDirection: { md: 'row-reverse' } }}>
               <Grid size={{ xs: 12, md: 5 }}>
                 <Box sx={{ position: { md: 'sticky' }, top: { md: 100 } }}>
-                  <Chip label="For landlords" sx={{ bgcolor: '#e8f5e9', color: '#2e7d32', fontWeight: 700, mb: 2.5, fontSize: 13 }} />
+                  <Chip label="For landlords" sx={{ bgcolor: '#e3f2fd', color: BLUE, fontWeight: 700, mb: 2.5, fontSize: 13 }} />
                   <Typography variant="h2" sx={{ fontWeight: 800, fontSize: { xs: '1.9rem', md: '2.6rem' }, color: DARK, lineHeight: 1.2, mb: 3 }}>
                     Fill your property with quality student tenants
                   </Typography>
@@ -203,7 +203,7 @@ export default function AboutPage() {
                     Cosy gives landlords a purpose-built dashboard to list, manage, and fill properties — with a direct line to thousands of verified students.
                   </Typography>
                   <Button component={Link} href="/register?role=landlord" variant="contained" size="large" endIcon={<ArrowForwardRoundedIcon />}
-                    sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, bgcolor: '#2e7d32', '&:hover': { bgcolor: '#1b5e20' }, px: 3.5 }}>
+                    sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '9999px', bgcolor: BLUE, '&:hover': { bgcolor: '#1565c0' }, px: 3.5 }}>
                     List your property
                   </Button>
                 </Box>
@@ -211,9 +211,9 @@ export default function AboutPage() {
               <Grid size={{ xs: 12, md: 7 }}>
                 <Stack spacing={2.5}>
                   {LANDLORD_STEPS.map(s => (
-                    <Card key={s.num} variant="outlined" sx={{ borderColor: '#e0f0e2', borderRadius: 3, '&:hover': { borderColor: '#a5d6a7', boxShadow: '0 4px 20px rgba(46,125,50,0.08)' }, transition: '0.2s' }}>
+                    <Card key={s.num} variant="outlined" sx={{ borderColor: '#e0e9f8', borderRadius: 3, '&:hover': { borderColor: '#90caf9', boxShadow: '0 4px 20px rgba(21,101,192,0.08)' }, transition: '0.2s' }}>
                       <CardContent sx={{ display: 'flex', gap: 2.5, p: 3, '&:last-child': { pb: 3 } }}>
-                        <Typography sx={{ fontWeight: 900, fontSize: 28, color: '#c8e6c9', lineHeight: 1, flexShrink: 0, width: 40 }}>{s.num}</Typography>
+                        <Typography sx={{ fontWeight: 900, fontSize: 28, color: '#c8daf5', lineHeight: 1, flexShrink: 0, width: 40 }}>{s.num}</Typography>
                         <Box>
                           <Typography variant="h6" sx={{ fontWeight: 700, color: DARK, mb: 0.5, fontSize: '1rem' }}>{s.title}</Typography>
                           <Typography variant="body2" sx={{ color: '#667', lineHeight: 1.75 }}>{s.body}</Typography>
@@ -342,14 +342,67 @@ export default function AboutPage() {
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'center' }}>
               <Button component={Link} href="/browse" variant="contained" size="large" endIcon={<ArrowForwardRoundedIcon />}
-                sx={{ bgcolor: '#fff', color: '#0d47a1', fontWeight: 700, px: 4, py: 1.6, textTransform: 'none', borderRadius: 2.5, '&:hover': { bgcolor: '#e3f2fd' } }}>
+                sx={{ bgcolor: '#fff', color: '#0d47a1', fontWeight: 700, px: 4, py: 1.6, textTransform: 'none', borderRadius: '9999px', '&:hover': { bgcolor: '#e3f2fd' } }}>
                 Find accommodation
               </Button>
               <Button component={Link} href="/register?role=landlord" variant="outlined" size="large"
-                sx={{ borderColor: 'rgba(255,255,255,0.55)', color: '#fff', fontWeight: 700, px: 4, py: 1.6, textTransform: 'none', borderRadius: 2.5, '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,0.08)' } }}>
+                sx={{ borderColor: 'rgba(255,255,255,0.55)', color: '#fff', fontWeight: 700, px: 4, py: 1.6, textTransform: 'none', borderRadius: '9999px', '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,0.08)' } }}>
                 List your property
               </Button>
             </Stack>
+          </Container>
+        </Box>
+
+        {/* FOOTER */}
+        <Box sx={{ bgcolor: '#0a1929', color: '#fff', py: { xs: 6, md: 8 }, px: 2, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+          <Container maxWidth="lg">
+            <Grid container spacing={4} sx={{ mb: 4 }}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Typography sx={{ fontWeight: 700, color: '#fff', mb: 2, fontSize: 14 }}>Company</Typography>
+                <Stack spacing={1}>
+                  {['Home', 'For Students', 'For Landlords'].map(link => (
+                    <Link key={link} href={link === 'For Students' ? '/for-students' : link === 'For Landlords' ? '/for-landlords' : '/'} style={{ color: 'rgba(255,255,255,0.65)', textDecoration: 'none', fontSize: 13 }}>
+                      <Typography sx={{ color: 'inherit', '&:hover': { color: '#fff' }, textDecoration: 'none' }}>{link}</Typography>
+                    </Link>
+                  ))}
+                </Stack>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Typography sx={{ fontWeight: 700, color: '#fff', mb: 2, fontSize: 14 }}>Explore</Typography>
+                <Stack spacing={1}>
+                  {['Browse', 'NSFAS', 'Campus'].map(link => (
+                    <Link key={link} href={link === 'Browse' ? '/browse' : link === 'NSFAS' ? '/nsfas' : '/campus'} style={{ color: 'rgba(255,255,255,0.65)', textDecoration: 'none', fontSize: 13 }}>
+                      <Typography sx={{ color: 'inherit', '&:hover': { color: '#fff' }, textDecoration: 'none' }}>{link}</Typography>
+                    </Link>
+                  ))}
+                </Stack>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Typography sx={{ fontWeight: 700, color: '#fff', mb: 2, fontSize: 14 }}>Account</Typography>
+                <Stack spacing={1}>
+                  {['Login', 'Register', 'Setup Account'].map(link => (
+                    <Link key={link} href={link === 'Login' ? '/login' : link === 'Register' ? '/register' : '/setup-account'} style={{ color: 'rgba(255,255,255,0.65)', textDecoration: 'none', fontSize: 13 }}>
+                      <Typography sx={{ color: 'inherit', '&:hover': { color: '#fff' }, textDecoration: 'none' }}>{link}</Typography>
+                    </Link>
+                  ))}
+                </Stack>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Typography sx={{ fontWeight: 700, color: '#fff', mb: 2, fontSize: 14 }}>Legal</Typography>
+                <Stack spacing={1}>
+                  {['Privacy', 'Terms', 'Cookies'].map(link => (
+                    <Link key={link} href="/" style={{ color: 'rgba(255,255,255,0.65)', textDecoration: 'none', fontSize: 13 }}>
+                      <Typography sx={{ color: 'inherit', '&:hover': { color: '#fff' }, textDecoration: 'none' }}>{link}</Typography>
+                    </Link>
+                  ))}
+                </Stack>
+              </Grid>
+            </Grid>
+            <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.08)', pt: 4, mt: 4 }}>
+              <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, textAlign: 'center' }}>
+                © {new Date().getFullYear()} Cosy. All rights reserved. · Made for South African students and landlords.
+              </Typography>
+            </Box>
           </Container>
         </Box>
 

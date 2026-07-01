@@ -452,7 +452,7 @@ export default function HomePage() {
       </Box>
 
       {/* ─── FOOTER ───────────────────────────────────────── */}
-      <Box sx={{ bgcolor: '#0a1929', color: '#8b9ab0', pt: { xs: 8, md: 10 }, pb: 0, px: 2 }}>
+      <Box sx={{ bgcolor: '#0a1929', color: 'rgba(255,255,255,0.65)', pt: { xs: 8, md: 10 }, pb: 0, px: 2, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
         <Container maxWidth="lg">
           <Grid container spacing={6}>
             <Grid size={{ xs: 12, md: 4 }}>
@@ -462,7 +462,7 @@ export default function HomePage() {
                 </Box>
                 <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: 20, letterSpacing: '-0.02em' }}>Cosy</Typography>
               </Box>
-              <Typography variant="body2" sx={{ maxWidth: 280, lineHeight: 1.85, mb: 3, fontSize: 13 }}>
+              <Typography variant="body2" sx={{ maxWidth: 280, lineHeight: 1.85, mb: 3, fontSize: 13, color: 'rgba(255,255,255,0.65)' }}>
                 South Africa&apos;s leading student accommodation platform — connecting students with verified, affordable housing near their universities.
               </Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
@@ -473,7 +473,7 @@ export default function HomePage() {
                   { icon: <LinkedInIcon fontSize="small" />, label: 'LinkedIn', href: 'https://linkedin.com' },
                 ].map(s => (
                   <Box key={s.label} component="a" href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
-                    sx={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8b9ab0', textDecoration: 'none', transition: 'border-color 0.2s, color 0.2s, background 0.2s', '&:hover': { color: '#fff', borderColor: '#1976d2', bgcolor: 'rgba(25,118,210,0.15)' } }}>
+                    sx={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.65)', textDecoration: 'none', transition: 'border-color 0.2s, color 0.2s, background 0.2s', '&:hover': { color: '#fff', borderColor: 'rgba(255,255,255,0.5)', bgcolor: 'rgba(255,255,255,0.08)' } }}>
                     {s.icon}
                   </Box>
                 ))}
@@ -487,9 +487,9 @@ export default function HomePage() {
                   { heading: 'Students', links: [{ label: 'Login', href: '/login' }, { label: 'Register', href: '/register' }, { label: 'My Applications', href: '/applications' }, { label: 'Saved Listings', href: '/saved-listings' }] },
                 ].map(col => (
                   <Grid key={col.heading} size={{ xs: 6, sm: 4 }}>
-                    <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: 13, mb: 2 }}>{col.heading}</Typography>
+                    <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: 14, mb: 2 }}>{col.heading}</Typography>
                     {col.links.map(l => (
-                      <Typography key={l.label} component={Link} href={l.href} variant="body2" sx={{ display: 'block', mb: 1.5, color: '#8b9ab0', textDecoration: 'none', fontSize: 13, '&:hover': { color: '#fff' } }}>{l.label}</Typography>
+                      <Typography key={l.label} component={Link} href={l.href} variant="body2" sx={{ display: 'block', mb: 1.5, color: 'rgba(255,255,255,0.65)', textDecoration: 'none', fontSize: 13, '&:hover': { color: '#fff' } }}>{l.label}</Typography>
                     ))}
                   </Grid>
                 ))}
@@ -497,10 +497,10 @@ export default function HomePage() {
             </Grid>
           </Grid>
           <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.08)', py: 3, mt: 6, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-            <Typography variant="body2" sx={{ fontSize: 13 }}>© {new Date().getFullYear()} Cosy. All rights reserved.</Typography>
+            <Typography variant="body2" sx={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>© {new Date().getFullYear()} Cosy. All rights reserved.</Typography>
             <Box sx={{ display: 'flex', gap: 3 }}>
               {['Privacy','Terms','Sitemap'].map(l => (
-                <Typography key={l} component={Link} href="/" variant="body2" sx={{ fontSize: 13, color: '#8b9ab0', textDecoration: 'none', '&:hover': { color: '#fff' } }}>{l}</Typography>
+                <Typography key={l} component={Link} href="/" variant="body2" sx={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', textDecoration: 'none', '&:hover': { color: '#fff' } }}>{l}</Typography>
               ))}
             </Box>
           </Box>

@@ -60,7 +60,8 @@ const Card = styled(MuiCard)(({ theme }) => ({
   padding: theme.spacing(4),
   gap: theme.spacing(2),
   margin: 'auto',
-  [theme.breakpoints.up('sm')]: { maxWidth: '450px' },
+  [theme.breakpoints.up('sm')]: { maxWidth: '480px' },
+  borderRadius: 16,
   boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
 }));
 
@@ -74,14 +75,14 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
     position: 'absolute',
     zIndex: -1,
     inset: 0,
-    backgroundImage: 'radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))',
+    backgroundImage: 'linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%)',
     backgroundRepeat: 'no-repeat',
   },
 }));
 
 const theme = createTheme({
   typography: { fontFamily: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'].join(',') },
-  shape: { borderRadius: 8 },
+  shape: { borderRadius: 12 },
 });
 
 // ── ForgotPassword dialog ──────────────────────────────────────────────────────
@@ -215,7 +216,7 @@ export default function LoginPage() {
 
           {serverError && <Alert severity="error" sx={{ width: '100%' }}>{serverError}</Alert>}
 
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 2 }}>
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 2, '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}>
             <FormControl>
               <FormLabel htmlFor="email">Email</FormLabel>
               <TextField
@@ -272,12 +273,12 @@ export default function LoginPage() {
             <ForgotPassword open={forgotOpen} onClose={() => setForgotOpen(false)} />
 
             <Button type="submit" fullWidth variant="contained" disabled={loading}
-              sx={{ py: 1.2, fontWeight: 600, textTransform: 'none' }}
+              sx={{ py: 1.25, fontWeight: 700, textTransform: 'none', borderRadius: '9999px' }}
               onClick={validateInputs}>
               {loading ? <CircularProgress size={22} color="inherit" /> : 'Sign in'}
             </Button>
 
-            <Link component="button" type="button" onClick={() => setForgotOpen(true)} variant="body2" sx={{ alignSelf: 'center' }}>
+            <Link component="button" type="button" onClick={() => setForgotOpen(true)} variant="body2" sx={{ alignSelf: 'center', color: '#1976d2', fontWeight: 600 }}>
               Forgot your password?
             </Link>
           </Box>
@@ -287,7 +288,7 @@ export default function LoginPage() {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Typography sx={{ textAlign: 'center' }}>
               Don&apos;t have an account?{' '}
-              <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'} variant="body2" sx={{ alignSelf: 'center' }}>Sign up</Link>
+              <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'} variant="body2" sx={{ alignSelf: 'center', color: '#1976d2', fontWeight: 600 }}>Sign up</Link>
             </Typography>
           </Box>
         </Card>
