@@ -254,7 +254,7 @@ export default function LandlordPage() {
           }}
         >
           <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-            <Grid container spacing={{ xs: 3, md: 5 }} alignItems="center">
+            <Grid container spacing={{ xs: 3, md: 5 }} sx={{ alignItems: 'center' }}>
               <Grid size={{ xs: 12, md: 7 }}>
                 <Chip
                   label="For Property Owners & Landlords"
