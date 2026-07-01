@@ -46,23 +46,37 @@ const FEATURES = [
   { icon: <SecurityRoundedIcon sx={{ fontSize: 28, color: '#1976d2' }} />, title: 'Secure Platform', desc: 'Messages, payments, and personal information stay private until both parties approve.' },
 ];
 
+const HERO_STATS = [
+  { value: '12,000+', label: 'Student Demand' },
+  { value: '850+', label: 'Active Listings' },
+  { value: '95%', label: 'Avg Occupancy' },
+  { value: '25+', label: 'Universities' },
+];
+
 export default function ForLandlordsPage() {
   return (
     <ThemeProvider theme={theme}>
       {/* ─── HERO ────────────────────────────────────────── */}
-      <Box sx={{ position: 'relative', height: { xs: 420, sm: 480, md: 540 }, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ position: 'relative', height: { xs: 460, sm: 520, md: 580 }, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Box sx={{
-          position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%)',
+          position: 'absolute', inset: 0,
+          backgroundImage: 'url(https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1800&h=1000&fit=crop&auto=format)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
         }} />
-        <Box sx={{ position: 'absolute', top: -100, right: -100, width: 400, height: 400, borderRadius: '50%', bgcolor: 'rgba(25,118,210,0.06)' }} />
-        <Box sx={{ position: 'absolute', bottom: -80, left: -80, width: 300, height: 300, borderRadius: '50%', bgcolor: 'rgba(25,118,210,0.04)' }} />
+        <Box sx={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(112deg, rgba(2,18,39,0.9) 0%, rgba(9,46,89,0.75) 45%, rgba(25,118,210,0.56) 100%)',
+        }} />
+        <Box sx={{ position: 'absolute', top: -100, right: -100, width: 420, height: 420, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.08)' }} />
+        <Box sx={{ position: 'absolute', bottom: -90, left: -90, width: 340, height: 340, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.07)' }} />
         
         <Box sx={{ position: 'relative', zIndex: 2, textAlign: 'center', px: 2, width: '100%', maxWidth: 780, mx: 'auto' }}>
-          <Typography sx={{ color: '#1976d2', fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase', fontSize: 12, mb: 2 }}>Landlord Growth Platform</Typography>
-          <Typography component="h1" sx={{ fontWeight: 700, fontSize: { xs: '2rem', sm: '2.8rem', md: '3.4rem' }, lineHeight: 1.1, letterSpacing: '-0.02em', color: '#222222', mb: 1.5 }}>
+          <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase', fontSize: 12, mb: 2 }}>Landlord Growth Platform</Typography>
+          <Typography component="h1" sx={{ fontWeight: 700, fontSize: { xs: '2rem', sm: '2.8rem', md: '3.4rem' }, lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff', mb: 1.5 }}>
             Fill rooms faster with verified students
           </Typography>
-          <Typography sx={{ color: '#717171', fontSize: { xs: 15, md: 17 }, fontWeight: 400, mb: 4, lineHeight: 1.65, maxWidth: 600, mx: 'auto' }}>
+          <Typography sx={{ color: 'rgba(255,255,255,0.82)', fontSize: { xs: 15, md: 17 }, fontWeight: 400, mb: 4, lineHeight: 1.65, maxWidth: 600, mx: 'auto' }}>
             Cosy connects you with thousands of verified student renters. List your property, manage allocations, and communicate with tenants from one platform.
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -71,11 +85,25 @@ export default function ForLandlordsPage() {
               Create Landlord Account
             </Button>
             <Button component={Link} href="/landlord" variant="outlined"
-              sx={{ borderColor: '#1976d2', color: '#1976d2', fontWeight: 700, textTransform: 'none', px: 3.5, borderRadius: '9999px', fontSize: 15, '&:hover': { bgcolor: '#f5f8ff' } }}>
+              sx={{ borderColor: 'rgba(255,255,255,0.65)', color: '#fff', fontWeight: 700, textTransform: 'none', px: 3.5, borderRadius: '9999px', fontSize: 15, '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,0.1)' } }}>
               View Landlord Dashboard
             </Button>
           </Box>
         </Box>
+      </Box>
+
+      {/* ─── HERO STATS ───────────────────────────────────── */}
+      <Box sx={{ bgcolor: '#fff', borderBottom: '1px solid #eeeeee' }}>
+        <Container maxWidth="lg">
+          <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+            {HERO_STATS.map((s, i) => (
+              <Box key={s.label} sx={{ px: { xs: 3, md: 6 }, py: { xs: 3, md: 4 }, textAlign: 'center', borderRight: { xs: i % 2 === 0 ? '1px solid #eeeeee' : 'none', md: i < 3 ? '1px solid #eeeeee' : 'none' }, width: { xs: '50%', md: 'auto' }, flex: { md: '1 1 0' } }}>
+                <Typography sx={{ fontWeight: 700, fontSize: { xs: '1.4rem', md: '1.8rem' }, color: '#1976d2', lineHeight: 1 }}>{s.value}</Typography>
+                <Typography sx={{ color: '#717171', fontSize: 13, mt: 0.5 }}>{s.label}</Typography>
+              </Box>
+            ))}
+          </Box>
+        </Container>
       </Box>
 
       {/* ─── KEY BENEFITS ─────────────────────────────────── */}
