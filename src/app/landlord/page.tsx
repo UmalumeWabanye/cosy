@@ -230,86 +230,140 @@ export default function LandlordPage() {
             backgroundImage: 'url(https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1800&h=900&fit=crop&auto=format)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            pt: { xs: 10, md: 16 },
-            pb: { xs: 8, md: 12 },
+            pt: { xs: 9, md: 13 },
+            pb: { xs: 7, md: 10 },
             px: 2,
             position: 'relative',
             overflow: 'hidden',
             '&::before': {
               content: '""',
-              position: 'absolute', inset: 0,
-              background: 'linear-gradient(110deg, rgba(2,18,39,0.88) 0%, rgba(6,45,85,0.72) 45%, rgba(25,118,210,0.52) 100%)',
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(95deg, rgba(4,20,42,0.92) 0%, rgba(8,46,86,0.78) 44%, rgba(25,118,210,0.48) 100%)',
             },
             '&::after': {
               content: '""',
               position: 'absolute',
-              left: '-8%',
-              bottom: '-28%',
-              width: '56%',
-              height: '52%',
+              right: '-12%',
+              top: '-36%',
+              width: '54%',
+              height: '78%',
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(147,214,255,0.24) 0%, rgba(147,214,255,0) 70%)',
+              background: 'radial-gradient(circle, rgba(147,214,255,0.28) 0%, rgba(147,214,255,0) 70%)',
             },
           }}
         >
-          <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-            <Chip
-              label="For Property Owners & Landlords"
-              size="small"
-              sx={{
-                bgcolor: 'rgba(255,255,255,0.18)', color: 'white', fontWeight: 700,
-                mb: 3, fontSize: '0.75rem', backdropFilter: 'blur(8px)',
-              }}
-            />
-            <Typography
-              variant="h1"
-              sx={{
-                fontWeight: 900, color: 'white', mb: 3,
-                fontSize: { xs: '2.4rem', sm: '3.2rem', md: '4rem' },
-                lineHeight: 1.1, letterSpacing: '-0.02em',
-              }}
-            >
-              List Your Property.
-              <Box component="span" sx={{ display: 'block', color: '#d9eeff' }}>
-                Fill Every Room.
-              </Box>
-            </Typography>
-            <Typography
-              variant="h6"
-              sx={{ color: 'rgba(255,255,255,0.82)', mb: 6, fontWeight: 400, maxWidth: 580, mx: 'auto', lineHeight: 1.7 }}
-            >
-              Join South Africa's leading student accommodation platform and connect with thousands of verified students searching near your property.
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Button
-                component={Link}
-                href="/register?role=landlord"
-                variant="contained"
-                size="large"
-                endIcon={<ArrowForwardRoundedIcon />}
-                sx={{
-                  bgcolor: 'white', color: '#1565c0', fontWeight: 700,
-                  px: 4, py: 1.6, borderRadius: '9999px', fontSize: '1rem',
-                  boxShadow: '0 6px 24px rgba(0,0,0,0.2)',
-                  '&:hover': { bgcolor: '#f0f7ff' },
-                }}
-              >
-                Get Started — It's Free
-              </Button>
-              <Button
-                component={Link}
-                href="#how-it-works"
-                variant="outlined"
-                size="large"
-                sx={{
-                  borderColor: 'rgba(255,255,255,0.6)', color: 'white',
-                  fontWeight: 600, px: 4, py: 1.6, borderRadius: '9999px', fontSize: '1rem',
-                  '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' },
-                }}
-              >
-                See How It Works
-              </Button>
-            </Box>
+          <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+            <Grid container spacing={{ xs: 3, md: 5 }} alignItems="center">
+              <Grid size={{ xs: 12, md: 7 }}>
+                <Chip
+                  label="For Property Owners & Landlords"
+                  size="small"
+                  sx={{
+                    bgcolor: 'rgba(255,255,255,0.18)', color: 'white', fontWeight: 700,
+                    mb: 2.5, fontSize: '0.75rem', backdropFilter: 'blur(8px)',
+                  }}
+                />
+                <Typography
+                  variant="h1"
+                  sx={{
+                    fontWeight: 900,
+                    color: 'white',
+                    mb: 2.5,
+                    fontSize: { xs: '2.3rem', sm: '3rem', md: '3.8rem' },
+                    lineHeight: 1.05,
+                    letterSpacing: '-0.02em',
+                    maxWidth: 760,
+                  }}
+                >
+                  Fill Rooms Faster With
+                  <Box component="span" sx={{ display: 'block', color: '#d9eeff' }}>
+                    Verified Student Tenants.
+                  </Box>
+                </Typography>
+                <Typography
+                  variant="h6"
+                  sx={{ color: 'rgba(255,255,255,0.82)', mb: 4, fontWeight: 400, maxWidth: 620, lineHeight: 1.7 }}
+                >
+                  Cosy helps South African landlords launch high-converting listings, reach serious applicants, and keep occupancy predictable throughout the academic year.
+                </Typography>
+                <Stack direction="row" spacing={1} sx={{ mb: 4, flexWrap: 'wrap', rowGap: 1.2 }}>
+                  <Chip label="University-verified applicants" sx={{ bgcolor: 'rgba(255,255,255,0.16)', color: 'white', fontWeight: 600 }} />
+                  <Chip label="NSFAS-ready onboarding" sx={{ bgcolor: 'rgba(255,255,255,0.16)', color: 'white', fontWeight: 600 }} />
+                  <Chip label="Live occupancy tracking" sx={{ bgcolor: 'rgba(255,255,255,0.16)', color: 'white', fontWeight: 600 }} />
+                </Stack>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <Button
+                    component={Link}
+                    href="/register?role=landlord"
+                    variant="contained"
+                    size="large"
+                    endIcon={<ArrowForwardRoundedIcon />}
+                    sx={{
+                      bgcolor: 'white', color: '#1565c0', fontWeight: 700,
+                      px: 4, py: 1.6, borderRadius: '9999px', fontSize: '1rem',
+                      boxShadow: '0 6px 24px rgba(0,0,0,0.2)',
+                      '&:hover': { bgcolor: '#f0f7ff' },
+                    }}
+                  >
+                    Start Listing for Free
+                  </Button>
+                  <Button
+                    component={Link}
+                    href="#how-it-works"
+                    variant="outlined"
+                    size="large"
+                    sx={{
+                      borderColor: 'rgba(255,255,255,0.6)', color: 'white',
+                      fontWeight: 600, px: 4, py: 1.6, borderRadius: '9999px', fontSize: '1rem',
+                      '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' },
+                    }}
+                  >
+                    View The Process
+                  </Button>
+                </Box>
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 5 }}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: { xs: 2.5, md: 3 },
+                    borderRadius: '18px',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    bgcolor: 'rgba(3, 24, 50, 0.44)',
+                    backdropFilter: 'blur(10px)',
+                    color: 'white',
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 800, fontSize: '1.15rem', mb: 0.6 }}>Live Landlord Snapshot</Typography>
+                  <Typography sx={{ color: 'rgba(255,255,255,0.78)', fontSize: '0.9rem', mb: 2.2 }}>
+                    High-performing properties on Cosy typically attract meaningful interest within days of publishing.
+                  </Typography>
+                  <Grid container spacing={1.4}>
+                    <Grid size={6}>
+                      <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.12)' }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: '1.15rem' }}>48h</Typography>
+                        <Typography sx={{ color: 'rgba(255,255,255,0.78)', fontSize: '0.78rem' }}>Avg first enquiry</Typography>
+                      </Box>
+                    </Grid>
+                    <Grid size={6}>
+                      <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.12)' }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: '1.15rem' }}>6.2x</Typography>
+                        <Typography sx={{ color: 'rgba(255,255,255,0.78)', fontSize: '0.78rem' }}>More listing views</Typography>
+                      </Box>
+                    </Grid>
+                    <Grid size={12}>
+                      <Box sx={{ p: 1.8, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.12)' }}>
+                        <Typography sx={{ fontWeight: 700, mb: 0.6, fontSize: '0.88rem' }}>This month</Typography>
+                        <Typography sx={{ color: '#d9eeff', fontWeight: 900, fontSize: '1.8rem', lineHeight: 1 }}>R118,400</Typography>
+                        <Typography sx={{ color: 'rgba(255,255,255,0.72)', fontSize: '0.76rem' }}>Estimated income across active properties</Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+            </Grid>
           </Container>
         </Box>
 
@@ -330,6 +384,51 @@ export default function LandlordPage() {
                     </Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>{s.label}</Typography>
                   </Box>
+                </Grid>
+              ))}
+            </Grid>
+          </Container>
+        </Box>
+
+        {/* ─── TESTIMONIALS ─────────────────────────────────────── */}
+        <Box sx={{ bgcolor: '#fff', py: { xs: 8, md: 10 }, px: 2 }}>
+          <Container maxWidth="lg">
+            <Box sx={{ textAlign: 'center', mb: 7 }}>
+              <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 2 }}>
+                Landlord Stories
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 800, mt: 1, fontSize: { xs: '1.8rem', md: '2.2rem' } }}>
+                Results from active hosts on Cosy
+              </Typography>
+            </Box>
+            <Grid container spacing={3}>
+              {TESTIMONIALS.map((t) => (
+                <Grid key={t.name} size={{ xs: 12, md: 4 }}>
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      p: 3.5, borderRadius: '16px', height: '100%', bgcolor: 'white',
+                      transition: 'box-shadow 0.2s',
+                      '&:hover': { boxShadow: '0 8px 24px rgba(0,0,0,0.08)' },
+                    }}
+                  >
+                    <FormatQuoteRoundedIcon sx={{ fontSize: 36, color: '#bbdefb', mb: 1 }} />
+                    <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.75, mb: 3, fontStyle: 'italic' }}>
+                      "{t.quote}"
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Box
+                        component="img"
+                        src={t.photo}
+                        alt={t.name}
+                        sx={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover' }}
+                      />
+                      <Box>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>{t.name}</Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>{t.title}</Typography>
+                      </Box>
+                    </Box>
+                  </Paper>
                 </Grid>
               ))}
             </Grid>
@@ -622,51 +721,6 @@ export default function LandlordPage() {
               </Typography>
               <Typography sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>— Cosy Landlord, Cape Town</Typography>
             </Box>
-          </Container>
-        </Box>
-
-        {/* ─── TESTIMONIALS ─────────────────────────────────────── */}
-        <Box sx={{ bgcolor: '#fff', py: { xs: 8, md: 12 }, px: 2 }}>
-          <Container maxWidth="lg">
-            <Box sx={{ textAlign: 'center', mb: 8 }}>
-              <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 2 }}>
-                Landlord Stories
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 800, mt: 1, fontSize: { xs: '1.8rem', md: '2.2rem' } }}>
-                Landlords who list on Cosy
-              </Typography>
-            </Box>
-            <Grid container spacing={3}>
-              {TESTIMONIALS.map((t) => (
-                <Grid key={t.name} size={{ xs: 12, md: 4 }}>
-                  <Paper
-                    variant="outlined"
-                    sx={{
-                      p: 3.5, borderRadius: '16px', height: '100%', bgcolor: 'white',
-                      transition: 'box-shadow 0.2s',
-                      '&:hover': { boxShadow: '0 8px 24px rgba(0,0,0,0.08)' },
-                    }}
-                  >
-                    <FormatQuoteRoundedIcon sx={{ fontSize: 36, color: '#bbdefb', mb: 1 }} />
-                    <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.75, mb: 3, fontStyle: 'italic' }}>
-                      "{t.quote}"
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Box
-                        component="img"
-                        src={t.photo}
-                        alt={t.name}
-                        sx={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover' }}
-                      />
-                      <Box>
-                        <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>{t.name}</Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>{t.title}</Typography>
-                      </Box>
-                    </Box>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
           </Container>
         </Box>
 
