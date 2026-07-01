@@ -362,6 +362,42 @@ export default function BrowsePage() {
     <StudentLayout>
     <Box sx={{ bgcolor: '#f8f9fa', display: 'flex', flexDirection: 'column', height: { xs: 'auto', md: 'calc(100vh - 48px)' }, minHeight: { xs: '100vh', md: 'unset' } }}>
 
+        {/* ── HERO STRIP ─────────────────────────────────────── */}
+        <Box sx={{
+          px: { xs: 2, sm: 3 },
+          pt: { xs: 2, md: 2.5 },
+          pb: { xs: 1.5, md: 2 },
+          background: 'linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)',
+          borderBottom: '1px solid #eceff3',
+        }}>
+          <Box sx={{ maxWidth: 1600, mx: 'auto' }}>
+            <Typography sx={{ fontSize: { xs: 22, md: 28 }, fontWeight: 700, letterSpacing: '-0.02em', color: '#222' }}>
+              Stays Near Campus
+            </Typography>
+            <Typography sx={{ color: '#717171', fontSize: 14, mt: 0.5, mb: 1.5 }}>
+              Search verified student homes with Airbnb-style discovery and Cosy trust signals.
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 0.5, scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+              {['Popular', 'NSFAS Ready', 'Under R4,500', 'Near UCT', 'Near Wits', 'Shared Rooms', 'Private Ensuite'].map((tag) => (
+                <Chip
+                  key={tag}
+                  label={tag}
+                  size="small"
+                  sx={{
+                    flexShrink: 0,
+                    borderRadius: '9999px',
+                    border: '1px solid #dde3ea',
+                    bgcolor: '#fff',
+                    color: '#3a4553',
+                    fontWeight: 600,
+                    '&:hover': { borderColor: '#1976d2', color: '#1976d2', bgcolor: '#f5f9ff' },
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
+        </Box>
+
         {/* ── FILTER BAR ──────────────────────────────────────── */}
         <Box sx={{ bgcolor: 'white', borderBottom: '1px solid', borderColor: 'divider', boxShadow: '0 1px 6px rgba(0,0,0,0.05)', flexShrink: 0, zIndex: 10 }}>
           <Box sx={{ maxWidth: 1600, mx: 'auto', px: { xs: 2, sm: 3 }, height: FILTERBAR_H, display: 'flex', alignItems: 'center', gap: 2 }}>

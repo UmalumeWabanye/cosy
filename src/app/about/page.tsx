@@ -83,16 +83,24 @@ export default function AboutPage() {
 
         {/* HERO */}
         <Box sx={{
-          backgroundImage: 'linear-gradient(135deg, #0d47a1 0%, #1976d2 70%, #42a5f5 100%)',
+          backgroundImage: 'url(https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1800&h=980&fit=crop&auto=format)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
           color: '#fff',
           py: { xs: 12, md: 18 },
           px: 2,
           textAlign: 'center',
           position: 'relative',
           overflow: 'hidden',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(115deg, rgba(2,18,39,0.88) 0%, rgba(6,45,85,0.68) 50%, rgba(25,118,210,0.48) 100%)',
+          },
         }}>
-          <Box sx={{ position: 'absolute', top: -100, right: -100, width: 400, height: 400, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.04)' }} />
-          <Box sx={{ position: 'absolute', bottom: -80, left: -80, width: 300, height: 300, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.04)' }} />
+          <Box sx={{ position: 'absolute', top: -100, right: -100, width: 400, height: 400, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.06)' }} />
+          <Box sx={{ position: 'absolute', bottom: -80, left: -80, width: 300, height: 300, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.06)' }} />
           <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
             <Typography variant="overline" sx={{ color: 'rgba(255,255,255,0.7)', letterSpacing: 3, fontSize: 12, mb: 2, display: 'block' }}>
               About Cosy
@@ -104,6 +112,16 @@ export default function AboutPage() {
             <Typography sx={{ fontSize: { xs: '1rem', md: '1.2rem' }, color: 'rgba(255,255,255,0.82)', maxWidth: 600, mx: 'auto', lineHeight: 1.8 }}>
               {"Cosy is South Africa's dedicated student accommodation platform — a single trusted space where students find verified housing, and landlords fill their properties with quality tenants."}
             </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'center', mt: 4 }}>
+              <Button component={Link} href="/browse" variant="contained" endIcon={<ArrowForwardRoundedIcon />}
+                sx={{ bgcolor: '#fff', color: '#0d47a1', fontWeight: 700, px: 3.5, py: 1.3, textTransform: 'none', borderRadius: '9999px', '&:hover': { bgcolor: '#e3f2fd' } }}>
+                Browse homes
+              </Button>
+              <Button component={Link} href="/register?role=landlord" variant="outlined"
+                sx={{ borderColor: 'rgba(255,255,255,0.6)', color: '#fff', fontWeight: 700, px: 3.5, py: 1.3, textTransform: 'none', borderRadius: '9999px', '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,0.08)' } }}>
+                List your property
+              </Button>
+            </Stack>
           </Container>
         </Box>
 

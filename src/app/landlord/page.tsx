@@ -227,7 +227,9 @@ export default function LandlordPage() {
         {/* ─── HERO ─────────────────────────────────────────────── */}
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #0d47a1 0%, #1565c0 40%, #1976d2 70%, #42a5f5 100%)',
+            backgroundImage: 'url(https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1800&h=900&fit=crop&auto=format)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
             pt: { xs: 10, md: 16 },
             pb: { xs: 8, md: 12 },
             px: 2,
@@ -236,8 +238,17 @@ export default function LandlordPage() {
             '&::before': {
               content: '""',
               position: 'absolute', inset: 0,
-              backgroundImage:
-                'radial-gradient(circle at 15% 50%, rgba(255,255,255,0.07) 0%, transparent 50%), radial-gradient(circle at 85% 20%, rgba(255,255,255,0.09) 0%, transparent 45%)',
+              background: 'linear-gradient(110deg, rgba(2,18,39,0.88) 0%, rgba(6,45,85,0.72) 45%, rgba(25,118,210,0.52) 100%)',
+            },
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              left: '-8%',
+              bottom: '-28%',
+              width: '56%',
+              height: '52%',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(147,214,255,0.24) 0%, rgba(147,214,255,0) 70%)',
             },
           }}
         >
@@ -246,7 +257,7 @@ export default function LandlordPage() {
               label="For Property Owners & Landlords"
               size="small"
               sx={{
-                bgcolor: 'rgba(255,255,255,0.15)', color: 'white', fontWeight: 600,
+                bgcolor: 'rgba(255,255,255,0.18)', color: 'white', fontWeight: 700,
                 mb: 3, fontSize: '0.75rem', backdropFilter: 'blur(8px)',
               }}
             />
@@ -259,7 +270,7 @@ export default function LandlordPage() {
               }}
             >
               List Your Property.
-              <Box component="span" sx={{ display: 'block', color: '#bbdefb' }}>
+              <Box component="span" sx={{ display: 'block', color: '#d9eeff' }}>
                 Fill Every Room.
               </Box>
             </Typography>
