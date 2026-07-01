@@ -9,13 +9,16 @@ import { trackEvent } from '@/utils/analytics';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
+import Container from '@mui/material/Container';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
+import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -50,11 +53,11 @@ const Card = styled(MuiCard)(({ theme }) => ({
   flexDirection: 'column',
   alignSelf: 'center',
   width: '100%',
-  padding: theme.spacing(4),
+  padding: theme.spacing(3.5),
   gap: theme.spacing(2),
   margin: 'auto',
-  [theme.breakpoints.up('sm')]: { maxWidth: '480px' },
-  borderRadius: 16,
+  [theme.breakpoints.up('sm')]: { maxWidth: '560px' },
+  borderRadius: 18,
   boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
 }));
 
@@ -68,7 +71,7 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
     position: 'absolute',
     zIndex: -1,
     inset: 0,
-    backgroundImage: 'linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%)',
+    backgroundImage: 'linear-gradient(135deg, #f6fbff 0%, #e8f3ff 46%, #deeeff 100%)',
     backgroundRepeat: 'no-repeat',
   },
 }));
@@ -222,176 +225,213 @@ function RegisterForm() {
     <ThemeProvider theme={theme}>
       <CssBaseline enableColorScheme />
       <SignUpContainer className="cinema-public-page cinema-reveal" direction="column" sx={{ justifyContent: 'center' }}>
-        <Card className="cinema-panel" variant="outlined">
-          <CosyIcon />
+        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2 } }}>
+          <Grid container spacing={{ xs: 3, md: 5 }} sx={{ alignItems: 'center' }}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Box sx={{ maxWidth: 580, color: '#0f2942' }}>
+                <Typography sx={{ color: '#1565c0', fontSize: 12, fontWeight: 800, letterSpacing: 1.3, textTransform: 'uppercase', mb: 1.5 }}>
+                  Create Your Cosy Profile
+                </Typography>
+                <Typography sx={{ fontWeight: 900, lineHeight: 1.06, letterSpacing: '-0.02em', fontSize: { xs: '2rem', sm: '2.6rem', md: '3rem' }, mb: 2 }}>
+                  {isLandlord ? 'Launch your landlord workspace in minutes.' : 'Start your accommodation journey with confidence.'}
+                </Typography>
+                <Typography sx={{ color: 'rgba(15,41,66,0.75)', fontSize: 16, lineHeight: 1.75, mb: 3 }}>
+                  {isLandlord
+                    ? 'Create your landlord profile to list rooms, manage applications, and track occupancy from one clean dashboard.'
+                    : 'Create your student profile to discover verified listings, apply faster, and track every request in one place.'}
+                </Typography>
+                <Stack direction="row" spacing={1} sx={{ mb: 3, flexWrap: 'wrap', rowGap: 1 }}>
+                  <Chip label={isLandlord ? 'List rooms faster' : 'Verified listings'} sx={{ bgcolor: 'rgba(25,118,210,0.1)', color: '#1565c0', fontWeight: 700 }} />
+                  <Chip label={isLandlord ? 'Smart tenant matching' : 'Quick applications'} sx={{ bgcolor: 'rgba(25,118,210,0.1)', color: '#1565c0', fontWeight: 700 }} />
+                  <Chip label="Secure by design" sx={{ bgcolor: 'rgba(25,118,210,0.1)', color: '#1565c0', fontWeight: 700 }} />
+                </Stack>
+                <Box sx={{ p: 2.5, borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.74)', border: '1px solid rgba(25,118,210,0.16)', backdropFilter: 'blur(6px)' }}>
+                  <Typography sx={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.9, color: '#1565c0', fontWeight: 700, mb: 0.7 }}>
+                    Designed for {isLandlord ? 'Landlords' : 'Students'}
+                  </Typography>
+                  <Typography sx={{ color: '#24415e', lineHeight: 1.7, fontSize: 14 }}>
+                    {isLandlord
+                      ? 'You can publish listings, review applicants, and start onboarding right after registration.'
+                      : 'You can compare rooms, submit requests, and keep all communication and updates in one account.'}
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
 
-          <Typography component="h1" variant="h4" sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)', fontWeight: 700 }}>
-            {isLandlord ? 'Create Landlord Account' : 'Sign up'}
-          </Typography>
-          {isLandlord && (
-            <Typography variant="body2" sx={{ color: 'text.secondary', mt: -1 }}>
-              You'll be set up as a landlord and taken straight to your dashboard.
-            </Typography>
-          )}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card className="cinema-panel" variant="outlined">
+                <CosyIcon />
 
-          {serverError && <Alert severity="error" sx={{ width: '100%' }}>{serverError}</Alert>}
+                <Typography component="h1" variant="h4" sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)', fontWeight: 700 }}>
+                  {isLandlord ? 'Create Landlord Account' : 'Sign up'}
+                </Typography>
+                {isLandlord && (
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mt: -1 }}>
+                    You'll be set up as a landlord and taken straight to your dashboard.
+                  </Typography>
+                )}
 
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ display: 'flex', flexDirection: 'column', gap: 2, '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}>
-            <FormControl>
-              <FormLabel htmlFor="name">Full name</FormLabel>
-              <TextField
-                error={nameError}
-                helperText={nameErrorMessage}
-                autoComplete="name"
-                name="name"
-                required
-                fullWidth
-                id="name"
-                placeholder="Jon Snow"
-                color={nameError ? 'error' : 'primary'}
-              />
-            </FormControl>
+                {serverError && <Alert severity="error" sx={{ width: '100%' }}>{serverError}</Alert>}
 
-            <FormControl>
-              <FormLabel htmlFor="email">Email</FormLabel>
-              <TextField
-                error={emailError}
-                helperText={emailErrorMessage}
-                id="email"
-                type="email"
-                name="email"
-                placeholder="your@email.com"
-                autoComplete="email"
-                required
-                fullWidth
-                variant="outlined"
-                color={emailError ? 'error' : 'primary'}
-              />
-            </FormControl>
+                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ display: 'flex', flexDirection: 'column', gap: 2, '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}>
+                  <FormControl>
+                    <FormLabel htmlFor="name">Full name</FormLabel>
+                    <TextField
+                      error={nameError}
+                      helperText={nameErrorMessage}
+                      autoComplete="name"
+                      name="name"
+                      required
+                      fullWidth
+                      id="name"
+                      placeholder="Jon Snow"
+                      color={nameError ? 'error' : 'primary'}
+                    />
+                  </FormControl>
 
-            <FormControl>
-              <FormLabel htmlFor="password">Password</FormLabel>
-              <TextField
-                error={passwordError}
-                helperText={passwordErrorMessage}
-                name="password"
-                placeholder="••••••"
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                autoComplete="new-password"
-                required
-                fullWidth
-                variant="outlined"
-                color={passwordError ? 'error' : 'primary'}
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label={showPassword ? 'Hide password' : 'Show password'}
-                          onClick={() => setShowPassword(v => !v)}
-                          edge="end"
-                          size="small"
+                  <FormControl>
+                    <FormLabel htmlFor="email">Email</FormLabel>
+                    <TextField
+                      error={emailError}
+                      helperText={emailErrorMessage}
+                      id="email"
+                      type="email"
+                      name="email"
+                      placeholder="your@email.com"
+                      autoComplete="email"
+                      required
+                      fullWidth
+                      variant="outlined"
+                      color={emailError ? 'error' : 'primary'}
+                    />
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel htmlFor="password">Password</FormLabel>
+                    <TextField
+                      error={passwordError}
+                      helperText={passwordErrorMessage}
+                      name="password"
+                      placeholder="••••••"
+                      type={showPassword ? 'text' : 'password'}
+                      id="password"
+                      autoComplete="new-password"
+                      required
+                      fullWidth
+                      variant="outlined"
+                      color={passwordError ? 'error' : 'primary'}
+                      slotProps={{
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                onClick={() => setShowPassword(v => !v)}
+                                edge="end"
+                                size="small"
+                              >
+                                {showPassword ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
+                    />
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel htmlFor="confirmPassword">Confirm password</FormLabel>
+                    <TextField
+                      error={confirmPasswordError}
+                      helperText={confirmPasswordErrorMessage}
+                      name="confirmPassword"
+                      placeholder="••••••"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      id="confirmPassword"
+                      autoComplete="new-password"
+                      required
+                      fullWidth
+                      variant="outlined"
+                      color={confirmPasswordError ? 'error' : 'primary'}
+                      slotProps={{
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                onClick={() => setShowConfirmPassword(v => !v)}
+                                edge="end"
+                                size="small"
+                              >
+                                {showConfirmPassword ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
+                    />
+                  </FormControl>
+
+                  {!isLandlord && (
+                    <>
+                      <FormControl>
+                        <FormLabel htmlFor="university">University</FormLabel>
+                        <TextField
+                          error={universityError}
+                          helperText={universityErrorMessage}
+                          name="university"
+                          placeholder="University Name"
+                          id="university"
+                          required
+                          fullWidth
+                          variant="outlined"
+                          color={universityError ? 'error' : 'primary'}
+                        />
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel htmlFor="fundingType">Funding Type</FormLabel>
+                        <TextField
+                          select
+                          error={fundingTypeError}
+                          helperText={fundingTypeErrorMessage}
+                          name="fundingType"
+                          id="fundingType"
+                          defaultValue=""
+                          required
+                          fullWidth
+                          variant="outlined"
+                          color={fundingTypeError ? 'error' : 'primary'}
                         >
-                          {showPassword ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
-            </FormControl>
+                          <MenuItem value="NSFAS">NSFAS</MenuItem>
+                          <MenuItem value="Bursary">Bursary</MenuItem>
+                          <MenuItem value="Private">Private</MenuItem>
+                          <MenuItem value="Other">Other</MenuItem>
+                        </TextField>
+                      </FormControl>
+                    </>
+                  )}
 
-            <FormControl>
-              <FormLabel htmlFor="confirmPassword">Confirm password</FormLabel>
-              <TextField
-                error={confirmPasswordError}
-                helperText={confirmPasswordErrorMessage}
-                name="confirmPassword"
-                placeholder="••••••"
-                type={showConfirmPassword ? 'text' : 'password'}
-                id="confirmPassword"
-                autoComplete="new-password"
-                required
-                fullWidth
-                variant="outlined"
-                color={confirmPasswordError ? 'error' : 'primary'}
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                          onClick={() => setShowConfirmPassword(v => !v)}
-                          edge="end"
-                          size="small"
-                        >
-                          {showConfirmPassword ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
-            </FormControl>
+                  <Button type="submit" fullWidth variant="contained" disabled={loading}
+                    sx={{ py: 1.25, fontWeight: 700, textTransform: 'none', borderRadius: '9999px' }}>
+                    {loading ? <CircularProgress size={22} color="inherit" /> : (isLandlord ? 'Create Landlord Account' : 'Sign up')}
+                  </Button>
 
-            {!isLandlord && (
-              <>
-                <FormControl>
-                  <FormLabel htmlFor="university">University</FormLabel>
-                  <TextField
-                    error={universityError}
-                    helperText={universityErrorMessage}
-                    name="university"
-                    placeholder="University Name"
-                    id="university"
-                    required
-                    fullWidth
-                    variant="outlined"
-                    color={universityError ? 'error' : 'primary'}
-                  />
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel htmlFor="fundingType">Funding Type</FormLabel>
-                  <TextField
-                    select
-                    error={fundingTypeError}
-                    helperText={fundingTypeErrorMessage}
-                    name="fundingType"
-                    id="fundingType"
-                    defaultValue=""
-                    required
-                    fullWidth
-                    variant="outlined"
-                    color={fundingTypeError ? 'error' : 'primary'}
-                  >
-                    <MenuItem value="NSFAS">NSFAS</MenuItem>
-                    <MenuItem value="Bursary">Bursary</MenuItem>
-                    <MenuItem value="Private">Private</MenuItem>
-                    <MenuItem value="Other">Other</MenuItem>
-                  </TextField>
-                </FormControl>
-              </>
-            )}
-
-            <Button type="submit" fullWidth variant="contained" disabled={loading}
-              sx={{ py: 1.25, fontWeight: 700, textTransform: 'none', borderRadius: '9999px' }}>
-              {loading ? <CircularProgress size={22} color="inherit" /> : (isLandlord ? 'Create Landlord Account' : 'Sign up')}
-            </Button>
-
-            <Typography sx={{ textAlign: 'center' }}>
-              Already have an account?{' '}
-              <Link
-                href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}${isLandlord ? '&role=landlord' : ''}` : isLandlord ? '/login?role=landlord' : '/login'}
-                variant="body2"
-                sx={{ alignSelf: 'center', color: '#1976d2', fontWeight: 600 }}
-              >
-                Sign in
-              </Link>
-            </Typography>
-          </Box>
-        </Card>
+                  <Typography sx={{ textAlign: 'center' }}>
+                    Already have an account?{' '}
+                    <Link
+                      href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}${isLandlord ? '&role=landlord' : ''}` : isLandlord ? '/login?role=landlord' : '/login'}
+                      variant="body2"
+                      sx={{ alignSelf: 'center', color: '#1976d2', fontWeight: 600 }}
+                    >
+                      Sign in
+                    </Link>
+                  </Typography>
+                </Box>
+              </Card>
+            </Grid>
+          </Grid>
+        </Container>
       </SignUpContainer>
     </ThemeProvider>
   );

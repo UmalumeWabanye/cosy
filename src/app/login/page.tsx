@@ -9,15 +9,18 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import CssBaseline from '@mui/material/CssBaseline';
+import Container from '@mui/material/Container';
 import Divider from '@mui/material/Divider';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
+import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -57,11 +60,11 @@ const Card = styled(MuiCard)(({ theme }) => ({
   flexDirection: 'column',
   alignSelf: 'center',
   width: '100%',
-  padding: theme.spacing(4),
+  padding: theme.spacing(3.5),
   gap: theme.spacing(2),
   margin: 'auto',
-  [theme.breakpoints.up('sm')]: { maxWidth: '480px' },
-  borderRadius: 16,
+  [theme.breakpoints.up('sm')]: { maxWidth: '520px' },
+  borderRadius: 18,
   boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
 }));
 
@@ -75,7 +78,7 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
     position: 'absolute',
     zIndex: -1,
     inset: 0,
-    backgroundImage: 'linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%)',
+    backgroundImage: 'linear-gradient(135deg, #f6fbff 0%, #e8f3ff 46%, #deeeff 100%)',
     backgroundRepeat: 'no-repeat',
   },
 }));
@@ -207,91 +210,124 @@ export default function LoginPage() {
     <ThemeProvider theme={theme}>
       <CssBaseline enableColorScheme />
       <SignInContainer className="cinema-public-page cinema-reveal" direction="column" sx={{ justifyContent: 'center' }}>
-        <Card className="cinema-panel" variant="outlined">
-          <CosyIcon />
+        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2 } }}>
+          <Grid container spacing={{ xs: 3, md: 5 }} sx={{ alignItems: 'center' }}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Box sx={{ maxWidth: 560, color: '#0f2942' }}>
+                <Typography sx={{ color: '#1565c0', fontSize: 12, fontWeight: 800, letterSpacing: 1.3, textTransform: 'uppercase', mb: 1.5 }}>
+                  Cosy Access
+                </Typography>
+                <Typography sx={{ fontWeight: 900, lineHeight: 1.06, letterSpacing: '-0.02em', fontSize: { xs: '2rem', sm: '2.6rem', md: '3rem' }, mb: 2 }}>
+                  Welcome back to your student housing workspace.
+                </Typography>
+                <Typography sx={{ color: 'rgba(15,41,66,0.75)', fontSize: 16, lineHeight: 1.75, mb: 3 }}>
+                  Sign in to manage applications, schedule viewings, and keep your accommodation journey moving from one place.
+                </Typography>
+                <Stack direction="row" spacing={1} sx={{ mb: 3, flexWrap: 'wrap', rowGap: 1 }}>
+                  <Chip label="Verified platform" sx={{ bgcolor: 'rgba(25,118,210,0.1)', color: '#1565c0', fontWeight: 700 }} />
+                  <Chip label="Fast approvals" sx={{ bgcolor: 'rgba(25,118,210,0.1)', color: '#1565c0', fontWeight: 700 }} />
+                  <Chip label="Secure messaging" sx={{ bgcolor: 'rgba(25,118,210,0.1)', color: '#1565c0', fontWeight: 700 }} />
+                </Stack>
+                <Box sx={{ p: 2.5, borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.74)', border: '1px solid rgba(25,118,210,0.16)', backdropFilter: 'blur(6px)' }}>
+                  <Typography sx={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.9, color: '#1565c0', fontWeight: 700, mb: 0.7 }}>
+                    Why Sign In
+                  </Typography>
+                  <Typography sx={{ color: '#24415e', lineHeight: 1.7, fontSize: 14 }}>
+                    Continue where you left off, access your saved listings, and keep communication centralized with landlords or student applicants.
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
 
-          <Typography component="h1" variant="h4" sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)', fontWeight: 700 }}>
-            Sign in
-          </Typography>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card className="cinema-panel" variant="outlined">
+                <CosyIcon />
 
-          {serverError && <Alert severity="error" sx={{ width: '100%' }}>{serverError}</Alert>}
+                <Typography component="h1" variant="h4" sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)', fontWeight: 700 }}>
+                  Sign in
+                </Typography>
 
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 2, '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}>
-            <FormControl>
-              <FormLabel htmlFor="email">Email</FormLabel>
-              <TextField
-                error={emailError}
-                helperText={emailErrorMessage}
-                id="email"
-                type="email"
-                name="email"
-                placeholder="your@email.com"
-                autoComplete="email"
-                autoFocus
-                required
-                fullWidth
-                variant="outlined"
-                color={emailError ? 'error' : 'primary'}
-              />
-            </FormControl>
+                {serverError && <Alert severity="error" sx={{ width: '100%' }}>{serverError}</Alert>}
 
-            <FormControl>
-              <FormLabel htmlFor="password">Password</FormLabel>
-              <TextField
-                error={passwordError}
-                helperText={passwordErrorMessage}
-                name="password"
-                placeholder="••••••"
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                autoComplete="current-password"
-                required
-                fullWidth
-                variant="outlined"
-                color={passwordError ? 'error' : 'primary'}
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label={showPassword ? 'Hide password' : 'Show password'}
-                          onClick={() => setShowPassword(v => !v)}
-                          edge="end"
-                          size="small"
-                        >
-                          {showPassword ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
-            </FormControl>
+                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 2, '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}>
+                  <FormControl>
+                    <FormLabel htmlFor="email">Email</FormLabel>
+                    <TextField
+                      error={emailError}
+                      helperText={emailErrorMessage}
+                      id="email"
+                      type="email"
+                      name="email"
+                      placeholder="your@email.com"
+                      autoComplete="email"
+                      autoFocus
+                      required
+                      fullWidth
+                      variant="outlined"
+                      color={emailError ? 'error' : 'primary'}
+                    />
+                  </FormControl>
 
-            <FormControlLabel control={<Checkbox value="remember" color="primary" />} label="Remember me" />
+                  <FormControl>
+                    <FormLabel htmlFor="password">Password</FormLabel>
+                    <TextField
+                      error={passwordError}
+                      helperText={passwordErrorMessage}
+                      name="password"
+                      placeholder="••••••"
+                      type={showPassword ? 'text' : 'password'}
+                      id="password"
+                      autoComplete="current-password"
+                      required
+                      fullWidth
+                      variant="outlined"
+                      color={passwordError ? 'error' : 'primary'}
+                      slotProps={{
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                onClick={() => setShowPassword(v => !v)}
+                                edge="end"
+                                size="small"
+                              >
+                                {showPassword ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
+                    />
+                  </FormControl>
 
-            <ForgotPassword open={forgotOpen} onClose={() => setForgotOpen(false)} />
+                  <FormControlLabel control={<Checkbox value="remember" color="primary" />} label="Remember me" />
 
-            <Button type="submit" fullWidth variant="contained" disabled={loading}
-              sx={{ py: 1.25, fontWeight: 700, textTransform: 'none', borderRadius: '9999px' }}
-              onClick={validateInputs}>
-              {loading ? <CircularProgress size={22} color="inherit" /> : 'Sign in'}
-            </Button>
+                  <ForgotPassword open={forgotOpen} onClose={() => setForgotOpen(false)} />
 
-            <Link component="button" type="button" onClick={() => setForgotOpen(true)} variant="body2" sx={{ alignSelf: 'center', color: '#1976d2', fontWeight: 600 }}>
-              Forgot your password?
-            </Link>
-          </Box>
+                  <Button type="submit" fullWidth variant="contained" disabled={loading}
+                    sx={{ py: 1.25, fontWeight: 700, textTransform: 'none', borderRadius: '9999px' }}
+                    onClick={validateInputs}>
+                    {loading ? <CircularProgress size={22} color="inherit" /> : 'Sign in'}
+                  </Button>
 
-          <Divider />
+                  <Link component="button" type="button" onClick={() => setForgotOpen(true)} variant="body2" sx={{ alignSelf: 'center', color: '#1976d2', fontWeight: 600 }}>
+                    Forgot your password?
+                  </Link>
+                </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Typography sx={{ textAlign: 'center' }}>
-              Don&apos;t have an account?{' '}
-              <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'} variant="body2" sx={{ alignSelf: 'center', color: '#1976d2', fontWeight: 600 }}>Sign up</Link>
-            </Typography>
-          </Box>
-        </Card>
+                <Divider />
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Typography sx={{ textAlign: 'center' }}>
+                    Don&apos;t have an account?{' '}
+                    <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'} variant="body2" sx={{ alignSelf: 'center', color: '#1976d2', fontWeight: 600 }}>Sign up</Link>
+                  </Typography>
+                </Box>
+              </Card>
+            </Grid>
+          </Grid>
+        </Container>
       </SignInContainer>
     </ThemeProvider>
   );

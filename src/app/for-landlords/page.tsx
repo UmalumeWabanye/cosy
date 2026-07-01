@@ -84,10 +84,6 @@ export default function ForLandlordsPage() {
               sx={{ bgcolor: '#1976d2', color: '#fff', fontWeight: 700, textTransform: 'none', px: 3.5, borderRadius: '9999px', fontSize: 15, '&:hover': { bgcolor: '#1565c0' } }}>
               Create Landlord Account
             </Button>
-            <Button component={Link} href="/landlord" variant="outlined"
-              sx={{ borderColor: 'rgba(255,255,255,0.65)', color: '#fff', fontWeight: 700, textTransform: 'none', px: 3.5, borderRadius: '9999px', fontSize: 15, '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,0.1)' } }}>
-              View Landlord Dashboard
-            </Button>
           </Box>
         </Box>
       </Box>
@@ -200,10 +196,6 @@ export default function ForLandlordsPage() {
             <Button component={Link} href="/register?role=landlord&source=for-landlords-cta" variant="contained"
               sx={{ bgcolor: '#fff', color: '#1565c0', fontWeight: 700, textTransform: 'none', px: 3.5, borderRadius: '9999px', fontSize: 15, boxShadow: '0 4px 14px rgba(0,0,0,0.2)', '&:hover': { bgcolor: '#f5f5f5' } }}>
               Create Free Account
-            </Button>
-            <Button component={Link} href="/landlord"
-              sx={{ borderColor: 'rgba(255,255,255,0.6)', color: '#fff', border: '1.5px solid', fontWeight: 700, textTransform: 'none', px: 3.5, borderRadius: '9999px', fontSize: 15, '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,0.1)' } }}>
-              View Dashboard
             </Button>
           </Box>
         </Container>
