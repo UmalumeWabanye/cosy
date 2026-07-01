@@ -213,17 +213,17 @@ export default function LoginPage() {
         <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2 } }}>
           <Grid container spacing={{ xs: 3, md: 5 }} sx={{ alignItems: 'center' }}>
             <Grid size={{ xs: 12, md: 6 }}>
-              <Box sx={{ maxWidth: 560, color: '#0f2942' }}>
+              <Box sx={{ maxWidth: 620, color: '#0f2942' }}>
                 <Typography sx={{ color: '#1565c0', fontSize: 12, fontWeight: 800, letterSpacing: 1.3, textTransform: 'uppercase', mb: 1.5 }}>
                   Cosy Access
                 </Typography>
-                <Typography sx={{ fontWeight: 900, lineHeight: 1.06, letterSpacing: '-0.02em', fontSize: { xs: '2rem', sm: '2.6rem', md: '3rem' }, mb: 2 }}>
+                <Typography sx={{ fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.02em', fontSize: { xs: '2.3rem', sm: '3rem', md: '3.8rem' }, mb: 2.5 }}>
                   Welcome back to your student housing workspace.
                 </Typography>
-                <Typography sx={{ color: 'rgba(15,41,66,0.75)', fontSize: 16, lineHeight: 1.75, mb: 3 }}>
+                <Typography sx={{ color: 'rgba(15,41,66,0.75)', fontSize: 16, lineHeight: 1.7, mb: 4, maxWidth: 620 }}>
                   Sign in to manage applications, schedule viewings, and keep your accommodation journey moving from one place.
                 </Typography>
-                <Stack direction="row" spacing={1} sx={{ mb: 3, flexWrap: 'wrap', rowGap: 1 }}>
+                <Stack direction="row" spacing={1} sx={{ mb: 4, flexWrap: 'wrap', rowGap: 1.2 }}>
                   <Chip label="Verified platform" sx={{ bgcolor: 'rgba(25,118,210,0.1)', color: '#1565c0', fontWeight: 700 }} />
                   <Chip label="Fast approvals" sx={{ bgcolor: 'rgba(25,118,210,0.1)', color: '#1565c0', fontWeight: 700 }} />
                   <Chip label="Secure messaging" sx={{ bgcolor: 'rgba(25,118,210,0.1)', color: '#1565c0', fontWeight: 700 }} />
